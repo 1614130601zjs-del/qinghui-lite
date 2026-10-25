@@ -56,7 +56,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
  let raw='',data=null,res;
  if(c.provider==='novelai'||c.provider==='novelai-thirdparty'){
   const naiModel=c.naiModel||'nai-diffusion-4-5-full';
-  // 官网模式严格采用 SillyTavern 原生 NovelAI 扩展的请求协议。
+  // 官网与第三方分别使用各自保存的 Key；官网直连 NovelAI 官方 API。
   const negative=String(negativeOverride??c.negative??'');
   const isV4=/^nai-diffusion-(?:4(?:-|$)|5-)/i.test(naiModel);
   const isV5=/^nai-diffusion-5-/i.test(naiModel);
