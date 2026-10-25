@@ -1247,3 +1247,10 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-statusbar-card .ql-statusbar-arrow svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ql-statusbar-card .ql-statusbar-arrow:disabled{opacity:.3;cursor:default}
 .ql-statusbar-card .ql-statusbar-count{min-width:38px;text-align:center;font-size:12px;line-height:1;font-variant-numeric:tabular-nums;color:inherit}
+
+
+/* 0.5.15: keep statusbar controls tappable above themed statusbar layers */
+.ql-statusbar-card{pointer-events:auto!important;isolation:isolate;}
+.ql-statusbar-card>img{pointer-events:auto;position:relative;z-index:1;}
+.ql-statusbar-card>.ql-statusbar-controls{pointer-events:auto!important;z-index:20!important;bottom:max(6px,env(safe-area-inset-bottom,0px))!important;}
+.ql-statusbar-card .ql-statusbar-arrow{pointer-events:auto!important;position:relative;z-index:21;min-width:30px;min-height:28px;}
