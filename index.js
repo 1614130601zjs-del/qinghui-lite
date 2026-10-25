@@ -913,7 +913,17 @@ function statusbarTaskKey(target,prompt,doc){
  for(let i=0;i<prompt.length;i++){hash^=prompt.charCodeAt(i);hash=Math.imul(hash,16777619);}
  return 'statusbar:'+String(getContext()?.chatId||'chat')+':'+messageId+':'+ordinal+':'+(hash>>>0).toString(36);
 }
+function revealStatusbarFrame(frame){
+ if(!frame)return;
+ frame.classList.remove('scanning');
+ if(getComputedStyle(frame).position==='static')frame.style.position='relative';
+ const screen=frame.closest('.screen, .dy-screen');
+ if(screen)screen.classList.add('has-image');
+ frame.style.display='block';
+ frame.style.visibility='visible';
+}
 function renderStatusbarCard(frame,prompt,url,taskKey){
+ revealStatusbarFrame(frame);
  let card=frame.querySelector('.ql-statusbar-card');
  // 酒馆刷新后可能只留下卡片 HTML；HTML 不会保留事件监听和轮播状态，必须重建。
  if(!card||card.dataset.qlTask!==taskKey||!card._qlRender){
@@ -921,7 +931,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   if(getComputedStyle(frame).position==='static')frame.style.position='relative';
   card=document.createElement('div');card.className='ql-statusbar-card';card.dataset.qlTask=taskKey;
   card.style.cssText='position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#000;z-index:6;';
-  const img=document.createElement('img');img.alt='轻绘状态栏画面';img.loading='eager';img.style.cssText='display:block;width:100%;height:100%;object-fit:contain;';
+  const img=document.createElement('img');img.alt='轻绘状态栏画面';img.loading='eager';img.style.cssText='display:block;width:100%;height:100%;object-fit:cover!important;object-position:center!important;background:transparent!important;';
   card._qlPrompt=prompt;card._qlCandidates=[];card._qlIndex=0;
   const controls=document.createElement('div');controls.className='ql-statusbar-controls';
   controls.style.cssText='position:absolute;inset:0;width:100%;height:100%;z-index:2147483000;display:block;visibility:hidden;opacity:0;pointer-events:none;background:transparent;border:0;padding:0;box-sizing:border-box;touch-action:manipulation;transition:opacity .22s ease;';
@@ -1059,6 +1069,7 @@ async function processStatusbarFrames(){
   const accepted=triggerRegistry.begin(taskKey,{prompt,source:'statusbar'});
   if(!accepted.accepted){frame.dataset.qlBusy='0';continue;}
   triggerRegistry.markRunning(taskKey);
+  revealStatusbarFrame(frame);
   const loading=(frame.ownerDocument||document).createElement('div');
   loading.className='ql-statusbar-loading';
   loading.textContent='轻绘：正在生成画面…';
