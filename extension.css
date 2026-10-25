@@ -98,3 +98,20 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel .ql-vibe-entry>strong{display:block;margin-bottom:4px}
 #qinghui-lite-panel .ql-vibe-entry .ql-muted{margin:4px 0 8px}
 #qinghui-lite-panel .ql-vibe-entry input:disabled{opacity:.65;cursor:not-allowed}
+
+/* Vibe 管理按组折叠：默认只显示组摘要，展开后才编辑组内编码。 */
+#qinghui-lite-panel .ql-vibe-group{padding:12px;margin:10px 0;border:1px solid var(--ql-border);border-radius:12px;background:var(--ql-card)}
+#qinghui-lite-panel .ql-vibe-group.is-active{border-color:var(--ql-accent);box-shadow:inset 3px 0 0 var(--ql-accent)}
+#qinghui-lite-panel .ql-vibe-group-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+#qinghui-lite-panel .ql-vibe-group-info{min-width:0;flex:1}
+#qinghui-lite-panel .ql-vibe-group-info>strong{display:block;overflow-wrap:anywhere}
+#qinghui-lite-panel .ql-vibe-group-info>p{margin:4px 0 0;color:var(--ql-muted);font-size:.88em}
+#qinghui-lite-panel .ql-vibe-group-top [data-vibe-use]{flex-shrink:0;min-width:88px}
+#qinghui-lite-panel .ql-vibe-details{margin:10px 0;padding-top:8px;border-top:1px solid var(--ql-border)}
+#qinghui-lite-panel .ql-vibe-details>summary{cursor:pointer;color:var(--ql-accent);padding:6px 0;font-weight:600}
+#qinghui-lite-panel .ql-vibe-group-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#qinghui-lite-panel .ql-vibe-entry{margin:9px 0;padding:10px;border:1px solid var(--ql-border);border-radius:10px;background:color-mix(in srgb,var(--ql-card) 86%,var(--ql-accent))}
+#qinghui-lite-panel .ql-vibe-entry-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+#qinghui-lite-panel .ql-vibe-state{font-size:.8em;padding:3px 7px;border-radius:999px;background:var(--ql-panel)}
+#qinghui-lite-panel .ql-vibe-state.is-ready{color:var(--ql-accent)}
+#qinghui-lite-panel .ql-vibe-state.is-missing{color:var(--ql-muted)}
