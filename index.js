@@ -61,7 +61,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
   const isV45=/^nai-diffusion-4-5-/i.test(naiModel);
   const isV3=/^nai-diffusion-3(?:-|$)/i.test(naiModel);
   const parameters={
-   params_version:isV45?3:(isV4?2:1),
+   params_version:3,
    width:Number(c.naiWidth)||832,
    height:Number(c.naiHeight)||1216,
    scale:Number(c.naiScale)||5,
@@ -71,6 +71,10 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
    n_samples:1,
    seed:-1,
    negative_prompt:negative,
+   ucPreset:3,
+   qualityToggle:true,
+   legacy_uc:false,
+   stream:'msgpack',
    sm:false,
    sm_dyn:false,
    dynamic_thresholding:false,
@@ -85,9 +89,9 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
   if(isV4){
    parameters.v4_prompt={caption:{base_caption:prompt,char_captions:[]},use_coords:false,use_order:true};
    parameters.v4_negative_prompt={caption:{base_caption:negative,char_captions:[]},legacy_uc:false};
-   parameters.ucPreset=4;
+   parameters.ucPreset=3;
    parameters.skip_cfg_above_sigma=null;
-   parameters.qualityToggle=false;
+   parameters.qualityToggle=true;
   }else{
    parameters.prompt=prompt;
    if(isV3)parameters.legacy_v3_extend=true;
@@ -111,7 +115,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
   const base=third?String(c.naiThirdEndpoint||'').replace(/\/$/,''):'https://image.novelai.net';
   if(third&&!base)throw new Error('请先填写 NAI 第三方 API 地址。');
   const endpoint=/\/ai\/generate-image$/i.test(base)?base:base+'/ai/generate-image';
-  const requestBody={input:prompt,model:naiModel,action:'generate',parameters};
+  const requestBody={input:prompt,model:naiModel,action:'generate',parameters,use_new_shared_trial:true};
   res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+naiKey},body:JSON.stringify(requestBody)});
   if(!res.ok){raw=await res.text();throw new Error('NovelAI 请求失败（HTTP '+res.status+'）：'+raw.slice(0,240));}
   const buffer=await res.arrayBuffer();let value='';
