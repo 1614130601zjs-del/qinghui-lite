@@ -57,47 +57,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
  if(c.provider==='novelai'||c.provider==='novelai-thirdparty'){
   const naiModel=c.naiModel||'nai-diffusion-4-5-full';
   // 官网模式严格采用 SillyTavern 原生 NovelAI 扩展的请求协议。
-  if(c.provider==='novelai'){
-   const payload={
-    prompt,
-    model:naiModel,
-    sampler:c.naiSampler||'k_euler_ancestral',
-    scheduler:c.naiScheduler||'karras',
-    steps:Number(c.naiSteps)||28,
-    scale:Number(c.naiScale)||5,
-    width:Number(c.naiWidth)||832,
-    height:Number(c.naiHeight)||1216,
-    negative_prompt:negativeOverride??c.negative??'',
-    decrisper:false,
-    variety_boost:false,
-    sm:false,
-    sm_dyn:false,
-    seed:-1
-   };
-   if(vibeItem){
-    const vibes=Array.isArray(vibeItem.entries)&&vibeItem.entries.length
-     ?vibeItem.entries.filter(item=>typeof item.image==='string'&&item.image.trim()).map(item=>({image:item.image,strength:Number(item.strength??0.6),informationExtracted:Number(item.informationExtracted??1)}))
-     :(()=>{const one=extractUsableVibe(vibeItem.raw);return one?[one]:[];})();
-    if(!vibes.length)throw new Error('这个 Vibe 组没有可用的参考图数据。');
-    payload.reference_image_multiple=vibes.map(v=>v.image);
-    payload.reference_strength_multiple=vibes.map(v=>v.strength);
-    payload.reference_information_extracted_multiple=vibes.map(v=>v.informationExtracted);
-   }
-   res=await fetch('/api/novelai/generate-image',{
-    method:'POST',
-    headers:getRequestHeaders(),
-    body:JSON.stringify(payload)
-   });
-   raw=await res.text();
-   if(!res.ok)throw new Error('NovelAI 请求失败（HTTP '+res.status+'）：'+raw.slice(0,240));
-   let value=raw.trim();
-   try{
-    data=JSON.parse(raw);
-    value=data?.images?.[0]??data?.image??data?.data?.[0]?.b64_json??value;
-   }catch{}
-   if(typeof value!=='string'||!value)throw new Error('NovelAI 响应中没有可识别的图片');
-   return /^(data:|https?:)/.test(value)?value:'data:image/png;base64,'+value.replace(/^data:image\/[^;]+;base64,/,'');
-  }  const negative=String(negativeOverride??c.negative??'');
+  const negative=String(negativeOverride??c.negative??'');
   const isV4=/^nai-diffusion-(?:4(?:-|$)|5-)/i.test(naiModel);
   const isV5=/^nai-diffusion-5-/i.test(naiModel);
   const isV3=/^nai-diffusion-3(?:-|$)/i.test(naiModel);
