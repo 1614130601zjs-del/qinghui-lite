@@ -538,9 +538,27 @@ jQuery(()=>{
    launch.id='ql-chat-launch';launch.type='button';launch.className='menu_button';
    launch.textContent='轻绘 Lite';launch.title='打开轻绘 Lite 生图工作区';
    launch.addEventListener('click',open);
-   const toolbar=$('#send_form .right_menu_button')?.parentElement||$('#send_form')||$('#chat_input');
-   if(toolbar)toolbar.append(launch);
-   else document.body.append(launch);
+   // 放在酒馆原生发送/停止按钮所在的按钮组里，避免落到页面底部或插件设置页。
+   const nativeSend=$('#send_but')||$('#mes_stop')||$('#send_form button[type="submit"]');
+   const toolbar=nativeSend?.parentElement||$('#send_form');
+   if(toolbar){
+    if(nativeSend&&nativeSend.parentElement===toolbar)toolbar.insertBefore(launch,nativeSend);
+    else toolbar.append(launch);
+   }else{
+    // 聊天表单尚未渲染时，稍后重试挂载；不把按钮丢到 body 底部。
+    const mountLauncher=()=>{
+     const send=$('#send_but')||$('#mes_stop')||$('#send_form button[type="submit"]');
+     const form=$('#send_form');
+     if(!send&&!form)return false;
+     const host=send?.parentElement||form;
+     if(send&&send.parentElement===host)host.insertBefore(launch,send);else host.append(launch);
+     return true;
+    };
+    const observer=new MutationObserver(()=>{
+     if(mountLauncher())observer.disconnect();
+    });
+    observer.observe(document.body,{childList:true,subtree:true});
+   }
   }
   init();
  }
