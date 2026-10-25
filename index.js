@@ -657,7 +657,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
    const saved=document.createElement('span');saved.className='ql-chat-image-tag-saved';saved.textContent='tag 已保存';editor.after(saved);setTimeout(()=>saved.remove(),1600);
   });
   card._qlCandidates=[];card._qlIndex=0;
-  const render=()=>{const list=card._qlCandidates;const i=card._qlIndex;if(!list.length)return;img.src=list[i].url;count.textContent=(i+1)+' / '+list.length;prev.disabled=i<=0;next.disabled=i>=list.length-1;};
+  const render=()=>{const list=card._qlCandidates;const i=card._qlIndex;if(!list.length)return;img.src=list[i].url;count.textContent=(i+1)+' / '+list.length;count.setAttribute('aria-label','第'+(i+1)+'张，共'+list.length+'张');prev.disabled=i<=0;next.disabled=i>=list.length-1;};
   const step=delta=>{const nextIndex=card._qlIndex+delta;if(nextIndex>=0&&nextIndex<card._qlCandidates.length){card._qlIndex=nextIndex;render();}};
   prev.addEventListener('click',()=>step(-1));next.addEventListener('click',()=>step(1));
   let touchX=0,touchY=0;
@@ -844,7 +844,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   const controls=document.createElement('div');controls.className='ql-statusbar-controls';
   controls.style.cssText='position:absolute!important;left:50%!important;bottom:8px!important;transform:translateX(-50%)!important;z-index:2147483000!important;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;align-items:center;justify-content:center;gap:8px;padding:3px 7px;border:1px solid rgba(255,255,255,.45);border-radius:999px;background:rgba(20,16,22,.72);color:#fff;max-width:calc(100% - 12px);box-sizing:border-box;touch-action:manipulation;';
   const prev=document.createElement('button');prev.type='button';prev.className='ql-statusbar-arrow';prev.style.cssText='display:flex!important;align-items:center;justify-content:center;min-width:36px;min-height:32px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.25);color:#fff;pointer-events:auto;touch-action:manipulation;';prev.setAttribute('aria-label','上一张');prev.title='上一张';prev.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
-  const count=document.createElement('span');count.className='ql-statusbar-count';count.style.cssText='display:inline-flex!important;align-items:center;justify-content:center;min-width:40px;color:#fff;font-size:12px;line-height:1;font-variant-numeric:tabular-nums;';count.textContent='1 / 1';
+  const count=document.createElement('span');count.className='ql-statusbar-count';count.setAttribute('aria-live','polite');count.setAttribute('aria-label','当前图片序号');count.style.cssText='display:none!important;';count.textContent='1 / 1';
   const next=document.createElement('button');next.type='button';next.className='ql-statusbar-arrow';next.style.cssText='display:flex!important;align-items:center;justify-content:center;min-width:36px;min-height:32px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.25);color:#fff;pointer-events:auto;touch-action:manipulation;';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
   const updateControls=()=>{const total=card._qlCandidates.length;count.textContent=total?String(card._qlIndex+1)+' / '+total:'0 / 0';prev.disabled=total<2;next.disabled=total<2;};
   card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;updateControls();};
