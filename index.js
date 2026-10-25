@@ -3,9 +3,9 @@ import { saveSettingsDebounced, eventSource, event_types, getRequestHeaders } fr
 import * as scriptApi from '/script.js';
 import { initFloorImageFeature } from './floor-image.js';
 import * as worldInfoApi from '/scripts/world-info.js';
+import { parseImageMarkers, makeTriggerId, TriggerRegistry } from './trigger-core.js';
 const generateQuietPrompt = scriptApi.generateQuietPrompt;
 const getWorldInfoPrompt = worldInfoApi.getWorldInfoPrompt;
-import { parseImageMarkers, makeTriggerId, TriggerRegistry } from './trigger-core.js';
 
 const EXT = 'qinghui_lite';
 const defaults = { floorImageCount:1, floorIncludeWorldInfo:true, floorLlmPrompt:'生成适用于 NovelAI 的英文视觉 Tag。只输出 JSON：{"positive":"comma-separated tags","negative":"comma-separated tags"}。保留角色外貌、服装、动作、表情、镜头和环境，不续写剧情，不输出解释。不要重复轻绘自动追加的画师串。', floorJobs:[], activeConfigMode:'combo', downloadFormat:'png', historyColumns:3, chatAlbumStyle:'classic', vibes:[], combinations:[], activeComboIndex:-1, activeVibeIndex:-1, activePresetIndex:-1, bindings:[], provider:'novelai', endpoint:'', apiKey:'', naiApiKey:'', naiThirdEndpoint:'', naiThirdKey:'', model:'gpt-image-1', size:'auto', quality:'medium', naiModel:'nai-diffusion-4-5-full', naiSteps:28, naiScale:5, naiWidth:832, naiHeight:1216, naiSampler:'k_euler_ancestral', naiScheduler:'karras', naiNormalizeVibeStrengths:true, prompt:'', negative:'', records:[], presets:[], characters:[], prompts:[] };
