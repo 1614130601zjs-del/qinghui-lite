@@ -344,9 +344,8 @@ async function saveCleanImage(src,filename){
    }
    objectUrl=URL.createObjectURL(blob);
   }
-  // Edge on Android: show an in-page download sheet instead of opening the image.
-  const ua=String(navigator.userAgent||'')+' '+String(navigator.userAgentData?.brands?.map(x=>x.brand).join(' ')||'');
-  const isEdgeAndroid=/(Edg|Edge|Microsoft Edge)/i.test(ua);
+  // 所有浏览器统一显示轻绘下载面板，不依赖 UA 检测，避免 Edge Android 标识差异导致面板不出现。
+  const isEdgeAndroid=true;
   const a=document.createElement('a');
   a.href=objectUrl;a.download=name;a.rel='noopener';
   if(isEdgeAndroid){
