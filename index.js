@@ -66,7 +66,7 @@ function hideMarkersInTextNode(root,entries=[]){
    const entry=entries[entryCursor++],prompt=match[1].trim();
    if(!prompt||(entry&&triggerRegistry.get(entry.taskKey)?.status==='succeeded')){last=re.lastIndex;continue;}
    const button=document.createElement('button');
-   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='轻绘生图';button.title='点击将提示词提交给 NovelAI，并把图片插入当前消息';
+   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='相册收录';button.title='点击生成图片并收录到当前消息';
    button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
    fragment.append(button);ordinal++;last=re.lastIndex;
@@ -759,8 +759,8 @@ async function processLatestAssistantMessage(){
    if([...host.querySelectorAll('[data-ql-prompt]')].some(button=>button.dataset.qlPrompt===entry.prompt&&button.dataset.qlTrigger===entry.taskKey))continue;
    const button=document.createElement('button');
    button.type='button';button.className='menu_button ql-inline-image-trigger';
-   button.textContent='轻绘生图';
-   button.title='点击将提示词与当前启用的画师串预设一起提交给 NovelAI，并把图片插入当前消息';
+   button.textContent='相册收录';
+   button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
    button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
    host.append(button);
@@ -806,11 +806,13 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   card._qlPrompt=prompt;card._qlCandidates=[];card._qlIndex=0;
   card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;};
   card._qlAddCandidate=url=>{card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
-  const reroll=async()=>{if(card.dataset.busy==='1')return;const candidate=triggerRegistry.beginCandidate(taskKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(taskKey);card.dataset.busy='1';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlAddCandidate(fresh);storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}finally{card.dataset.busy='0';}};
+  const reroll=async()=>{if(card.dataset.busy==='1')return;const manualKey=taskKey+':manual:'+Date.now();const candidate=triggerRegistry.begin(manualKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(manualKey);card.dataset.busy='1';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlAddCandidate(fresh);storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(manualKey,manualKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(manualKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}finally{card.dataset.busy='0';}};
   img.style.touchAction='manipulation';
   img.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll();});
   let lastPointerTap=0;
-  img.addEventListener('pointerup',e=>{if(e.pointerType!=='touch')return;const now=Date.now();if(now-lastPointerTap<480){e.preventDefault();e.stopPropagation();lastPointerTap=0;reroll();}else lastPointerTap=now;},{passive:false});
+  const detectStatusbarDoubleTap=e=>{if(e.pointerType&&e.pointerType!=='touch')return;const now=Date.now();if(now-lastPointerTap<650){e.preventDefault?.();e.stopPropagation?.();lastPointerTap=0;reroll();}else lastPointerTap=now;};
+  img.addEventListener('pointerup',detectStatusbarDoubleTap,{passive:false});
+  img.addEventListener('touchend',e=>{const now=Date.now();if(now-lastPointerTap<650){e.preventDefault();e.stopPropagation();lastPointerTap=0;reroll();}else lastPointerTap=now;},{passive:false});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
   card.append(img);frame.append(card);
 
