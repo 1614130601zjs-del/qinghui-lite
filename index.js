@@ -659,7 +659,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   const cancelTag=document.createElement('button');cancelTag.type='button';cancelTag.className='menu_button ql-chat-image-tag-cancel';cancelTag.textContent='取消';
   const editorActions=document.createElement('div');editorActions.className='ql-chat-image-editor-actions';editorActions.append(saveTag,cancelTag);editor.append(tempConfig,textarea,editorActions);
   const fillTempConfig=()=>{const c=cfg();tempPreset.innerHTML='<option value="">跟随默认组合</option>'+c.combinations.map((x,i)=>'<option value="'+i+'">'+esc(x.name||('组合 '+(i+1)))+'</option>').join('');tempSize.innerHTML='<option value="">使用默认尺寸</option><option value="832x1216">竖版 · 832 × 1216</option><option value="768x1344">长竖版 · 768 × 1344</option><option value="1024x1024">正方形 · 1024 × 1024</option><option value="1216x832">横版 · 1216 × 832</option><option value="1344x768">宽横版 · 1344 × 768</option>';tempPreset.value=card.dataset.qlTempCombo??'';tempSize.value=card.dataset.qlTempSize??'';};fillTempConfig();
-  controls.append(edit,reroll,remove,favorite);card.append(img,prev,next,controls,editor,albumToggle);const anchorNode=anchor?.closest?.('.ql-inline-image-trigger-wrap')||anchor;if(anchorNode?.parentNode)anchorNode.parentNode.insertBefore(card,anchorNode);else host.append(card);
+  controls.append(edit,reroll,remove,favorite);card.append(img,prev,next,controls,editor,albumToggle);if(anchor?.parentNode)anchor.parentNode.insertBefore(card,anchor);else host.append(card);
   edit.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const currentUrl=card._qlCandidates[card._qlIndex]?.url||img.getAttribute('src');editor.hidden=!editor.hidden;if(!editor.hidden){fillTempConfig();textarea.value=card.dataset.qlPrompt||'';if(currentUrl)img.src=currentUrl;textarea.focus();}});
   cancelTag.addEventListener('click',()=>{textarea.value=card.dataset.qlPrompt||'';editor.hidden=true;});
   saveTag.addEventListener('click',()=>{
@@ -735,12 +735,10 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
  applyChatAlbumStyle(card,cfg().chatAlbumStyle||'classic');applyChatTheme(card);
  if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;}
  card._qlRender?.();
- // 图片卡片必须作为正文节点插入 marker 外层 wrapper 之前，不能塞进 inline span 内部。
- // 刷新后先恢复到末尾的卡片，等扫描找到 marker 时也按同一规则移动回原位。
- const anchorNode=anchor?.closest?.('.ql-inline-image-trigger-wrap')||anchor;
- if(anchorNode?.parentNode&&card!==anchorNode){
-  if(card.parentNode!==anchorNode.parentNode||card.nextSibling!==anchorNode)anchorNode.parentNode.insertBefore(card,anchorNode);
- }
+ // 首次扫描可能先走“记录兜底”把图片放到正文末尾；后续扫描找到原 marker 后，
+ // 即使卡片已经存在，也必须把它移动回 marker 所在位置，不能只在新建时定位。
+ if(anchor?.parentNode&&card.parentNode!==anchor.parentNode)anchor.parentNode.insertBefore(card,anchor);
+ else if(anchor?.parentNode&&card.nextSibling!==anchor)anchor.parentNode.insertBefore(card,anchor);
  return card;
 }
 function snapshotConfig(prompt, negativeOverride){
@@ -829,7 +827,7 @@ async function processLatestAssistantMessage(){
     const latest=savedRecords[savedRecords.length-1];
     const markerButton=host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
     for(const record of savedRecords)addMessageImage(host,record.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},markerButton);
-    host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]').forEach(button=>{const wrap=button.closest('.ql-inline-image-trigger-wrap');if(wrap)wrap.remove();else button.remove();});
+    host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]').forEach(button=>button.remove());
     continue;
    }
    const removedFromBody=(cfg().records||[]).some(item=>item&&item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat');
