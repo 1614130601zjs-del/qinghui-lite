@@ -177,7 +177,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 @media(max-width:360px){#qinghui-lite-panel .ql-row>button{padding:6px 8px;font-size:12px}#qinghui-lite-panel .ql-subtabs button{flex:1 1 42%;min-width:0}}
 
 /* 图片缓存图库：可配置每行 1–5 张，点击缩略图打开详情弹层。 */
-#qinghui-lite-panel #ql-history{display:grid;grid-template-columns:repeat(var(--ql-history-columns,3),minmax(0,1fr));gap:8px;align-items:start;margin-top:10px}
+#qinghui-lite-panel #ql-history{display:block;min-width:0;margin-top:10px}
 #qinghui-lite-panel .ql-cache-tile{min-width:0;overflow:hidden;border:1px solid var(--ql-border);border-radius:10px;padding:5px;background:var(--ql-card)}
 #qinghui-lite-panel .ql-cache-image{display:block;width:100%;aspect-ratio:1/1;overflow:hidden;margin:0;padding:0;border:0;border-radius:7px;background:rgba(127,127,127,.08)}
 #qinghui-lite-panel .ql-cache-image img{display:block;width:100%;height:100%;max-width:none;max-height:none;margin:0;object-fit:cover;border-radius:0}
