@@ -635,7 +635,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
  let card=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===taskKey);
  if(!card){
   card=document.createElement('figure');card.className='ql-chat-image';card.dataset.qlTask=taskKey;card.dataset.qlPrompt=String(prompt||'');card.dataset.qlMessageIndex=String(recordMeta.messageIndex??'');card.dataset.qlChatId=String(recordMeta.chatId||getContext()?.chatId||'');
-  const img=document.createElement('img');img.loading='lazy';img.alt='轻绘生成图片';
+  const img=document.createElement('img');img.loading='lazy';img.alt='拾帧相册影像';
   const controls=document.createElement('div');controls.className='ql-chat-image-controls';
   const edit=document.createElement('button');edit.type='button';edit.className='menu_button ql-chat-image-edit';edit.setAttribute('aria-label','修改 tag');edit.title='修改 tag';edit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20z"/><path d="M15 3.5V8h4M8 12h8M8 16h6"/><path d="m14.5 18.5 4.8-4.8 1.5 1.5-4.8 4.8-2 .5z"/></svg>';
   const prev=document.createElement('button');prev.type='button';prev.className='menu_button ql-chat-image-arrow ql-chat-image-arrow-prev';prev.setAttribute('aria-label','上一张');prev.title='上一张';prev.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
@@ -645,6 +645,8 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   const favorite=document.createElement('button');favorite.type='button';favorite.className='menu_button ql-chat-image-favorite';favorite.setAttribute('aria-label','收藏到角色相册');favorite.title='收藏到当前角色的相册';favorite.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>';
   remove.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const current=card._qlCandidates?.[card._qlIndex];if(!current)return;const records=cfg().records||[];let changed=false;for(const item of records){if(item?.taskKey!==taskKey||item.dataUrl!==current.url)continue;if(card.dataset.qlMessageIndex!==''&&Number(item.messageIndex)!==Number(card.dataset.qlMessageIndex))continue;if(card.dataset.qlChatId&&item.chatId&&item.chatId!==card.dataset.qlChatId)continue;item.hiddenInChat=true;changed=true;}if(changed)save();card._qlCandidates=card._qlCandidates.filter(candidate=>candidate.url!==current.url);if(!card._qlCandidates.length){card.remove();return;}card._qlIndex=Math.min(card._qlIndex,card._qlCandidates.length-1);card._qlRender?.();});
 
+  const albumToggle=document.createElement('button');albumToggle.type='button';albumToggle.className='menu_button ql-chat-image-collapse-toggle';albumToggle.textContent='收起影像';albumToggle.setAttribute('aria-expanded','true');albumToggle.setAttribute('aria-label','收起拾帧相册');
+  albumToggle.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const collapsed=card.classList.toggle('is-collapsed');albumToggle.textContent=collapsed?'展开拾帧相册':'收起影像';albumToggle.setAttribute('aria-expanded',String(!collapsed));albumToggle.setAttribute('aria-label',collapsed?'展开拾帧相册':'收起拾帧相册');});
   const editor=document.createElement('div');editor.className='ql-chat-image-editor';editor.hidden=true;
   const tempConfig=document.createElement('div');tempConfig.className='ql-chat-image-temp-config';
   const tempPresetLabel=document.createElement('label');tempPresetLabel.textContent='本次组合';const tempPreset=document.createElement('select');tempPreset.className='ql-chat-image-temp-preset';tempPresetLabel.append(tempPreset);
@@ -654,7 +656,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   const cancelTag=document.createElement('button');cancelTag.type='button';cancelTag.className='menu_button ql-chat-image-tag-cancel';cancelTag.textContent='取消';
   const editorActions=document.createElement('div');editorActions.className='ql-chat-image-editor-actions';editorActions.append(saveTag,cancelTag);editor.append(tempConfig,textarea,editorActions);
   const fillTempConfig=()=>{const c=cfg();tempPreset.innerHTML='<option value="">跟随默认组合</option>'+c.combinations.map((x,i)=>'<option value="'+i+'">'+esc(x.name||('组合 '+(i+1)))+'</option>').join('');tempSize.innerHTML='<option value="">使用默认尺寸</option><option value="832x1216">竖版 · 832 × 1216</option><option value="768x1344">长竖版 · 768 × 1344</option><option value="1024x1024">正方形 · 1024 × 1024</option><option value="1216x832">横版 · 1216 × 832</option><option value="1344x768">宽横版 · 1344 × 768</option>';tempPreset.value=card.dataset.qlTempCombo??'';tempSize.value=card.dataset.qlTempSize??'';};fillTempConfig();
-  controls.append(edit,reroll,remove,favorite);card.append(img,prev,next,controls,editor);if(anchor?.parentNode)anchor.parentNode.insertBefore(card,anchor);else host.append(card);
+  controls.append(edit,reroll,remove,favorite);card.append(img,prev,next,controls,editor,albumToggle);if(anchor?.parentNode)anchor.parentNode.insertBefore(card,anchor);else host.append(card);
   edit.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const currentUrl=card._qlCandidates[card._qlIndex]?.url||img.getAttribute('src');editor.hidden=!editor.hidden;if(!editor.hidden){fillTempConfig();textarea.value=card.dataset.qlPrompt||'';if(currentUrl)img.src=currentUrl;textarea.focus();}});
   cancelTag.addEventListener('click',()=>{textarea.value=card.dataset.qlPrompt||'';editor.hidden=true;});
   saveTag.addEventListener('click',()=>{
@@ -1043,14 +1045,14 @@ function save(){ saveSettingsDebounced(); }
 function downloadJson(value,filename){const blob=new Blob([JSON.stringify(value,null,2)],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 
 function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-panel">
-<header class="ql-header"><div class="ql-brand"><strong>影像集 Lite</strong><span>角色影像生成与收藏工作区</span></div><button id="ql-close" class="menu_button" type="button">关闭</button></header>
-<nav class="ql-tabs" aria-label="影像集功能导航" role="tablist">
-<button type="button" class="ql-tab" data-page="generate" role="tab" aria-selected="false">影像</button>
-<button type="button" class="ql-tab" data-page="library" role="tab" aria-selected="false">配置</button>
-<button type="button" class="ql-tab" data-page="wordbank" role="tab" aria-selected="false">词库</button>
-<button type="button" class="ql-tab" data-page="history" role="tab" aria-selected="false">缓存</button>
-<button type="button" class="ql-tab active" data-page="albums" role="tab" aria-selected="true">相册</button>
-<button type="button" class="ql-tab" data-page="settings" role="tab" aria-selected="false">设置</button>
+<header class="ql-header"><div class="ql-brand"><strong>拾帧</strong><span>故事仍在继续，快门为你停留。</span></div><button id="ql-close" class="menu_button" type="button">关闭</button></header>
+<nav class="ql-tabs" aria-label="拾帧功能导航" role="tablist">
+<button type="button" class="ql-tab" data-page="generate" role="tab" aria-selected="false">取景</button>
+<button type="button" class="ql-tab" data-page="library" role="tab" aria-selected="false">参数</button>
+<button type="button" class="ql-tab" data-page="wordbank" role="tab" aria-selected="false">词笺</button>
+<button type="button" class="ql-tab" data-page="history" role="tab" aria-selected="false">底片</button>
+<button type="button" class="ql-tab active" data-page="albums" role="tab" aria-selected="true">拾帧</button>
+<button type="button" class="ql-tab" data-page="settings" role="tab" aria-selected="false">偏好</button>
 </nav>
 <div class="ql-page" data-page-panel="generate" role="tabpanel" hidden>
 <div class="ql-card"><h3>图片放置区</h3><p class="ql-muted">生成结果会显示在这里；长按图片可保存。</p><div id="ql-result" class="ql-image-stage"><div class="ql-image-placeholder">等待生成图片</div></div></div>
