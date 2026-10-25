@@ -414,14 +414,25 @@ async function saveCleanImage(src,filename){
     blob=new Blob([decodeURIComponent(raw)],{type:(header.match(/^data:([^;]+)/i)||[])[1]||'image/png'});
    }
    fileBlob=blob;objectUrl=URL.createObjectURL(blob);
-  }else if(/^https?:/i.test(src)){
-   try{const response=await fetch(src);if(response.ok)fileBlob=await response.blob();}catch{}
+  }else{
+   // 缓存源也可能是 blob: / 相对 URL；此前只读取 http(s)，导致这类图片绕过清洗。
+   try{
+    const response=await fetch(src);
+    if(response.ok){fileBlob=await response.blob();objectUrl=URL.createObjectURL(fileBlob);}
+   }catch(error){
+    console.warn('[轻绘 Lite] 无法读取缓存图片源，清洗可能无法执行',error);
+   }
   }
-  if(fileBlob&&cfg().pngDownloadMode==='clean'&&(/png/i.test(fileBlob.type)||/\.png$/i.test(name))){
+  if(fileBlob&&cfg().pngDownloadMode==='clean'){
    const previousUrl=objectUrl;
-   fileBlob=await preparePngDownloadBlob(fileBlob);
-   objectUrl=URL.createObjectURL(fileBlob);
-   if(previousUrl!==src)URL.revokeObjectURL(previousUrl);
+   const looksPng=/png/i.test(fileBlob.type)||/\.png$/i.test(name);
+   if(looksPng){
+    fileBlob=await preparePngDownloadBlob(fileBlob);
+    objectUrl=URL.createObjectURL(fileBlob);
+    if(previousUrl&&previousUrl!==src)URL.revokeObjectURL(previousUrl);
+   }else{
+    lastPngCleanReport='未清洗：源图片格式为 '+(fileBlob.type||'未知格式')+'，不是 PNG；为避免改格式损伤画质，保留原文件。';
+   }
   }
   const a=document.createElement('a');
   a.href=objectUrl;a.download=name;a.rel='noopener';
