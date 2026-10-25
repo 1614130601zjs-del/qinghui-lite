@@ -64,7 +64,7 @@ function hideMarkersInTextNode(root,entries=[]){
   while((match=re.exec(value))!==null){
    fragment.append(document.createTextNode(value.slice(last,match.index)));
    const entry=entries[entryCursor++],prompt=match[1].trim();
-   if(!prompt||(entry&&triggerRegistry.get(entry.taskKey)?.status==='succeeded')){last=re.lastIndex;continue;}
+   if(!prompt){last=re.lastIndex;continue;}
    const button=document.createElement('button');
    button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='相册收录';button.title='点击生成图片并收录到当前消息';
    button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;
@@ -707,8 +707,10 @@ function storeChatRecord(url,prompt,taskKey,meta={}){
 async function runInlineImageTrigger(button,entry){
  if(!button||button.dataset.qlBusy==='1'||button.dataset.qlDone==='1')return;
  const prompt=String(entry?.prompt||button.dataset.qlPrompt||'').trim();
- const taskKey=String(entry?.taskKey||button.dataset.qlTrigger||'');
+ let taskKey=String(entry?.taskKey||button.dataset.qlTrigger||'');
  if(!prompt||!taskKey)return;
+ // 编辑消息会让酒馆重建正文 DOM。若该 marker 曾经成功生图，重新出现的按钮应可再次使用，而不是被旧成功状态永久锁住。
+ if(triggerRegistry.get(taskKey)?.status==='succeeded')taskKey=taskKey+':edited:'+Date.now();
  const accepted=triggerRegistry.begin(taskKey,{prompt,source:'chat-button',messageIndex:entry.messageIndex,markerOrdinal:entry.markerOrdinal});
  if(!accepted.accepted)return;
  triggerRegistry.markRunning(taskKey);
@@ -753,7 +755,6 @@ async function processLatestAssistantMessage(){
   // 先尝试原位替换文本节点；如果酒馆 Markdown 把 marker 拆成多个节点，则至少在同一消息正文内提供按钮。
   hideMarkersInTextNode(host,entries);
   for(const entry of entries){
-   if(triggerRegistry.get(entry.taskKey)?.status==='succeeded')continue;
    if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
    // 防止重复扫描时把已经被按钮替换的标记再次追加。
    if([...host.querySelectorAll('[data-ql-prompt]')].some(button=>button.dataset.qlPrompt===entry.prompt&&button.dataset.qlTrigger===entry.taskKey))continue;
