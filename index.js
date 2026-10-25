@@ -455,24 +455,27 @@ async function saveCleanImage(src,filename){
    }
    fileBlob=blob;objectUrl=URL.createObjectURL(blob);
   }else{
-   // 缓存源也可能是 blob: / 相对 URL；此前只读取 http(s)，导致这类图片绕过清洗。
+   // 清洗模式禁止在源文件读取失败时退回原图，否则用户会误以为下载的是已清洗文件。
    try{
     const response=await fetch(src);
-    if(response.ok){fileBlob=await response.blob();objectUrl=URL.createObjectURL(fileBlob);}
+    if(!response.ok)throw new Error('读取缓存图片失败（HTTP '+response.status+'）');
+    fileBlob=await response.blob();
+    objectUrl=URL.createObjectURL(fileBlob);
    }catch(error){
-    console.warn('[轻绘 Lite] 无法读取缓存图片源，清洗可能无法执行',error);
+    console.warn('[轻绘 Lite] 无法读取缓存图片源',error);
+    if(cfg().pngDownloadMode==='clean')throw new Error('无法读取缓存原图，因此没有下载任何文件。请重新打开缓存详情后再试。');
    }
   }
-  if(fileBlob&&cfg().pngDownloadMode==='clean'){
+  if(cfg().pngDownloadMode==='clean'){
+   if(!fileBlob)throw new Error('清洗模式未能读取到图片文件，因此已阻止原图下载。');
+   const mime=(fileBlob.type||'').toLowerCase();
+   const looksPng=mime==='image/png'||/\.png$/i.test(name);
+   if(!looksPng)throw new Error('当前缓存不是可确认的 PNG（文件类型：'+(fileBlob.type||'未知')+'），为避免把未清洗原图误当成清洗版，已取消下载。');
    const previousUrl=objectUrl;
-   const looksPng=/png/i.test(fileBlob.type)||/\.png$/i.test(name);
-   if(looksPng){
-    fileBlob=await preparePngDownloadBlob(fileBlob);
-    objectUrl=URL.createObjectURL(fileBlob);
-    if(previousUrl&&previousUrl!==src)URL.revokeObjectURL(previousUrl);
-   }else{
-    lastPngCleanReport='未清洗：源图片格式为 '+(fileBlob.type||'未知格式')+'，不是 PNG；为避免改格式损伤画质，保留原文件。';
-   }
+   fileBlob=await preparePngDownloadBlob(fileBlob);
+   if(!fileBlob||!fileBlob.size)throw new Error('PNG 清洗结果为空，已取消下载。');
+   objectUrl=URL.createObjectURL(fileBlob);
+   if(previousUrl&&previousUrl!==src)URL.revokeObjectURL(previousUrl);
   }
   const a=document.createElement('a');
   a.href=objectUrl;a.download=name;a.rel='noopener';
