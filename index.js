@@ -388,13 +388,13 @@ async function saveCleanImage(src,filename){
   Object.assign(sheet.style,{background:theme.panel,color:theme.text,border:'1px solid '+theme.border});
   const top=document.createElement('div');
   top.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;';
-  const title=document.createElement('strong');title.textContent='下载图片';title.style.cssText='font-size:20px;';
+  const title=document.createElement('strong');title.textContent='下载图片';title.style.cssText='font-size:20px;color:'+theme.text+';';
   const close=document.createElement('button');close.type='button';close.textContent='关闭';close.style.cssText='border:1px solid '+theme.border+';border-radius:10px;background:'+theme.card+';padding:9px 13px;color:'+theme.text+';font-size:14px;';
   top.append(title,close);
   const preview=document.createElement('img');preview.src=objectUrl;preview.alt='待保存的图片预览';preview.style.cssText='display:block;width:100%;max-height:min(38dvh,320px);object-fit:contain;border-radius:12px;background:'+theme.card+';border:1px solid '+theme.border+';';
   const filenameNode=document.createElement('div');filenameNode.textContent=name;filenameNode.style.cssText='margin:12px 0 6px;overflow-wrap:anywhere;font-size:14px;font-weight:600;color:'+theme.text+';';
   const hint=document.createElement('p');hint.textContent='点击下方按钮保存到设备；如果浏览器要求确认，请按提示继续。';hint.style.cssText='margin:0 0 16px;color:'+theme.muted+';font-size:13px;line-height:1.5;';
-  a.textContent='保存图片';a.setAttribute('aria-label','保存图片到设备');a.style.cssText='display:block;box-sizing:border-box;width:100%;padding:14px 16px;border-radius:13px;background:#e9b9d1;color:#48263a;text-align:center;text-decoration:none;font-weight:750;font-size:16px;';
+  a.textContent='保存图片';a.setAttribute('aria-label','保存图片到设备');a.style.cssText='display:block;box-sizing:border-box;width:100%;padding:14px 16px;border-radius:13px;border:1px solid '+theme.border+';background:'+theme.accent+';color:'+(isDark?'#17212a':theme.text)+';text-align:center;text-decoration:none;font-weight:750;font-size:16px;';
   a.addEventListener('click',async event=>{
    if(!fileBlob||!navigator.share||!navigator.canShare)return;
    const file=new File([fileBlob],name,{type:fileBlob.type||'image/png'});
