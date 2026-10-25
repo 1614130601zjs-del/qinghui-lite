@@ -999,7 +999,9 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   },{passive:false});
   card.addEventListener('click',e=>{
    if(e.detail>1||e.target?.closest?.('.ql-statusbar-controls'))return;
-   // 单击图片只呼出居中的左右切换键，不直接切图。
+   // 触屏设备的 touchend 后也会合成 click；不能在第一次轻触时立刻盖上控制层，
+   // 否则第二次轻触会落在控制按钮上，被排除在双击重 Roll 之外。
+   if('ontouchstart' in window)return;
    showControlsBriefly();
   });
   card.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll();});
