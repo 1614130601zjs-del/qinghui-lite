@@ -735,13 +735,6 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
  applyChatAlbumStyle(card,cfg().chatAlbumStyle||'classic');applyChatTheme(card);
  if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;}
  card._qlRender?.();
- // 有了真实锚点才显示图片；等待酒馆正文完成渲染期间，避免图片暂时堆在消息末尾。
- if(anchor?.parentNode){
-  card.hidden=false;
-  card.style.removeProperty('display');
-  delete card.dataset.qlWaitingForAnchor;
-  if(card.parentNode!==anchor.parentNode||card.nextSibling!==anchor)anchor.parentNode.insertBefore(card,anchor);
- }
  return card;
 }
 function snapshotConfig(prompt, negativeOverride){
@@ -817,7 +810,7 @@ async function processLatestAssistantMessage(){
   if(!host)continue;
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
   const messageElement=host.closest('.mes');
-  if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input), [contenteditable="true"]'))continue;
+  if(messageElement?.querySelector('textarea, [contenteditable="true"]'))continue;
   const entries=found.map((marker,markerOrdinal)=>{
    const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
@@ -825,17 +818,10 @@ async function processLatestAssistantMessage(){
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
   hideMarkersInTextNode(host,entries);
   for(const entry of entries){
-   // 只有正文中真正存在的 marker 按钮才是可靠锚点。
-   // 酒馆刷新时可能先恢复到一份尚未完成渲染的正文；此时不能把图片/按钮追加到末尾。
-   const markerButton=host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
-   if(!markerButton){
-    const waitingCard=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===entry.taskKey);
-    if(waitingCard){waitingCard.hidden=true;waitingCard.dataset.qlWaitingForAnchor='1';}
-    continue;
-   }
    const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
     const latest=savedRecords[savedRecords.length-1];
+    const markerButton=host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
     for(const record of savedRecords)addMessageImage(host,record.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},markerButton);
     host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]').forEach(button=>button.remove());
     continue;
@@ -859,9 +845,6 @@ async function processLatestAssistantMessage(){
    .filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat'&&item.taskKey)
    .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
   for(const record of savedForMessage){
-   // 当前消息仍包含 image### 标记时，不能把未匹配到锚点的记录作为兜底追加到正文末尾。
-   // 等正文锚点可用后，由上面的定点恢复分支重新放回原位。
-   if(entries.length)continue;
    if(restoredKeys.has(record.taskKey))continue;
    restoredKeys.add(record.taskKey);
    addMessageImage(host,record.dataUrl,record.basePrompt||record.prompt||'',record.taskKey,{
@@ -872,21 +855,14 @@ async function processLatestAssistantMessage(){
 }
 let statusbarObserver=null;
 const statusbarObservedDocs=new WeakSet();
-const statusbarLoadBoundFrames=new WeakSet();
 function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);return match?.[1]?.trim()||'';}
 function statusbarPromptForTarget(target){
  const direct=[
   target?.textContent,
   target?.getAttribute?.('data-tag'),
-  target?.getAttribute?.('data-ql-prompt'),
-  target?.dataset?.qlPrompt,
   ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
- // data-ql-prompt 保存的是已解析后的纯提示词，不含 image###...### 包裹；
- // 因此不能再交给 parseStatusbarMarker，否则刷新后会被误判为空提示词。
- const savedPrompt=String(target?.getAttribute?.('data-ql-prompt')||target?.dataset?.qlPrompt||'').trim();
- if(savedPrompt)return savedPrompt;
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
   const prompt=parseStatusbarMarker(ancestor.getAttribute?.('data-tag'));
@@ -907,8 +883,7 @@ function statusbarTaskKey(target,prompt,doc){
 }
 function renderStatusbarCard(frame,prompt,url,taskKey){
  let card=frame.querySelector('.ql-statusbar-card');
- // 酒馆刷新后可能只留下卡片 HTML；HTML 不会保留事件监听和轮播状态，必须重建。
- if(!card||card.dataset.qlTask!==taskKey||!card._qlRender){
+ if(!card||card.dataset.qlTask!==taskKey){
   frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading').forEach(el=>el.remove());
   if(getComputedStyle(frame).position==='static')frame.style.position='relative';
   card=document.createElement('div');card.className='ql-statusbar-card';card.dataset.qlTask=taskKey;
@@ -1012,13 +987,10 @@ function statusbarError(frame,prompt,taskKey,error){
 async function processStatusbarFrames(){
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
- // 刷新后状态栏 frame 可能已经没有 scanning class（首次渲染成功时会移除），
- // 只扫描 scanning 会导致缓存恢复不执行，直到小铅笔重新生成 marker。
- // 同时检查 data-tag 和已标记提示词节点，再按 image### 标记筛选。
- const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"], [data-tag], [data-ql-prompt]')).filter(frame=>{
+ const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)return false;
-  return !Array.from(frame.querySelectorAll('[class~="scanning"], [data-tag], [data-ql-prompt]')).some(child=>statusbarPromptForTarget(child)===prompt);
+  return !Array.from(frame.querySelectorAll('[class~="scanning"]')).some(child=>statusbarPromptForTarget(child)===prompt);
  }));
  for(const frame of frames){
   const prompt=statusbarPromptForTarget(frame);
@@ -1028,30 +1000,13 @@ async function processStatusbarFrames(){
    frame.dataset.qlDone='';
    frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading').forEach(el=>el.remove());
   }
-  if(frame.dataset.qlBusy==='1')continue;
-  // 刷新后 data-ql-done 可能仍保留，但卡片 DOM/事件对象已丢失。
-  // 只有卡片仍有本次运行时渲染器时才跳过；否则必须继续走缓存恢复。
-  const existingCard=frame.querySelector('.ql-statusbar-card');
-  if(frame.dataset.qlDone==='1'&&existingCard?._qlRender)continue;
-  if(frame.dataset.qlDone==='1')frame.dataset.qlDone='';
+  if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
   frame.dataset.qlBusy='1';
-  let taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
-  // 恢复已缓存的状态栏图片：酒馆刷新后消息 DOM 的 mesid/同消息标记序号偶尔会变化，
-  // 先精确匹配任务键；精确匹配失败时，再按当前消息 ID + 提示词哈希匹配，忽略标记序号变化。
-  const message=frame.closest('.mes[mesid]')||frame.closest('.mes');
-  const messageId=message?.getAttribute('mesid')||message?.dataset?.mesid||'no-message-id';
-  const promptHash=taskKey.split(':').at(-1);
-  let savedStatusbar=(cfg().records||[])
+  const taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
+  // 恢复已缓存的状态栏图片：DOM 重绘/重新打开消息时不应自动重新请求 NAI。
+  const savedStatusbar=(cfg().records||[])
    .filter(item=>item&&item.dataUrl&&item.taskKey===taskKey&&(item.source||'chat')==='statusbar')
    .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
-  if(!savedStatusbar.length){
-   const prefix='statusbar:'+String(getContext()?.chatId||'chat')+':'+messageId+':';
-   savedStatusbar=(cfg().records||[])
-    .filter(item=>item&&item.dataUrl&&(item.source||'chat')==='statusbar'&&String(item.taskKey||'').startsWith(prefix)&&String(item.taskKey||'').endsWith(':'+promptHash))
-    .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
-   // 继续沿用缓存记录原本的 taskKey，确保收藏、删除等操作也能找到记录。
-   if(savedStatusbar.length)taskKey=savedStatusbar[savedStatusbar.length-1].taskKey;
-  }
   if(savedStatusbar.length){
    const latest=savedStatusbar[savedStatusbar.length-1];
    renderStatusbarCard(frame,prompt,latest.dataUrl,taskKey);
@@ -1093,28 +1048,17 @@ function observeStatusbarFrames(){
   const target=doc.body||doc.documentElement;if(!target)return;
   statusbarObservedDocs.add(doc);
   const observer=new MutationObserver(()=>{attachFrames();processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));});
-  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class','data-tag','data-ql-prompt']});
+  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
   if(doc===document)statusbarObserver=observer;
  };
  const attachFrames=()=>{
   attach(document);
-  document.querySelectorAll('iframe').forEach(frame=>{
-   // iframe 的 srcdoc 导航可能替换 contentDocument。不能只观察插入时拿到的旧文档，
-   // 必须在 load 后重新读取 contentDocument 并为新文档安装观察器。
-   if(!statusbarLoadBoundFrames.has(frame)){
-    statusbarLoadBoundFrames.add(frame);
-    frame.addEventListener('load',()=>{
-     try{attach(frame.contentDocument);}catch{}
-     attachFrames();
-     processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
-    });
-   }
-   try{attach(frame.contentDocument);}catch{}
-  });
+  document.querySelectorAll('iframe').forEach(frame=>{try{attach(frame.contentDocument);}catch{}});
  };
  attachFrames();
  processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
 }
+
 const themePalettes={mist:{accent:'#7f98ad',panel:'rgba(239,244,248,.98)',card:'rgba(250,252,254,.98)',text:'#344653',muted:'#657784',border:'rgba(127,152,173,.30)',field:'rgba(255,255,255,.98)'},sage:{accent:'#849b8c',panel:'rgba(239,246,239,.98)',card:'rgba(251,253,249,.98)',text:'#3c5044',muted:'#687a6d',border:'rgba(132,155,140,.30)',field:'rgba(255,255,252,.98)'},lavender:{accent:'#9a91b0',panel:'rgba(246,242,250,.98)',card:'rgba(253,251,255,.98)',text:'#4c465b',muted:'#777083',border:'rgba(154,145,176,.30)',field:'rgba(255,255,255,.98)'},oat:{accent:'#b09c82',panel:'rgba(249,245,237,.98)',card:'rgba(255,252,246,.98)',text:'#554b3e',muted:'#817565',border:'rgba(176,156,130,.32)',field:'rgba(255,255,252,.98)'}};
 function applyTheme(preset,customColor){const panel=$('#qinghui-lite-panel');if(!panel)return;panel.querySelectorAll('#ql-custom-theme-style').forEach(x=>x.remove());if(preset==='auto'){for(const key of ['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-muted','--ql-border','--ql-field'])panel.style.removeProperty(key);panel.style.removeProperty('color');panel.style.removeProperty('background');return;}let p=themePalettes[preset];if(preset==='custom'){const accent=/^#[0-9a-f]{6}$/i.test(String(customColor||''))?customColor:'#9aaec2';p={accent,panel:'rgba(242,246,249,.98)',card:'rgba(252,253,254,.98)',text:'#35434d',muted:'#687680',border:'color-mix(in srgb, '+accent+' 32%, transparent)',field:'rgba(255,255,255,.98)'};}if(!p)return;panel.style.setProperty('--ql-accent',p.accent);panel.style.setProperty('--ql-panel',p.panel);panel.style.setProperty('--ql-card',p.card);panel.style.setProperty('--ql-text',p.text);panel.style.setProperty('--ql-muted',p.muted);panel.style.setProperty('--ql-border',p.border);panel.style.setProperty('--ql-field',p.field);panel.style.color='var(--ql-text)';panel.style.background='var(--ql-panel)';}
 function save(){ saveSettingsDebounced(); }
