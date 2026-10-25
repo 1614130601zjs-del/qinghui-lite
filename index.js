@@ -130,25 +130,58 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
   const requestBody={input:prompt,model:naiModel,action:'generate',parameters,use_new_shared_trial:true};
   res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+naiKey},body:JSON.stringify(requestBody)});
   if(!res.ok){raw=await res.text();throw new Error('NovelAI 请求失败（HTTP '+res.status+'）：'+raw.slice(0,240));}
-  const buffer=await res.arrayBuffer();let value='';
+  let buffer;
   try{
-   const view=new DataView(buffer);let offset=0;
-   while(offset+30<view.byteLength){
-    if(view.getUint32(offset,true)!==0x04034b50)break;
-    const method=view.getUint16(offset+8,true),compressed=view.getUint32(offset+18,true),nameLen=view.getUint16(offset+26,true),extraLen=view.getUint16(offset+28,true);
-    const name=new TextDecoder().decode(new Uint8Array(buffer,offset+30,nameLen)),start=offset+30+nameLen+extraLen;
-    let bytes=new Uint8Array(buffer,start,compressed);
-    if(method===8)bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
-    if(/\.(png|jpe?g|webp)$/i.test(name)){
-     const mime=/\.jpe?g$/i.test(name)?'jpeg':/\.webp$/i.test(name)?'webp':'png';let binary='';
-     for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
-     value='data:image/'+mime+';base64,'+btoa(binary);break;
-    }
-    offset=start+compressed;
+   buffer=await res.arrayBuffer();
+  }catch(error){
+   throw new Error('读取 NovelAI 图片响应失败：'+(error?.message||String(error))+'。请检查网络、跨域代理或接口是否提前关闭连接。');
+  }
+  let value='';
+  try{
+   const view=new DataView(buffer);
+   const u8=new Uint8Array(buffer);
+   let eocd=-1;
+   const min=Math.max(0,view.byteLength-65557);
+   for(let i=view.byteLength-22;i>=min;i--){
+    if(view.getUint32(i,true)===0x06054b50){eocd=i;break;}
    }
-  }catch(error){throw new Error('无法解包 NovelAI 返回的图片 ZIP：'+(error?.message||String(error)));}
-  if(!value)throw new Error('NovelAI 响应中未找到图片；若浏览器阻止跨域访问，请检查网络或改用第三方兼容接口。');
-  return value;
+   if(eocd<0)throw new Error('响应不是有效 ZIP（未找到中央目录结束记录）');
+   const entries=view.getUint16(eocd+10,true);
+   let offset=view.getUint32(eocd+16,true);
+   for(let n=0;n<entries && offset+46<=view.byteLength;n++){
+    if(view.getUint32(offset,true)!==0x02014b50)throw new Error('ZIP 中央目录结构无效');
+    const method=view.getUint16(offset+10,true);
+    const compressed=view.getUint32(offset+20,true);
+    const nameLen=view.getUint16(offset+28,true);
+    const extraLen=view.getUint16(offset+30,true);
+    const commentLen=view.getUint16(offset+32,true);
+    const localOffset=view.getUint32(offset+42,true);
+    if(offset+46+nameLen+extraLen+commentLen>view.byteLength)throw new Error('ZIP 中央目录长度越界');
+    const name=new TextDecoder().decode(u8.subarray(offset+46,offset+46+nameLen));
+    if(/\.(png|jpe?g|webp)$/i.test(name)){
+     if(localOffset+30>view.byteLength||view.getUint32(localOffset,true)!==0x04034b50)throw new Error('图片文件头无效');
+     const localNameLen=view.getUint16(localOffset+26,true);
+     const localExtraLen=view.getUint16(localOffset+28,true);
+     const dataStart=localOffset+30+localNameLen+localExtraLen;
+     if(dataStart+compressed>view.byteLength)throw new Error('图片压缩数据不完整');
+     let bytes=u8.slice(dataStart,dataStart+compressed);
+     if(method===8){
+      bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+     }else if(method!==0){
+      throw new Error('暂不支持 ZIP 压缩方式：'+method);
+     }
+     const mime=/\.jpe?g$/i.test(name)?'jpeg':/\.webp$/i.test(name)?'webp':'png';
+     let binary='';
+     for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
+     value='data:image/'+mime+';base64,'+btoa(binary);
+     break;
+    }
+    offset+=46+nameLen+extraLen+commentLen;
+   }
+  }catch(error){
+   throw new Error('无法解包 NovelAI 返回的图片 ZIP：'+(error?.message||String(error)));
+  }
+  if(!value)throw new Error('NovelAI 响应的 ZIP 中未找到 PNG/JPG/WebP 图片文件。');
  }
  if(!c.endpoint||!c.apiKey)throw new Error('请先在轻绘设置中填写 OpenAI 兼容 API 地址和 Key');
  const model=String(c.model||'').toLowerCase();
