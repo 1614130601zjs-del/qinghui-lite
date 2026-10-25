@@ -542,7 +542,7 @@ async function saveCleanImage(src,filename,forceClean=false){
   top.append(title,close);
   const preview=document.createElement('img');preview.src=objectUrl;preview.alt='待保存的图片预览';preview.style.cssText='display:block;width:100%;max-height:min(38dvh,320px);object-fit:contain;border-radius:12px;background:'+theme.card+';border:1px solid '+theme.border+';';
   const filenameNode=document.createElement('div');filenameNode.textContent=name;filenameNode.style.cssText='margin:12px 0 6px;overflow-wrap:anywhere;font-size:14px;font-weight:600;color:'+theme.text+';';
-  const hint=document.createElement('p');hint.textContent=(forceClean?'详情保存已强制启用 PNG 元数据清洗。':'清洗模式：'+(cfg().pngDownloadMode==='clean'?'开启':'关闭')+'。')+' 点击下方按钮保存到设备；如果浏览器要求确认，请按提示继续。';hint.style.cssText='margin:0 0 16px;color:'+theme.muted+';font-size:13px;line-height:1.5;';
+  const hint=document.createElement('p');hint.textContent=(cfg().downloadFormat==='jpg'?'当前设置为 JPG：保存时会重新编码图片。':forceClean?'详情保存已强制启用 PNG 元数据清洗。':'清洗模式：'+(cfg().pngDownloadMode==='clean'?'开启':'关闭')+'。')+' 点击下方按钮保存到设备；如果浏览器要求确认，请按提示继续。';hint.style.cssText='margin:0 0 16px;color:'+theme.muted+';font-size:13px;line-height:1.5;';
   a.textContent='保存图片';a.setAttribute('aria-label','保存图片到设备');a.style.cssText='display:block;box-sizing:border-box;width:100%;padding:14px 16px;border-radius:13px;border:1px solid '+theme.border+';background:'+theme.accent+';color:'+(isDark?'#17212a':theme.text)+';text-align:center;text-decoration:none;font-weight:750;font-size:16px;';
   a.addEventListener('click',async event=>{
    if(!fileBlob||!navigator.share||!navigator.canShare)return;
