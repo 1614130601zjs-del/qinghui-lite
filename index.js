@@ -17,6 +17,10 @@ function cfg(){
  const s=extension_settings[EXT];
  if(typeof s.naiNormalizeVibeStrengths!=='boolean')s.naiNormalizeVibeStrengths=true;
  for(const key of ['records','presets','characters','prompts','vibes','bindings'])if(!Array.isArray(s[key]))s[key]=[];
+ // 提示词库不保存参考图片；升级时清除旧版提示词条目中残留的图片数据。
+ let removedPromptImages=false;
+ for(const item of s.prompts)if(item&&Object.prototype.hasOwnProperty.call(item,'image')){delete item.image;removedPromptImages=true;}
+ if(removedPromptImages)saveSettingsDebounced();
  // 升级到本版时统一清空旧版导入的 Vibe 与角色绑定，确保迁移只保留画师串；此清理只执行一次。
  if(!s.vibeImportCleanupV2){
   s.vibes=[];
