@@ -1305,3 +1305,14 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #chat .ql-chat-image-controls .ql-chat-image-remove:hover{
  color:var(--SmartThemeEmColor,var(--ql-accent,currentColor))!important;
 }
+
+
+/* Character albums: cache favorites and per-character collections. */
+#ql-character-albums{margin-top:12px}
+#ql-character-albums .ql-character-album{margin:0 0 18px;padding:12px;border:1px solid var(--ql-border,var(--SmartThemeBorderColor));border-radius:14px;background:var(--ql-panel,transparent)}
+#ql-character-albums .ql-character-album h4{margin:0 0 10px;display:flex;align-items:center;gap:8px}
+#ql-character-albums .ql-character-album h4 small{opacity:.65;font-size:.85em;font-weight:400}
+#ql-history .ql-cache-tile,#ql-character-albums .ql-cache-tile{position:relative}
+#ql-history .ql-cache-favorite,#ql-character-albums .ql-cache-favorite{position:absolute;right:6px;top:6px;z-index:3;width:32px;height:32px;min-width:32px;min-height:32px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(20,20,24,.58)!important;color:#fff!important;border:1px solid rgba(255,255,255,.5)!important;font-size:19px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.22)}
+#ql-history .ql-cache-favorite.is-favorite,#ql-character-albums .ql-cache-favorite.is-favorite{color:#ffd36a!important}
+.ql-album-tabs{margin:10px 0}
