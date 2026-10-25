@@ -696,23 +696,36 @@ async function runInlineImageTrigger(button,entry){
  }finally{if(button.isConnected)button.dataset.qlBusy='0';}
 }
 async function processLatestAssistantMessage(){
- const context=getContext();const chat=context?.chat;if(!Array.isArray(chat)||!chat.length)return;
- let messageIndex=-1;for(let i=chat.length-1;i>=0;i--){if(!chat[i]?.is_user&&!chat[i]?.is_system&&typeof chat[i]?.mes==='string'){messageIndex=i;break;}}
- if(messageIndex<0)return;
- const message=chat[messageIndex],found=markers(message.mes);if(!found.length)return;
- const entries=found.map((marker,markerOrdinal)=>{
-  let taskKey;
-  try{taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});}
-  catch(error){console.warn('[轻绘 Lite] 无法为消息创建稳定任务 ID',error);return null;}
-  return {...marker,taskKey,messageIndex,markerOrdinal};
- }).filter(Boolean);
- const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');if(!host)return;
- hideMarkersInTextNode(host,entries);
- for(const entry of entries){
-  if(triggerRegistry.get(entry.taskKey)?.status==='succeeded')continue;
-  if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
-  const button=document.createElement('button');button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='轻绘生图';button.title='点击将提示词提交给 NovelAI，并把图片插入当前消息';button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;
-  button.addEventListener('click',()=>runInlineImageTrigger(button,entry));host.append(button);
+ const context=getContext();
+ const chat=context?.chat;
+ if(!Array.isArray(chat)||!chat.length)return;
+ // 不只扫描最后一条消息：酒馆可能在扩展加载前已渲染消息，也可能在重绘时延迟更新 DOM。
+ for(let messageIndex=0;messageIndex<chat.length;messageIndex++){
+  const message=chat[messageIndex];
+  if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
+  const found=markers(message.mes);
+  if(!found.length)continue;
+  const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
+  if(!host)continue;
+  const entries=found.map((marker,markerOrdinal)=>{
+   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
+   return {...marker,taskKey,messageIndex,markerOrdinal};
+  });
+  // 先尝试原位替换文本节点；如果酒馆 Markdown 把 marker 拆成多个节点，则至少在同一消息正文内提供按钮。
+  hideMarkersInTextNode(host,entries);
+  for(const entry of entries){
+   if(triggerRegistry.get(entry.taskKey)?.status==='succeeded')continue;
+   if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
+   // 防止重复扫描时把已经被按钮替换的标记再次追加。
+   if([...host.querySelectorAll('[data-ql-prompt]')].some(button=>button.dataset.qlPrompt===entry.prompt&&button.dataset.qlTrigger===entry.taskKey))continue;
+   const button=document.createElement('button');
+   button.type='button';button.className='menu_button ql-inline-image-trigger';
+   button.textContent='轻绘生图';
+   button.title='点击将提示词与当前启用的画师串预设一起提交给 NovelAI，并把图片插入当前消息';
+   button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;
+   button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
+   host.append(button);
+  }
  }
 }
 let statusbarObserver=null;
@@ -1341,6 +1354,13 @@ jQuery(()=>{
   init();
  }
  observeStatusbarFrames();
+ // 扩展启用时先扫描现有聊天；再观察酒馆正文重绘，避免事件时序导致 marker 一直以原文显示。
+ const scheduleInlineScan=()=>setTimeout(()=>processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 正文标记扫描失败',e)),80);
+ scheduleInlineScan();
+ const chatObserver=new MutationObserver(records=>{
+  if(records.some(record=>record.target?.closest?.('.mes_text')||[...record.addedNodes].some(node=>node.nodeType===1&&(node.matches?.('.mes, .mes_text')||node.querySelector?.('.mes_text'))))){scheduleInlineScan();}
+ });
+ chatObserver.observe(document.body,{childList:true,subtree:true});
  if(!eventSource||!event_types)return;
  let scanTimer=null;
  const scheduleScan=()=>{if(scanTimer)clearTimeout(scanTimer);scanTimer=setTimeout(()=>{
