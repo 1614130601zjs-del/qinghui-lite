@@ -290,7 +290,7 @@ function vibeModelKey(model){
 }
 function extractUsableVibe(raw,model='nai-diffusion-4-5-full'){
  const seen=new WeakSet();let found='',foundGroup=null;
- const clean=value=>String(value||'').trim().replace(/^data:(?:application\\/octet-stream|image\\/[^;]+);base64,/i,'').replace(/\\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
+ const clean=value=>String(value||'').trim().replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,'').replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
  const key=vibeModelKey(model),normalizeKey=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'');
  const isPayload=value=>{const v=clean(value);return v.length>160&&/^[A-Za-z0-9+/]+={0,2}$/.test(v);};
  const walk=(value,keyName='',canonical=false)=>{
@@ -332,8 +332,8 @@ function extractUsableVibe(raw,model='nai-diffusion-4-5-full'){
  if(!found)return null;
  const serialized=safeMigrationStringify(raw)||'';
  const readNumber=(re,fallback)=>{const m=serialized.match(re);return m?Number(m[1]):fallback;};
- const strength=Number.isFinite(Number(raw?.importInfo?.strength))?Number(raw.importInfo.strength):readNumber(/"(?:reference_strength|referenceStrength|strength)"\\s*:\\s*([0-9.]+)/i,0.6);
- let informationExtracted=readNumber(/"(?:reference_information_extracted|referenceInformationExtracted|information_extracted|informationExtracted|info_extracted|infoExtracted)"\\s*:\\s*([0-9.]+)/i,1);
+ const strength=Number.isFinite(Number(raw?.importInfo?.strength))?Number(raw.importInfo.strength):readNumber(/"(?:reference_strength|referenceStrength|strength)"\s*:\s*([0-9.]+)/i,0.6);
+ let informationExtracted=readNumber(/"(?:reference_information_extracted|referenceInformationExtracted|information_extracted|informationExtracted|info_extracted|infoExtracted)"\s*:\s*([0-9.]+)/i,1);
  const group=foundGroup&&typeof foundGroup==='object'?foundGroup:raw?.encodings?.[key];
  if(group&&typeof group==='object'){
   const enc=('encoding' in group||'encoded' in group||'data' in group||'payload' in group)?group:Object.values(group).find(v=>v&&typeof v==='object'&&('encoding' in v||'encoded' in v||'data' in v||'payload' in v));
