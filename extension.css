@@ -2060,3 +2060,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  display:flex!important;position:relative!important;left:auto!important;right:auto!important;float:none!important;
  width:min(100%,280px)!important;min-width:0!important;margin:0 auto!important;
 }
+
+
+/* 0.5.38: one-click artist-only migration control */
+#qinghui-lite-panel #ql-migrate-toggle{white-space:nowrap;}
