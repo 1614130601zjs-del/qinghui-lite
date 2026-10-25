@@ -531,3 +531,22 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  color:#62636b!important;
  opacity:.62;
 }
+
+/* Cache modal click-target safety: keep the dialog and its action buttons above the panel. */
+#ql-image-cache-modal{
+ z-index:2147483647!important;
+ pointer-events:auto!important;
+}
+#ql-image-cache-modal .ql-cache-modal-panel,
+#ql-image-cache-modal .ql-cache-detail-actions,
+#ql-image-cache-modal .ql-cache-detail-actions button,
+#ql-image-cache-modal .ql-cache-modal-close{
+ position:relative;
+ pointer-events:auto!important;
+}
+#ql-image-cache-modal .ql-cache-detail-actions button{
+ z-index:2;
+ min-height:44px;
+ touch-action:manipulation;
+ cursor:pointer;
+}
