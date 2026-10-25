@@ -633,6 +633,9 @@ function applyChatAlbumStyleToAll(style){document.querySelectorAll('.ql-chat-ima
 function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
  if(!host)return;
  let card=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===taskKey);
+ // 酒馆刷新/重绘后可能保留卡片 HTML，却不会保留 DOM 事件监听与运行时候选列表。
+ // 检测到这种“只有外壳”的旧卡片时重建它，确保重 Roll、编辑 tag、收藏等按钮重新绑定。
+ if(card&&!card._qlRender){card.remove();card=null;}
  if(!card){
   card=document.createElement('figure');card.className='ql-chat-image';card.dataset.qlTask=taskKey;card.dataset.qlPrompt=String(prompt||'');card.dataset.qlMessageIndex=String(recordMeta.messageIndex??'');card.dataset.qlChatId=String(recordMeta.chatId||getContext()?.chatId||'');
   const img=document.createElement('img');img.loading='lazy';img.alt='拾帧相册影像';
@@ -803,7 +806,6 @@ async function processLatestAssistantMessage(){
   const message=chat[messageIndex];
   if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
   const found=markers(message.mes);
-  if(!found.length)continue;
   const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
   if(!host)continue;
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
@@ -835,6 +837,19 @@ async function processLatestAssistantMessage(){
    button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
    const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);host.append(buttonWrap);
+  }
+  // 即使编辑消息后原始 image### 标记被酒馆改写/截断，也从已保存的记录恢复图片卡片。
+  // 这一步同时重建刷新后只剩 HTML、丢失事件监听的旧卡片。
+  const restoredKeys=new Set(entries.map(entry=>entry.taskKey));
+  const savedForMessage=(cfg().records||[])
+   .filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat'&&item.taskKey)
+   .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+  for(const record of savedForMessage){
+   if(restoredKeys.has(record.taskKey))continue;
+   restoredKeys.add(record.taskKey);
+   addMessageImage(host,record.dataUrl,record.basePrompt||record.prompt||'',record.taskKey,{
+    messageIndex,source:'chat',character:record.character||context.name||null,chatId:context.chatId||null
+   });
   }
  }
 }
