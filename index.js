@@ -334,7 +334,7 @@ async function preparePngDownloadBlob(blob){
   const end=offset+12+length;
   if(end>bytes.length)throw new Error('PNG 数据不完整，无法清洗元数据。');
   const type=String.fromCharCode(bytes[offset+4],bytes[offset+5],bytes[offset+6],bytes[offset+7]);
-  if(keep.has(type))chunks.push(bytes.slice(offset,end));
+  if(keep.has(type)||(type.charCodeAt(0)>=65&&type.charCodeAt(0)<=90))chunks.push(bytes.slice(offset,end));
   offset=end;
   if(type==='IEND'){ended=true;break;}
  }
