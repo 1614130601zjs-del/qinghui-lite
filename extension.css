@@ -92,3 +92,9 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel #ql-theme-css{min-height:130px;font-family:monospace;font-size:12px}
 #qinghui-lite-panel #ql-theme-apply,#qinghui-lite-panel #ql-theme-reset{min-height:40px}
 #qinghui-lite-panel .ql-secondary{background:var(--ql-card);border:1px solid var(--ql-border)}
+
+/* Vibe 组按参考条目分别编辑，避免一组内多个编码共用同一强度。 */
+#qinghui-lite-panel .ql-vibe-entry{margin:10px 0;padding:10px;border:1px solid var(--ql-border);border-radius:10px;background:color-mix(in srgb,var(--ql-card) 86%,var(--ql-accent))}
+#qinghui-lite-panel .ql-vibe-entry>strong{display:block;margin-bottom:4px}
+#qinghui-lite-panel .ql-vibe-entry .ql-muted{margin:4px 0 8px}
+#qinghui-lite-panel .ql-vibe-entry input:disabled{opacity:.65;cursor:not-allowed}
