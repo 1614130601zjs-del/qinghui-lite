@@ -646,8 +646,12 @@ function history(){
   const r=records[index];if(!r)return;
   const preset=r.preset||null,vibe=r.vibe||null,meta=r.config||{};
   const content=modal.querySelector('.ql-cache-modal-content');
-  content.innerHTML='<img class="ql-cache-large" src="'+esc(r.dataUrl||'')+'" alt="生成结果"><h3>生成记录</h3><p><b>时间：</b>'+esc(new Date(r.at||Date.now()).toLocaleString())+'</p><p><b>后端 / 模型：</b>'+esc((r.provider||'未知')+' / '+(r.model||meta.model||'未知'))+'</p><p><b>尺寸：</b>'+esc(r.size||meta.size||'未知')+'</p><h4>画师串预设</h4><p>'+esc(preset?.name||'未使用')+'</p><details><summary>预设正文</summary><pre>'+esc(preset?.positive||'')+'</pre></details><details><summary>预设负向词</summary><pre>'+esc(preset?.negative||'')+'</pre></details><details open><summary>正向提示词（画面提示词）</summary><pre>'+esc(r.prompt||'')+'</pre><button type="button" class="menu_button" data-copy-positive>复制正向提示词</button></details><details><summary>负向提示词</summary><pre>'+esc(r.negative||meta.negative||'')+'</pre></details><details><summary>Vibe 参考</summary><pre>'+esc(vibe?JSON.stringify(vibe,null,2):'未使用 Vibe')+'</pre></details><details><summary>完整参数</summary><pre>'+esc(JSON.stringify(meta,null,2))+'</pre></details><div class="ql-row"><button type="button" class="menu_button" data-modal-load>载入提示词</button><button type="button" class="menu_button" data-modal-save>保存图片</button></div>';
-  content.querySelector('[data-copy-positive]').onclick=async()=>{const value=String(r.prompt||'');try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);}else{const area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('浏览器未允许复制');}status('已复制正向提示词。');}catch(error){status('复制失败：请长按提示词文本手动复制。');}};
+  const createdAt=new Date(r.at||Date.now());
+  const promptText=String(r.prompt||'');
+  const promptWords=promptText.split(/[,，\\n]+/).map(x=>x.trim()).filter(Boolean).length;
+  const vibeCount=Array.isArray(vibe?.entries)?vibe.entries.length:0;
+  content.innerHTML='<div class="ql-cache-detail-hero"><div class="ql-cache-detail-image-wrap"><img class="ql-cache-large" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></div><div class="ql-cache-detail-heading"><span class="ql-cache-eyebrow">IMAGE ARCHIVE · 轻绘缓存</span><h3>生成记录</h3><p>'+esc(createdAt.toLocaleString())+'</p><div class="ql-cache-badges"><span>'+esc(r.provider||'未知后端')+'</span><span>'+esc(r.model||meta.model||'未知模型')+'</span><span>'+esc(r.size||meta.size||'尺寸未知')+'</span></div></div></div><div class="ql-cache-stat-grid"><div class="ql-cache-stat"><span>提示词条目</span><strong>'+promptWords+'</strong></div><div class="ql-cache-stat"><span>Vibe 参考</span><strong>'+vibeCount+'</strong></div><div class="ql-cache-stat"><span>画师串</span><strong>'+esc(preset?.name||'未使用')+'</strong></div></div><section class="ql-cache-prompt-section"><div class="ql-cache-section-title"><div><span class="ql-cache-eyebrow">PROMPT</span><h4>正向提示词</h4></div><span class="ql-cache-section-note">点击图标复制</span></div><div class="ql-cache-prompt-box"><pre>'+esc(promptText||'此记录没有保存正向提示词')+'</pre><button type="button" class="ql-cache-copy-icon" data-copy-positive aria-label="复制正向提示词" title="复制正向提示词"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 7.5V5.8A1.8 1.8 0 0 1 9.8 4h8.4A1.8 1.8 0 0 1 20 5.8v10.4a1.8 1.8 0 0 1-1.8 1.8h-1.7"/><rect x="4" y="8" width="11" height="12" rx="1.8"/><path d="M7 11h5M7 14h5"/></svg></button></div></section><div class="ql-cache-detail-actions"><button type="button" class="menu_button ql-cache-action-primary" data-modal-load>载入提示词</button><button type="button" class="menu_button" data-modal-save>保存图片</button></div><div class="ql-cache-accordions"><details><summary><span>画师串预设</span><small>'+esc(preset?.name||'未使用')+'</small></summary><div class="ql-cache-accordion-body"><label>预设正文</label><pre>'+esc(preset?.positive||'未记录')+'</pre><label>预设负向词</label><pre>'+esc(preset?.negative||'未记录')+'</pre></div></details><details><summary><span>负向提示词</span><small>NEGATIVE PROMPT</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(r.negative||meta.negative||'未记录')+'</pre></div></details><details><summary><span>Vibe 参考</span><small>'+vibeCount+' 条参考</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(vibe?JSON.stringify(vibe,null,2):'未使用 Vibe')+'</pre></div></details><details><summary><span>完整生成参数</span><small>ADVANCED</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(JSON.stringify(meta,null,2))+'</pre></div></details></div>'
+  content.querySelector('[data-copy-positive]').onclick=async()=>{const value=String(r.prompt||'');try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);}else{const area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('浏览器未允许复制');}const button=content.querySelector('[data-copy-positive]');button.classList.add('is-copied');button.setAttribute('title','已复制');button.setAttribute('aria-label','已复制正向提示词');status('已复制正向提示词。');setTimeout(()=>{button.classList.remove('is-copied');button.setAttribute('title','复制正向提示词');button.setAttribute('aria-label','复制正向提示词');},1300);}catch(error){status('复制失败：请长按提示词文本手动复制。');}}
   content.querySelector('[data-modal-load]').onclick=()=>{$('#ql-prompt').value=r.basePrompt||r.prompt||'';$('#ql-negative').value=r.negative||'';read();modal.hidden=true;modal.style.display='';status('基础提示词已载入；记录中的画师串不会自动切换，请确认当前画师串后再生成。');};
   content.querySelector('[data-modal-save]').onclick=async()=>{try{await saveCleanImage(r.dataUrl,'qinghui-'+(r.at||Date.now())+'.png');status('已请求保存图片。');}catch(e){status(e.message||String(e));}};
   modal.hidden=false;modal.style.display='flex';
@@ -837,28 +841,59 @@ function renderMigrationPreview(candidate,source){
  button.disabled=!total;
  button.textContent=total?'导入 '+artists.length+' 条画师串 / '+vibes.length+' 组 Vibe':'没有可导入的新内容';
 }
-function scanChatu8Settings(){
+async function scanChatu8Settings(){
  const found=[];
- const isExport=value=>!!value&&typeof value==='object'&&(
-  (value.groups&&typeof value.groups==='object'&&value.vibeData&&typeof value.vibeData==='object')||
-  (value.presets&&typeof value.presets==='object'&&!Array.isArray(value.presets))
- );
+ const looksRelevant=(value,depth=0,seen=new WeakSet())=>{
+  if(!value||typeof value!=='object'||depth>6||seen.has(value))return false;
+  seen.add(value);
+  if(value.groups&&typeof value.groups==='object'&&value.vibeData&&typeof value.vibeData==='object')return true;
+  if(value.presets&&typeof value.presets==='object'&&!Array.isArray(value.presets)&&Object.values(value.presets).some(p=>p&&typeof p==='object'&&('fixedPrompt' in p||'fixedPrompt_end' in p)))return true;
+  for(const [k,v] of Object.entries(value)){
+   if(/chatu8|智绘姬|zhihuiji/i.test(k)&&v&&typeof v==='object')return true;
+   if(v&&typeof v==='object'&&looksRelevant(v,depth+1,seen))return true;
+  }
+  return false;
+ };
+ const add=(key,value)=>{if(value&&typeof value==='object')found.push({key,value});};
+ // 扫描全部扩展设置，不再依赖智绘姬设置恰好位于顶层特定键名。
  for(const [key,value] of Object.entries(extension_settings||{})){
   if(key===EXT)continue;
-  if(/chatu8|智绘姬|zhihuiji/i.test(key)||isExport(value))found.push({key,value});
+  if(/chatu8|智绘姬|zhihuiji/i.test(key)||looksRelevant(value))add('extension_settings:'+key,value);
  }
+ // 一些版本使用非标准 localStorage 键名，读取可解析的 JSON 后再按数据结构判断。
  try{
   for(let i=0;i<localStorage.length;i++){
-   const key=localStorage.key(i);if(!key||!/chatu8|智绘姬|zhihuiji/i.test(key))continue;
-   const raw=localStorage.getItem(key);if(!raw)continue;
-   try{found.push({key:'localStorage:'+key,value:JSON.parse(raw)});}catch{}
+   const key=localStorage.key(i);if(!key)continue;
+   const raw=localStorage.getItem(key);if(!raw||raw.length>30*1024*1024)continue;
+   try{const value=JSON.parse(raw);if(/chatu8|智绘姬|zhihuiji/i.test(key)||looksRelevant(value))add('localStorage:'+key,value);}catch{}
   }
  }catch(e){console.warn('[轻绘 Lite] 无法扫描 localStorage',e);}
- const merged={artists:[],prompts:[],vibes:[],warnings:[]};
- const seenKeys=new Set();
+ // 只读检查可枚举的 IndexedDB，兼容将 Vibe 资源存入数据库的版本。
+ try{
+  if(typeof indexedDB!=='undefined'&&typeof indexedDB.databases==='function'){
+   const dbs=await indexedDB.databases();
+   for(const info of dbs){
+    if(!info?.name)continue;
+    let db;
+    try{
+     db=await new Promise((resolve,reject)=>{const req=indexedDB.open(info.name);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('数据库打开失败'));req.onblocked=()=>reject(new Error('数据库正被占用'));});
+     for(const storeName of [...db.objectStoreNames]){
+      try{
+       const values=await new Promise((resolve,reject)=>{const tx=db.transaction(storeName,'readonly'),req=tx.objectStore(storeName).getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error||new Error('读取失败'));});
+       values.forEach((value,i)=>{if(looksRelevant(value))add('IndexedDB:'+info.name+'/'+storeName+'['+i+']',value);});
+      }catch(e){console.warn('[轻绘 Lite] IndexedDB 只读扫描失败',info.name,storeName,e);}
+     }
+    }catch(e){console.warn('[轻绘 Lite] 无法读取 IndexedDB',info.name,e);}
+    finally{try{db?.close();}catch{}}
+   }
+  }
+ }catch(e){console.warn('[轻绘 Lite] IndexedDB 扫描不可用',e);}
+ const merged={artists:[],prompts:[],vibes:[],warnings:[]},seenKeys=new Set();
  for(const item of found){if(seenKeys.has(item.key))continue;seenKeys.add(item.key);try{walkChatu8(item.value,item.key,merged);}catch(e){merged.warnings.push(item.key+'：读取失败');}}
  merged.prompts=[];
  renderMigrationPreview(merged);
+ const host=$('#ql-migrate-preview');
+ if(host)host.textContent+='\n扫描到 '+found.length+' 个可能相关的数据源。若这里仍显示 0 组 Vibe，说明当前可读取的数据源没有包含智绘姬的 Vibe 编码；请改用智绘姬完整导出 JSON。';
 }
 function safeMigrationStringify(value){try{return JSON.stringify(value);}catch{return '';}}
 async function readMigrationFile(file){
