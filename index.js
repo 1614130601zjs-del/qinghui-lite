@@ -56,13 +56,13 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
  let raw='',data=null,res;
  if(c.provider==='novelai'||c.provider==='novelai-thirdparty'){
   const naiModel=c.naiModel||'nai-diffusion-4-5-full';
-  // 官网模式完全复用智绘姬的 SillyTavern 后端代理协议；不要在浏览器直接请求 image.novelai.net。
+  // 官网模式严格采用 SillyTavern 原生 NovelAI 扩展的请求协议。
   if(c.provider==='novelai'){
    const payload={
     prompt,
     model:naiModel,
     sampler:c.naiSampler||'k_euler_ancestral',
-    noise_schedule:c.naiScheduler||'karras',
+    scheduler:c.naiScheduler||'karras',
     steps:Number(c.naiSteps)||28,
     scale:Number(c.naiScale)||5,
     width:Number(c.naiWidth)||832,
@@ -83,20 +83,21 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
     payload.reference_strength_multiple=vibes.map(v=>v.strength);
     payload.reference_information_extracted_multiple=vibes.map(v=>v.informationExtracted);
    }
-   if(naiModel.includes('nai-diffusion-5'))payload.use_new_shared_trial=true;
    res=await fetch('/api/novelai/generate-image',{
     method:'POST',
-    headers:getRequestHeaders(window.token),
+    headers:getRequestHeaders(),
     body:JSON.stringify(payload)
    });
    raw=await res.text();
    if(!res.ok)throw new Error('NovelAI 请求失败（HTTP '+res.status+'）：'+raw.slice(0,240));
-   try{data=JSON.parse(raw);}catch{}
-   let value=data?.images?.[0]??data?.image??raw.trim();
+   let value=raw.trim();
+   try{
+    data=JSON.parse(raw);
+    value=data?.images?.[0]??data?.image??data?.data?.[0]?.b64_json??value;
+   }catch{}
    if(typeof value!=='string'||!value)throw new Error('NovelAI 响应中没有可识别的图片');
    return /^(data:|https?:)/.test(value)?value:'data:image/png;base64,'+value.replace(/^data:image\/[^;]+;base64,/,'');
-  }
-  const negative=String(negativeOverride??c.negative??'');
+  }  const negative=String(negativeOverride??c.negative??'');
   const isV4=/^nai-diffusion-(?:4(?:-|$)|5-)/i.test(naiModel);
   const isV5=/^nai-diffusion-5-/i.test(naiModel);
   const isV3=/^nai-diffusion-3(?:-|$)/i.test(naiModel);
