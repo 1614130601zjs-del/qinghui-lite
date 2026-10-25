@@ -1346,7 +1346,7 @@ function walkChatu8(data, pathName='', out={artists:[],warnings:[]}, seen=new We
   }
  }
  const name=normName(data,pathName.split(/[.[]/).filter(Boolean).pop());
- const pos=textValue(/^fixedPrompt$|画师串|画师|artist|positive.?prompt|正向提示词|正面提示词|const pos=textValue(/^fixedPrompt$|画师串|画师|artist|positive.?prompt|正向提示词|正面提示词|promptPositive|artistPrompt|artistTags|artistString/i);
+ const pos=textValue(/^fixedPrompt$|画师串|画师|artist|positive.?prompt|正向提示词|正面提示词|promptPositive|artistPrompt|artistTags|artistString/i);
  const neg=textValue(/^negativePrompt$|negative.?prompt|负向提示词|负面提示词/i);
  if(pos)pushUnique(out.artists,{name,positive:pos,negative:neg,sourcePath:pathName},x=>x.name+'|'+x.positive);
  for(const [k,v] of entries){
