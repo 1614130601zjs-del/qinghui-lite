@@ -342,28 +342,43 @@ async function preparePngDownloadBlob(blob){
   if(type==='IEND')break;
  }
  if(!hasAnimation){
-  // 解码后用同尺寸 Canvas 重新编码 PNG：不缩放、不裁切、不转 JPG，避免沿用原文件中的提示词/生成参数块。
-  let bitmap=null;
+  // 清洗选项必须先把原图解码到同尺寸 Canvas，再导出全新的 PNG；不缩放、不裁切、不转 JPG。
+  let bitmap=null, imageUrl=null;
   try{
+   const canvas=document.createElement('canvas');
+   let width=0,height=0,drawSource=null;
    if(typeof createImageBitmap==='function'){
     bitmap=await createImageBitmap(blob);
-    const canvas=document.createElement('canvas');
-    canvas.width=bitmap.width;canvas.height=bitmap.height;
-    const context=canvas.getContext('2d',{alpha:true,willReadFrequently:false});
-    if(!context)throw new Error('无法创建 Canvas 画布');
-    context.clearRect(0,0,canvas.width,canvas.height);
-    context.drawImage(bitmap,0,0);
-    const cleaned=await new Promise((resolve,reject)=>{
-     canvas.toBlob(result=>result?resolve(result):reject(new Error('浏览器重新编码 PNG 失败')),'image/png');
+    width=bitmap.width;height=bitmap.height;drawSource=bitmap;
+   }else{
+    imageUrl=URL.createObjectURL(blob);
+    const image=new Image();
+    image.decoding='async';
+    image.src=imageUrl;
+    await new Promise((resolve,reject)=>{
+     image.onload=resolve;
+     image.onerror=()=>reject(new Error('浏览器无法解码 PNG，未执行重绘清洗'));
     });
-    if(!cleaned||cleaned.type!=='image/png')throw new Error('浏览器未能导出 PNG');
-    lastPngCleanReport='清洗完成：已按原始宽高重新编码为 PNG，未缩放或裁切；原文件中的附加元数据不会被复制。PNG 为无损编码，但浏览器颜色管理可能造成极细微的像素差异。';
-    return cleaned;
+    width=image.naturalWidth;height=image.naturalHeight;drawSource=image;
    }
+   if(!width||!height)throw new Error('PNG 图片尺寸无效，未执行重绘清洗');
+   canvas.width=width;canvas.height=height;
+   const context=canvas.getContext('2d',{alpha:true,willReadFrequently:false});
+   if(!context)throw new Error('无法创建 Canvas 画布，未执行重绘清洗');
+   context.clearRect(0,0,width,height);
+   context.drawImage(drawSource,0,0,width,height);
+   const cleaned=await new Promise((resolve,reject)=>{
+    canvas.toBlob(result=>result?resolve(result):reject(new Error('浏览器重新编码 PNG 失败，未执行重绘清洗')),'image/png');
+   });
+   if(!cleaned||cleaned.type!=='image/png')throw new Error('浏览器未能导出 PNG，未执行重绘清洗');
+   lastPngCleanReport='已清除元数据：Canvas 重绘并重新编码为 PNG（原尺寸 '+width+'×'+height+'）。';
+   return cleaned;
   }catch(error){
-   console.warn('[轻绘 Lite] Canvas PNG 重编码不可用，改用 PNG 数据块清理',error);
+   console.error('[轻绘 Lite] Canvas PNG 重绘失败',error);
+   throw new Error('PNG 重绘清洗失败，未下载原始文件：'+(error?.message||String(error)));
   }finally{
    bitmap?.close?.();
+   if(imageUrl)URL.revokeObjectURL(imageUrl);
   }
  }
  // 动画 PNG 或浏览器不支持 Canvas 解码时，保留图像数据块并移除常见文本/附加元数据块。
@@ -830,12 +845,12 @@ function history(){
  };
  const modeButton=footer?.querySelector('#ql-cache-select-mode');let selectionMode=false;const setSelectionMode=enabled=>{selectionMode=enabled;if(modeButton){modeButton.textContent=enabled?'完成选择':'多选';modeButton.setAttribute('aria-pressed',String(enabled));}const allLabel=footer?.querySelector('.ql-cache-select-all'),count=footer?.querySelector('[data-ql-selected-count]'),bulkDelete=footer?.querySelector('[data-ql-bulk-delete]'),bulkDownload=footer?.querySelector('[data-ql-bulk-download]');if(allLabel)allLabel.hidden=!enabled;if(count)count.hidden=!enabled;if(bulkDelete)bulkDelete.hidden=!enabled;if(bulkDownload)bulkDownload.hidden=!enabled;host.classList.toggle('ql-cache-selection-mode',enabled);if(!enabled){host.querySelectorAll('.ql-cache-tile.is-selected').forEach(tile=>tile.classList.remove('is-selected'));host.querySelectorAll('[data-ql-select]').forEach(input=>input.checked=false);}updateSelection();};if(modeButton)modeButton.onclick=()=>setSelectionMode(!selectionMode);
  host.querySelectorAll('[data-ql-detail]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const i=Number(b.dataset.qlDetail);if(selectionMode&&b.classList.contains('ql-cache-image')){const tile=b.closest('.ql-cache-tile');const input=tile?.querySelector('[data-ql-select]');if(input)input.checked=!input.checked;else{const hidden=document.createElement('input');hidden.type='checkbox';hidden.dataset.qlSelect=String(i);hidden.checked=true;hidden.hidden=true;tile?.append(hidden);}tile?.classList.toggle('is-selected',!!tile?.querySelector('[data-ql-select]')?.checked);updateSelection();return;}openDetail(i);});
- host.querySelectorAll('[data-ql-download]').forEach(b=>b.onclick=async e=>{e.preventDefault();e.stopPropagation();const button=e.currentTarget;if(button.dataset.busy==='1')return;button.dataset.busy='1';try{const r=records[Number(button.dataset.qlDownload)];if(!r)throw new Error('找不到这条缓存记录。');const result=await saveCleanImage(r.dataUrl,'qinghui-'+(r.at||Date.now())+'.png');status(result?.edgeFallback?'已打开下载面板，请点击面板中的“保存图片”。':result?.downloadStarted?'已发起图片下载；请在浏览器下载列表或系统下载目录查看。':'已发起图片下载。');}catch(e){status(e.message||String(e));}finally{delete button.dataset.busy;}});
+ host.querySelectorAll('[data-ql-download]').forEach(b=>b.onclick=async e=>{e.preventDefault();e.stopPropagation();const button=e.currentTarget;if(button.dataset.busy==='1')return;button.dataset.busy='1';try{const r=records[Number(button.dataset.qlDownload)];if(!r)throw new Error('找不到这条缓存记录。');const result=await saveCleanImage(r.dataUrl,'qinghui-'+(r.at||Date.now())+'.png');status((result?.edgeFallback?'已打开下载面板，请点击面板中的“保存图片”。':result?.downloadStarted?'已发起图片下载；请在浏览器下载列表或系统下载目录查看。':'已发起图片下载。')+(cfg().pngDownloadMode==='clean'&&lastPngCleanReport?' '+lastPngCleanReport:''));}catch(e){status(e.message||String(e));}finally{delete button.dataset.busy;}});
  host.querySelectorAll('[data-ql-delete]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const i=Number(b.dataset.qlDelete);if(!confirm('删除这条轻绘图片缓存？不会删除聊天消息中的图片。'))return;s.records.splice(i,1);save();history();status('图片缓存已删除。');});
  const updateSelection=()=>{const tiles=[...host.querySelectorAll('.ql-cache-tile')],selected=tiles.filter(tile=>tile.classList.contains('is-selected')||tile.querySelector('[data-ql-select]')?.checked);const count=footer?.querySelector('[data-ql-selected-count]'),bulkDelete=footer?.querySelector('[data-ql-bulk-delete]'),bulkDownload=footer?.querySelector('[data-ql-bulk-download]'),all=footer?.querySelector('[data-ql-select-all]');if(count)count.textContent='已选 '+selected.length+' 张';if(bulkDelete)bulkDelete.disabled=!selected.length;if(bulkDownload)bulkDownload.disabled=!selected.length;if(all){all.disabled=!tiles.length;all.checked=tiles.length>0&&selected.length===tiles.length;all.indeterminate=selected.length>0&&selected.length<tiles.length;}};
  host.querySelectorAll('[data-ql-select]').forEach(input=>input.addEventListener('change',()=>{input.closest('.ql-cache-tile')?.classList.toggle('is-selected',input.checked);updateSelection();}));
  footer?.querySelector('[data-ql-select-all]')?.addEventListener('change',e=>{host.querySelectorAll('.ql-cache-tile').forEach(tile=>{let input=tile.querySelector('[data-ql-select]');if(!input){input=document.createElement('input');input.type='checkbox';input.dataset.qlSelect=tile.querySelector('[data-ql-detail]')?.dataset.qlDetail||'';input.hidden=true;tile.append(input);}input.checked=e.currentTarget.checked;tile.classList.toggle('is-selected',input.checked);});updateSelection();});
- footer?.querySelector('[data-ql-bulk-download]')?.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();const selected=[...host.querySelectorAll('.ql-cache-tile.is-selected')].map(tile=>Number(tile.querySelector('[data-ql-detail]')?.dataset.qlDetail)).filter(i=>Number.isInteger(i)&&i>=0&&i<s.records.length);if(!selected.length)return;const button=e.currentTarget;button.disabled=true;const original=button.textContent;button.textContent='正在逐张下载…';let success=0,failed=0;try{const items=selected.map(i=>({record:s.records[i],index:i})).filter(x=>x.record?.dataUrl);if(!items.length)throw new Error('所选记录中没有可下载的图片数据。');status('准备逐张下载 '+items.length+' 张图片；浏览器可能会询问是否允许多个文件下载。');for(let n=0;n<items.length;n++){const {record,index}=items[n];try{const response=await fetch(record.dataUrl);if(!response.ok)throw new Error('读取图片失败');const blob=await preparePngDownloadBlob(await response.blob());if(!blob.size)throw new Error('图片数据为空');const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='qinghui-'+(record.at||Date.now())+'.'+(blob.type.includes('jpeg')?'jpg':blob.type.includes('webp')?'webp':'png');a.style.display='none';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);success++;}catch(error){failed++;console.warn('[轻绘 Lite] 单张缓存下载失败',index,error);}if(n<items.length-1)await new Promise(resolve=>setTimeout(resolve,350));}status('逐张下载已发起：成功 '+success+' 张'+(failed?'，失败 '+failed+' 张':'')+'。'+(cfg().pngDownloadMode==='clean'?'清洗模式已启用。':'')+' 若 Edge 拦截了多个文件，请允许此页面的多个下载，或分批选择。');}catch(error){console.error('[轻绘 Lite] 缓存逐张下载失败',error);status('下载失败：'+(error?.message||String(error)));}finally{button.disabled=false;button.textContent=original;}});
+ footer?.querySelector('[data-ql-bulk-download]')?.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();const selected=[...host.querySelectorAll('.ql-cache-tile.is-selected')].map(tile=>Number(tile.querySelector('[data-ql-detail]')?.dataset.qlDetail)).filter(i=>Number.isInteger(i)&&i>=0&&i<s.records.length);if(!selected.length)return;const button=e.currentTarget;button.disabled=true;const original=button.textContent;button.textContent='正在逐张下载…';let success=0,failed=0,redrawn=0,unchanged=0;try{const items=selected.map(i=>({record:s.records[i],index:i})).filter(x=>x.record?.dataUrl);if(!items.length)throw new Error('所选记录中没有可下载的图片数据。');status('准备逐张下载 '+items.length+' 张图片；浏览器可能会询问是否允许多个文件下载。');for(let n=0;n<items.length;n++){const {record,index}=items[n];try{const response=await fetch(record.dataUrl);if(!response.ok)throw new Error('读取图片失败');const originalBlob=await response.blob();const reportBefore=lastPngCleanReport;const blob=await preparePngDownloadBlob(originalBlob);if(!blob.size)throw new Error('图片数据为空');if(cfg().pngDownloadMode==='clean'&&blob!==originalBlob&&blob.type==='image/png')redrawn++;else if(cfg().pngDownloadMode==='clean')unchanged++;const url=URL.createObjectURL(blob);const ext=blob.type.includes('jpeg')?'jpg':blob.type.includes('webp')?'webp':blob.type.includes('gif')?'gif':'png';const a=document.createElement('a');a.href=url;a.download='qinghui-'+(record.at||Date.now())+'.'+ext;a.style.display='none';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}catch(error){failed++;console.warn('[轻绘 Lite] 单张缓存下载失败',index,error);continue;}success++;if(n<items.length-1)await new Promise(resolve=>setTimeout(resolve,350));}status('逐张下载已发起：成功 '+success+' 张'+(failed?'，失败 '+failed+' 张':'')+'。'+(cfg().pngDownloadMode==='clean'?' Canvas 重绘 '+redrawn+' 张，未重绘/非 PNG '+unchanged+' 张。':'')+' 若 Edge 拦截了多个文件，请允许此页面的多个下载，或分批选择。');}catch(error){console.error('[轻绘 Lite] 缓存逐张下载失败',error);status('下载失败：'+(error?.message||String(error)));}finally{button.disabled=false;button.textContent=original;}});
  footer?.querySelector('[data-ql-bulk-delete]')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const selected=[...host.querySelectorAll('.ql-cache-tile.is-selected')].map(tile=>Number(tile.querySelector('[data-ql-detail]')?.dataset.qlDetail)).filter(Number.isInteger);if(!selected.length)return;if(!confirm('确定删除选中的 '+selected.length+' 张缓存图片？不会删除聊天消息中的图片。'))return;selected.sort((a,b)=>b-a).forEach(i=>{if(i>=0&&i<s.records.length)s.records.splice(i,1);});save();history();status('已删除所选缓存图片。');});
 }
 function renderLibrary(){
