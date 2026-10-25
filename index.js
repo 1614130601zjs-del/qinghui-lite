@@ -7,7 +7,30 @@ const defaults = { vibes:[], activeVibeIndex:-1, activePresetIndex:-1, bindings:
 const $ = (s, root=document) => root.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let busy=false;
-function cfg(){ extension_settings[EXT] ??= JSON.parse(JSON.stringify(defaults)); const s=extension_settings[EXT]; for(const key of ['records','presets','characters','prompts','vibes','bindings'])if(!Array.isArray(s[key]))s[key]=[]; return s; }
+function cfg(){
+ extension_settings[EXT] ??= JSON.parse(JSON.stringify(defaults));
+ const s=extension_settings[EXT];
+ for(const key of ['records','presets','characters','prompts','vibes','bindings'])if(!Array.isArray(s[key]))s[key]=[];
+ let migrated=false;
+ for(const vibe of s.vibes){
+  if(!vibe||vibe._vibeMigrationVersion===1)continue;
+  if(Array.isArray(vibe.entries)){
+   for(const entry of vibe.entries){
+    if(!entry||typeof entry.image==='string'&&entry.image.length>160||!entry.raw)continue;
+    const extracted=extractUsableVibe(entry.raw);
+    if(!extracted)continue;
+    entry.image=extracted.image;
+    if(entry.strength==null)entry.strength=extracted.strength;
+    if(entry.informationExtracted==null)entry.informationExtracted=extracted.informationExtracted;
+    migrated=true;
+   }
+   vibe.hasPayload=vibe.entries.some(entry=>typeof entry?.image==='string'&&entry.image.length>160);
+  }
+  vibe._vibeMigrationVersion=1;
+ }
+ if(migrated)saveSettingsDebounced();
+ return s;
+}
 const triggerRegistry = new TriggerRegistry();
 const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状态以 triggerRegistry 为准。
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
