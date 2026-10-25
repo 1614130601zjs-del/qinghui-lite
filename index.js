@@ -810,7 +810,7 @@ async function processLatestAssistantMessage(){
   if(!host)continue;
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
   const messageElement=host.closest('.mes');
-  if(messageElement?.querySelector('textarea, [contenteditable="true"]'))continue;
+  if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input), [contenteditable="true"]'))continue;
   const entries=found.map((marker,markerOrdinal)=>{
    const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
