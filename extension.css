@@ -157,3 +157,21 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel #ql-prompt-add[hidden]{display:none!important}
 #qinghui-lite-panel [data-subpage-panel^="conn-"][hidden]{display:none!important}
 @media(max-width:380px){#qinghui-lite-panel #ql-prompts-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}#qinghui-lite-panel .ql-prompt-tile{padding:5px}}
+
+
+/* 主题变量实际应用到卡片、表单与按钮。 */
+#qinghui-lite-panel{color:var(--ql-text,var(--SmartThemeBodyColor));background:var(--ql-panel,transparent)}
+#qinghui-lite-panel .ql-card{background:var(--ql-card,var(--SmartThemeBlurTintColor));border-color:var(--ql-border,var(--SmartThemeBorderColor))}
+#qinghui-lite-panel input:not([type="checkbox"]),#qinghui-lite-panel textarea,#qinghui-lite-panel select{background:var(--ql-field,var(--SmartThemeBlurTintColor));color:var(--ql-text,var(--SmartThemeBodyColor));border-color:var(--ql-border,var(--SmartThemeBorderColor))}
+#qinghui-lite-panel .ql-muted{color:var(--ql-muted,var(--SmartThemeBodyColor))}
+#qinghui-lite-panel button{max-width:100%;word-break:keep-all;overflow-wrap:normal;white-space:normal;line-height:1.35}
+#qinghui-lite-panel .ql-row{display:flex;flex-flow:row wrap;align-items:center;gap:8px}
+#qinghui-lite-panel .ql-row>button{flex:0 1 auto;min-width:max-content;white-space:nowrap;padding:7px 10px}
+#qinghui-lite-panel .ql-row>input,#qinghui-lite-panel .ql-row>select{flex:1 1 120px;min-width:0}
+#qinghui-lite-panel .ql-prompt-tile-actions{display:flex;flex-flow:row wrap;gap:4px}
+#qinghui-lite-panel .ql-prompt-tile-actions button{flex:1 1 auto;min-width:0;white-space:normal;word-break:keep-all}
+#qinghui-lite-panel .ql-subtabs{display:flex;flex-flow:row wrap;gap:6px}
+#qinghui-lite-panel .ql-subtabs button{flex:1 1 auto;min-width:max-content;white-space:nowrap}
+#qinghui-lite-panel .ql-primary{background:var(--ql-accent,var(--SmartThemeQuoteColor));border-color:var(--ql-accent,var(--SmartThemeBorderColor));color:#fff}
+#qinghui-lite-panel .ql-image-stage{min-width:0;overflow:hidden}
+@media(max-width:360px){#qinghui-lite-panel .ql-row>button{padding:6px 8px;font-size:12px}#qinghui-lite-panel .ql-subtabs button{flex:1 1 42%;min-width:0}}
