@@ -893,6 +893,9 @@ function statusbarPromptForTarget(target){
   ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
+ // 已处理过的状态栏会移除 scanning 类，但保留 data-ql-prompt；刷新后必须仍能被重新扫描。
+ const savedPrompt=String(target?.getAttribute?.('data-ql-prompt')||target?.dataset?.qlPrompt||'').trim();
+ if(savedPrompt)return savedPrompt;
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
   const prompt=parseStatusbarMarker(ancestor.getAttribute?.('data-tag'));
@@ -905,7 +908,7 @@ function statusbarTaskKey(target,prompt,doc){
  const message=target.closest('.mes[mesid]')||target.closest('.mes');
  const messageId=message?.getAttribute('mesid')||message?.dataset?.mesid||'no-message-id';
  const scope=message||doc;
- const targets=Array.from(scope.querySelectorAll('[class~="scanning"], [data-qlPrompt]')).filter(el=>statusbarPromptForTarget(el)||el.dataset.qlPrompt);
+ const targets=Array.from(scope.querySelectorAll('[class~="scanning"], [data-ql-prompt]')).filter(el=>statusbarPromptForTarget(el)||el.dataset.qlPrompt);
  const ordinal=Math.max(0,targets.indexOf(target));
  let hash=2166136261;
  for(let i=0;i<prompt.length;i++){hash^=prompt.charCodeAt(i);hash=Math.imul(hash,16777619);}
@@ -1020,10 +1023,11 @@ function statusbarError(frame,prompt,taskKey,error){
 async function processStatusbarFrames(){
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
- const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
+ const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"], [data-ql-prompt]')).filter(frame=>{
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)return false;
-  return !Array.from(frame.querySelectorAll('[class~="scanning"]')).some(child=>statusbarPromptForTarget(child)===prompt);
+  // 只选最内层的状态栏锚点，避免同一提示词的父容器和子节点重复生图。
+  return !Array.from(frame.querySelectorAll('[class~="scanning"], [data-ql-prompt]')).some(child=>statusbarPromptForTarget(child)===prompt);
  }));
  for(const frame of frames){
   const prompt=statusbarPromptForTarget(frame);
@@ -1033,7 +1037,11 @@ async function processStatusbarFrames(){
    frame.dataset.qlDone='';
    frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading').forEach(el=>el.remove());
   }
-  if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
+  if(frame.dataset.qlBusy==='1')continue;
+  const existingCard=frame.querySelector('.ql-statusbar-card');
+  // DOM 刷新会清除 JS 事件与 _qlRender；即使 qlDone 属性残留，也必须走缓存恢复。
+  if(frame.dataset.qlDone==='1'&&existingCard?._qlRender)continue;
+  if(frame.dataset.qlDone==='1')frame.dataset.qlDone='';
   frame.dataset.qlBusy='1';
   const taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
   // 恢复已缓存的状态栏图片：DOM 重绘/重新打开消息时不应自动重新请求 NAI。
