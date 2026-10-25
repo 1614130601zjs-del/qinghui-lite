@@ -628,7 +628,7 @@ function history(){
  host.innerHTML=records.map((r,i)=>'<article class="ql-cache-tile"><button type="button" class="ql-cache-image" data-ql-detail="'+i+'" aria-label="查看图片详情"><img loading="lazy" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></button><div class="ql-cache-caption">'+esc((r.prompt||'').slice(0,70)||'无提示词')+'</div><div class="ql-cache-actions"><button type="button" class="menu_button" data-ql-detail="'+i+'">详情</button><button type="button" class="menu_button" data-ql-download="'+i+'">保存</button><button type="button" class="menu_button" data-ql-delete="'+i+'">删除</button></div></article>').join('')||'<p class="ql-muted">暂无缓存图片。生成的图片会保存在这里。</p>';
  let modal=document.getElementById('ql-image-cache-modal');
  if(!modal){
-  document.body.insertAdjacentHTML('beforeend','<div id="ql-image-cache-modal" hidden role="dialog" aria-modal="true" aria-label="图片详情"><div class="ql-cache-modal-panel"><button type="button" class="menu_button ql-cache-modal-close">关闭</button><div class="ql-cache-modal-content"></div></div></div>');
+  const modalHost=document.getElementById('ql-overlay')||document.body;modalHost.insertAdjacentHTML('beforeend','<div id="ql-image-cache-modal" hidden role="dialog" aria-modal="true" aria-label="图片详情"><div class="ql-cache-modal-panel"><button type="button" class="menu_button ql-cache-modal-close">关闭</button><div class="ql-cache-modal-content"></div></div></div>');
   modal=document.getElementById('ql-image-cache-modal');
   modal.querySelector('.ql-cache-modal-close').addEventListener('click',()=>{modal.hidden=true;modal.style.display='';});
   modal.addEventListener('click',e=>{if(e.target===modal){modal.hidden=true;modal.style.display='';}});
