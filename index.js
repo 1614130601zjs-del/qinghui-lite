@@ -663,13 +663,24 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   img.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY;},{passive:true});
   img.addEventListener('touchend',e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25)step(dx<0?1:-1);},{passive:true});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
-  img.addEventListener('dblclick',e=>{e.preventDefault();reroll.click();});
-  let lastTap=0;
-  img.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTap<320){e.preventDefault();reroll.click();lastTap=0;}else lastTap=now;},{passive:false});
+  img.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll.click();});
+  let lastTap=0,tapTimer=null;
+  img.addEventListener('touchend',e=>{
+   const t=e.changedTouches?.[0];if(!t)return;
+   const now=Date.now();
+   if(now-lastTap>0&&now-lastTap<480){e.preventDefault();e.stopPropagation();lastTap=0;if(tapTimer){clearTimeout(tapTimer);tapTimer=null;}reroll.click();}
+   else{lastTap=now;}
+  },{passive:false});
   reroll.addEventListener('click',async()=>{
    if(card.dataset.qlBusy==='1')return;
    const currentPrompt=String(card.dataset.qlPrompt||'').trim();if(!currentPrompt)return;
-   const candidate=triggerRegistry.beginCandidate(taskKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});if(!candidate.accepted)return;
+   const currentTask=triggerRegistry.get(taskKey);
+   let candidate;
+   if(currentTask?.status==='succeeded')candidate=triggerRegistry.beginCandidate(taskKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});
+   else if(currentTask?.status==='failed')candidate=triggerRegistry.retry(taskKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});
+   else if(!currentTask)candidate=triggerRegistry.begin(taskKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});
+   else candidate={accepted:false};
+   if(!candidate?.accepted)return;
    triggerRegistry.markRunning(taskKey);card.dataset.qlBusy='1';reroll.disabled=true;
    try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([75,45,75]);}catch{}
    const old=reroll.innerHTML;reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l-2.12 2.12"/></svg>';
@@ -837,10 +848,21 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   img.style.touchAction='manipulation';
   // 手机浏览器的 pointerup 与 touchend 可能在同一次点击中都触发，混用会把单击误判成双击。
   // 触屏只使用 touchend；鼠标/触控笔使用 dblclick。监听放在覆盖层 card 上，避免图片元素被酒馆重绘替换后失效。
-  let lastTouchTap=0;
+  let lastTouchTap=0,touchStartX=0,touchStartY=0;
+  card.addEventListener('touchstart',e=>{
+   if(e.target?.closest?.('.ql-statusbar-controls')||e.changedTouches?.length!==1)return;
+   touchStartX=e.changedTouches[0].clientX;touchStartY=e.changedTouches[0].clientY;
+  },{passive:true});
   card.addEventListener('touchend',e=>{
    if(e.target?.closest?.('.ql-statusbar-controls'))return;
    if(e.changedTouches?.length!==1)return;
+   const touch=e.changedTouches[0],dx=touch.clientX-touchStartX,dy=touch.clientY-touchStartY;
+   if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25){
+    e.preventDefault();e.stopPropagation();lastTouchTap=0;
+    const total=card._qlCandidates.length;
+    if(total>1){card._qlIndex=(card._qlIndex+(dx<0?1:-1)+total)%total;card._qlRender();}
+    return;
+   }
    const now=Date.now();
    if(now-lastTouchTap>0&&now-lastTouchTap<650){
     e.preventDefault();e.stopPropagation();lastTouchTap=0;reroll();
