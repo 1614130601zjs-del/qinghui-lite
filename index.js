@@ -67,7 +67,7 @@ function hideMarkersInTextNode(root,entries=[]){
    if(!prompt){last=re.lastIndex;continue;}
    const button=document.createElement('button');
    button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='相册收录';button.title='点击生成图片并收录到当前消息';
-   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;
+   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
    fragment.append(button);ordinal++;last=re.lastIndex;
   }
@@ -620,8 +620,9 @@ async function saveCleanImage(src,filename,forceClean=false){
  }
 }
 function applyChatAlbumStyle(card,style){if(!card)return;card.classList.remove('ql-album-classic','ql-album-film','ql-album-soft');const valid=['classic','film','soft'].includes(style)?style:'classic';card.classList.add('ql-album-'+valid);}
-function applyChatAlbumStyleToAll(style){document.querySelectorAll('.ql-chat-image').forEach(card=>applyChatAlbumStyle(card,style));}
-function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
+function applyChatTheme(element){if(!element)return;const preset=cfg().themePreset||'auto';const palette=themePalettes[preset];for(const key of ['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-muted','--ql-border','--ql-field'])element.style.removeProperty(key);if(palette){element.style.setProperty('--ql-accent',palette.accent);element.style.setProperty('--ql-panel',palette.panel);element.style.setProperty('--ql-card',palette.card);element.style.setProperty('--ql-text',palette.text);element.style.setProperty('--ql-muted',palette.muted);element.style.setProperty('--ql-border',palette.border);element.style.setProperty('--ql-field',palette.field);}}
+function applyChatAlbumStyleToAll(style){document.querySelectorAll('.ql-chat-image').forEach(card=>{applyChatAlbumStyle(card,style);applyChatTheme(card);});}
+function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
  if(!host)return;
  let card=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===taskKey);
  if(!card){
@@ -639,7 +640,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
   const saveTag=document.createElement('button');saveTag.type='button';saveTag.className='menu_button';saveTag.textContent='保存 tag';
   const cancelTag=document.createElement('button');cancelTag.type='button';cancelTag.className='menu_button';cancelTag.textContent='取消';
   const editorActions=document.createElement('div');editorActions.className='ql-chat-image-editor-actions';editorActions.append(saveTag,cancelTag);editor.append(textarea,editorActions);
-  controls.append(edit,prev,count,next,reroll);card.append(img,controls,collapse,editor);host.append(card);
+  controls.append(edit,prev,count,next,reroll);card.append(img,controls,collapse,editor);if(anchor?.parentNode)anchor.parentNode.insertBefore(card,anchor);else host.append(card);
   collapse.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const collapsed=card.classList.toggle('ql-image-collapsed');collapse.setAttribute('aria-label',collapsed?'展开相册':'折叠相册');collapse.title=collapsed?'展开相册':'折叠相册';collapse.innerHTML=collapsed?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6 6 6-6"/></svg><span>展开相册</span>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg><span>收起相册</span>';});
   edit.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const currentUrl=card._qlCandidates[card._qlIndex]?.url||img.getAttribute('src');editor.hidden=!editor.hidden;if(!editor.hidden){textarea.value=card.dataset.qlPrompt||'';if(currentUrl)img.src=currentUrl;textarea.focus();}});
   cancelTag.addEventListener('click',()=>{textarea.value=card.dataset.qlPrompt||'';editor.hidden=true;});
@@ -679,7 +680,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
   card._qlRender=render;
  }
  card.dataset.qlPrompt=String(prompt||card.dataset.qlPrompt||'');
- applyChatAlbumStyle(card,cfg().chatAlbumStyle||'classic');
+ applyChatAlbumStyle(card,cfg().chatAlbumStyle||'classic');applyChatTheme(card);
  if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;}
  card._qlRender?.();
  return card;
@@ -764,7 +765,8 @@ async function processLatestAssistantMessage(){
    const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
     const latest=savedRecords[savedRecords.length-1];
-    for(const record of savedRecords)addMessageImage(host,record.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null});
+    const markerButton=host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
+    for(const record of savedRecords)addMessageImage(host,record.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},markerButton);
     host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]').forEach(button=>button.remove());
     continue;
    }
@@ -774,7 +776,7 @@ async function processLatestAssistantMessage(){
    button.type='button';button.className='menu_button ql-inline-image-trigger';
    button.textContent='相册收录';
    button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
-   button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;
+   button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
    host.append(button);
   }
