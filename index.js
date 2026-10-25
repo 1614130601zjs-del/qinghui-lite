@@ -637,7 +637,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
   const saveTag=document.createElement('button');saveTag.type='button';saveTag.className='menu_button';saveTag.textContent='保存 tag';
   const cancelTag=document.createElement('button');cancelTag.type='button';cancelTag.className='menu_button';cancelTag.textContent='取消';
   const editorActions=document.createElement('div');editorActions.className='ql-chat-image-editor-actions';editorActions.append(saveTag,cancelTag);editor.append(textarea,editorActions);
-  controls.append(edit,prev,count,next,reroll);card.append(img,collapse,controls,editor);host.append(card);
+  controls.append(edit,prev,count,next,reroll);card.append(img,controls,collapse,editor);host.append(card);
   collapse.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const collapsed=card.classList.toggle('ql-image-collapsed');collapse.setAttribute('aria-label',collapsed?'展开图片':'折叠图片');collapse.title=collapsed?'展开图片':'折叠图片';collapse.innerHTML=collapsed?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6 6 6-6"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg>';});
   edit.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const currentUrl=card._qlCandidates[card._qlIndex]?.url||img.getAttribute('src');editor.hidden=!editor.hidden;if(!editor.hidden){textarea.value=card.dataset.qlPrompt||'';if(currentUrl)img.src=currentUrl;textarea.focus();}});
   cancelTag.addEventListener('click',()=>{textarea.value=card.dataset.qlPrompt||'';editor.hidden=true;});
