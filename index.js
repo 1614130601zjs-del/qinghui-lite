@@ -1094,7 +1094,7 @@ function observeStatusbarFrames(){
   const target=doc.body||doc.documentElement;if(!target)return;
   statusbarObservedDocs.add(doc);
   const observer=new MutationObserver(()=>{attachFrames();processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));});
-  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
+  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class','data-tag','data-ql-prompt']});
   if(doc===document)statusbarObserver=observer;
  };
  const attachFrames=()=>{
