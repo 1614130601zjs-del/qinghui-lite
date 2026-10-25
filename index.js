@@ -901,7 +901,10 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
      tapTimer=null;lastTouchTap=0;
      const total=card._qlCandidates.length;
      if(total<2)return;
-     moveCandidate(touch.clientX<rect.left+rect.width/2?-1:1);
+     // 只允许屏幕左右边缘区域点击切图，中间区域不切换，避免误触。
+     const relativeX=(touch.clientX-rect.left)/Math.max(rect.width,1);
+     if(relativeX<=0.28)moveCandidate(-1);
+     else if(relativeX>=0.72)moveCandidate(1);
     },450);
    }
   },{passive:false});
@@ -909,7 +912,11 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
    if(e.detail>1||e.target?.closest?.('.ql-statusbar-controls'))return;
    if('ontouchstart' in window)return;
    const rect=card.getBoundingClientRect();
-   if(e.clientX<rect.left+rect.width/2)moveCandidate(-1);else moveCandidate(1);
+   const relativeX=(e.clientX-rect.left)/Math.max(rect.width,1);
+   // 桌面端同样只响应左右边缘；中间 44% 保持纯展示，不切图。
+   if(relativeX<=0.28)moveCandidate(-1);
+   else if(relativeX>=0.72)moveCandidate(1);
+   else return;
    e.preventDefault();e.stopPropagation();
   });
   card.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll();});
