@@ -615,3 +615,104 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #qinghui-lite-panel #ql-history .ql-cache-actions{gap:2px}
  #qinghui-lite-panel #ql-history .ql-cache-actions button{font-size:10px;padding:5px 2px;min-height:30px}
 }
+
+
+/* 低饱和统一视觉：雾灰蓝与灰鼠尾草绿，减少高对比和厚重玻璃效果。 */
+#qinghui-lite-panel{
+ --ql-accent:#8f9eaa;
+ --ql-glass-line:rgba(126,140,151,.28);
+ --ql-glass-surface:rgba(238,241,241,.94);
+ --ql-cache-accent:#9aa9a5;
+ --ql-cache-border:rgba(125,143,143,.25);
+ --ql-cache-card:rgba(246,247,245,.94);
+ --ql-text:#414b50;
+ --ql-muted:#778187;
+ color:var(--ql-text);
+ border-radius:16px!important;
+}
+#qinghui-lite-panel .ql-header,
+#qinghui-lite-panel .ql-tabs{
+ background:rgba(233,237,236,.88)!important;
+}
+#qinghui-lite-panel .ql-card,
+#qinghui-lite-panel .ql-record,
+#qinghui-lite-panel .ql-vibe-group,
+#qinghui-lite-panel .ql-vibe-entry,
+#qinghui-lite-panel .ql-image-stage,
+#qinghui-lite-panel .ql-subtab,
+#qinghui-lite-panel .ql-tab,
+#qinghui-lite-panel .ql-tag-chip,
+#qinghui-lite-panel .ql-secondary,
+#qinghui-lite-panel input,
+#qinghui-lite-panel textarea,
+#qinghui-lite-panel select,
+#qinghui-lite-panel button,
+#qinghui-lite-panel .ql-library-prompt-field,
+#qinghui-lite-panel #ql-prompt-editor,
+#qinghui-lite-panel .ql-library-copy-icon{
+ border-radius:10px!important;
+}
+#qinghui-lite-panel .ql-card{
+ border:1px solid rgba(126,140,151,.2)!important;
+ background:rgba(247,248,246,.72)!important;
+}
+#qinghui-lite-panel .ql-tab.active{
+ box-shadow:inset 0 -2px 0 #9aa9a5!important;
+}
+#qinghui-lite-panel button:hover{
+ background-color:rgba(160,177,174,.16)!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-grid{gap:12px}
+#qinghui-lite-panel #ql-history .ql-cache-tile{
+ overflow:hidden;
+ padding:6px;
+ border:1px solid rgba(126,145,143,.25)!important;
+ border-radius:13px!important;
+ background:rgba(244,247,245,.78)!important;
+ box-shadow:0 3px 12px rgba(63,79,78,.055)!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-image{
+ display:block;width:100%;margin:0;padding:0;overflow:hidden;
+ border:0!important;border-radius:8px!important;background:transparent!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-image img{display:block;width:100%;height:auto;object-fit:contain}
+#qinghui-lite-panel #ql-history .ql-cache-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:7px}
+#qinghui-lite-panel #ql-history .ql-cache-actions button{
+ min-width:0;min-height:32px;padding:5px 2px;
+ border:1px solid rgba(126,145,143,.24)!important;
+ border-radius:8px!important;background:rgba(224,232,229,.65)!important;
+ color:#4d5a5b!important;font-size:11px;
+}
+#qinghui-lite-panel #ql-history .ql-cache-tile.is-selected{
+ border-color:#91a9a0!important;
+ background:rgba(221,232,226,.92)!important;
+ box-shadow:0 0 0 2px rgba(145,169,160,.2)!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-tile.is-selected .ql-cache-image:after{content:"已选择"}
+#qinghui-lite-panel #ql-cache-footer{
+ gap:7px;padding:10px;border:1px solid rgba(126,145,143,.22)!important;
+ border-radius:12px!important;background:rgba(237,241,238,.82)!important;
+}
+#qinghui-lite-panel #ql-cache-footer button{
+ min-height:34px;padding:6px 11px;border:1px solid rgba(126,145,143,.28)!important;
+ border-radius:9px!important;background:rgba(221,230,226,.72)!important;color:#4d5a5b!important;
+}
+#qinghui-lite-panel #ql-cache-footer .ql-cache-selected-count{color:#64716f}
+#ql-image-cache-modal .ql-cache-modal-panel{
+ border-radius:15px!important;background:rgba(242,245,243,.98)!important;
+ border-color:rgba(126,145,143,.28)!important;color:#414b50;
+}
+#ql-image-cache-modal .ql-cache-detail-hero,
+#ql-image-cache-modal .ql-cache-stat,
+#ql-image-cache-modal .ql-cache-prompt-section,
+#ql-image-cache-modal .ql-cache-accordions details{
+ border-radius:11px!important;background:rgba(231,237,234,.72)!important;
+ border-color:rgba(126,145,143,.22)!important;
+}
+#ql-image-cache-modal button{border-radius:9px!important}
+@media(max-width:520px){
+ #qinghui-lite-panel #ql-history .ql-cache-grid{gap:7px}
+ #qinghui-lite-panel #ql-history .ql-cache-tile{padding:4px;border-radius:10px!important}
+ #qinghui-lite-panel #ql-history .ql-cache-actions{gap:3px}
+ #qinghui-lite-panel #ql-history .ql-cache-actions button{font-size:10px;min-height:30px}
+}
