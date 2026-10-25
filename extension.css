@@ -1414,3 +1414,14 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
   height:34px!important;padding:6px!important;
  }
 }
+
+
+/* 影像集：正文卡片操作按钮更小、更松散，四个图标均匀分布。 */
+#chat .ql-chat-image-controls{display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:space-evenly!important;gap:clamp(14px,4vw,24px)!important;width:100%!important;padding:8px clamp(8px,3vw,18px) 4px!important;box-sizing:border-box!important;}
+#chat .ql-chat-image-controls .ql-chat-image-edit,#chat .ql-chat-image-controls .ql-chat-image-reroll,#chat .ql-chat-image-controls .ql-chat-image-remove,#chat .ql-chat-image-controls .ql-chat-image-favorite{flex:0 0 29px!important;width:29px!important;min-width:29px!important;max-width:29px!important;height:29px!important;min-height:29px!important;padding:5px!important;border-radius:9px!important;box-sizing:border-box!important;}
+#chat .ql-chat-image-controls .ql-chat-image-edit svg,#chat .ql-chat-image-controls .ql-chat-image-reroll svg,#chat .ql-chat-image-controls .ql-chat-image-remove svg,#chat .ql-chat-image-controls .ql-chat-image-favorite svg{width:16px!important;height:16px!important;}
+#qinghui-lite-panel .ql-tabs{gap:5px!important;}
+#qinghui-lite-panel .ql-tabs .ql-tab{padding:8px 9px!important;font-size:13px!important;}
+#qinghui-lite-panel .ql-character-album{margin-top:16px!important;}
+#qinghui-lite-panel .ql-character-album h4{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+#qinghui-lite-panel #ql-character-albums .ql-cache-favorite{min-width:28px;min-height:28px;font-size:16px;}
