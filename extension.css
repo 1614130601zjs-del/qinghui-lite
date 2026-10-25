@@ -15,8 +15,10 @@
 /* 轻绘 Lite chat launcher and modal workspace */
 #extensionsMenu #ql-chat-launch{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;padding:10px 12px;cursor:pointer;white-space:nowrap;border-radius:6px}#extensionsMenu #ql-chat-launch:hover{background:var(--SmartThemeQuoteColor,rgba(127,127,127,.16))}#extensionsMenu #ql-chat-launch:focus-visible{outline:2px solid var(--SmartThemeUnderlineColor);outline-offset:-2px}
 #ql-overlay[hidden]{display:none!important}
-#ql-overlay{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;background:rgba(0,0,0,.66);backdrop-filter:blur(4px)}
-#qinghui-lite-panel{width:min(900px,100%);max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;box-sizing:border-box;border:1px solid var(--SmartThemeBorderColor);border-radius:14px;background:var(--SmartThemeBlurTintColor,var(--SmartThemeBodyColor));box-shadow:0 18px 60px rgba(0,0,0,.4)}
+/* 独立挂到 documentElement，避免酒馆/移动端容器的 transform 影响 fixed 定位。 */
+#ql-overlay{position:fixed!important;inset:0!important;z-index:2147483000;display:flex;align-items:center;justify-content:center;width:100vw;height:100vh;height:100dvh;min-height:0;padding:12px;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);}
+#qinghui-lite-panel{position:relative;flex:0 0 auto;width:min(900px,100%);max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);margin:auto;overflow:auto;overscroll-behavior:contain;box-sizing:border-box;border:1px solid var(--SmartThemeBorderColor);border-radius:14px;background:var(--SmartThemeBlurTintColor,var(--SmartThemeBodyColor));box-shadow:0 18px 60px rgba(0,0,0,.4)}
 #ql-close{position:sticky;top:0;z-index:5;float:right;margin:0 0 8px 8px}
-body.ql-modal-open{overflow:hidden}
-@media(max-width:600px){#ql-overlay{padding:6px;align-items:flex-end}#qinghui-lite-panel{max-height:calc(100dvh - 12px);border-radius:14px 14px 8px 8px;padding:10px}#ql-chat-launch{font-size:12px;padding:5px 8px}}
+body.ql-modal-open{overflow:hidden!important}
+html:has(> #ql-overlay:not([hidden])){overflow:hidden}
+@media(max-width:600px){#ql-overlay{padding:6px;align-items:center}#qinghui-lite-panel{width:100%;max-height:calc(100vh - 12px);max-height:calc(100dvh - 12px);border-radius:14px;padding:10px}#ql-chat-launch{font-size:12px;padding:5px 8px}}
