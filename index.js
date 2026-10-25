@@ -893,9 +893,6 @@ function statusbarPromptForTarget(target){
   ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
- // 已处理过的状态栏节点会把纯提示词保存在 data-ql-prompt；刷新后无需依赖 scanning 类名。
- const savedPrompt=String(target?.getAttribute?.('data-ql-prompt')||target?.dataset?.qlPrompt||'').trim();
- if(savedPrompt)return savedPrompt;
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
   const prompt=parseStatusbarMarker(ancestor.getAttribute?.('data-tag'));
@@ -1023,10 +1020,10 @@ function statusbarError(frame,prompt,taskKey,error){
 async function processStatusbarFrames(){
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
- const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"], [data-ql-prompt]')).filter(frame=>{
+ const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)return false;
-  return !Array.from(frame.querySelectorAll('[class~="scanning"], [data-ql-prompt]')).some(child=>statusbarPromptForTarget(child)===prompt);
+  return !Array.from(frame.querySelectorAll('[class~="scanning"]')).some(child=>statusbarPromptForTarget(child)===prompt);
  }));
  for(const frame of frames){
   const prompt=statusbarPromptForTarget(frame);
@@ -1036,10 +1033,7 @@ async function processStatusbarFrames(){
    frame.dataset.qlDone='';
    frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading').forEach(el=>el.remove());
   }
-  if(frame.dataset.qlBusy==='1')continue;
-  const existingCard=frame.querySelector('.ql-statusbar-card');
-  if(frame.dataset.qlDone==='1'&&existingCard?._qlRender)continue;
-  if(frame.dataset.qlDone==='1')frame.dataset.qlDone='';
+  if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
   frame.dataset.qlBusy='1';
   const taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
   // 恢复已缓存的状态栏图片：DOM 重绘/重新打开消息时不应自动重新请求 NAI。
