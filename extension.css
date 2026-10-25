@@ -126,3 +126,16 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel .ql-preset-compact-actions{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
 #qinghui-lite-panel .ql-preset-compact-actions button{padding:5px 8px;min-height:32px}
 @media(max-width:480px){#qinghui-lite-panel .ql-preset-compact{align-items:flex-start;flex-direction:column}#qinghui-lite-panel .ql-preset-compact-actions{width:100%;justify-content:flex-start}}
+
+
+/* 画师串列表默认隐藏，只在批量编辑时显示。 */
+#qinghui-lite-panel #ql-presets-batch[hidden]{display:none!important}
+#qinghui-lite-panel #ql-preset-batch-toggle{width:100%;min-height:40px;margin-top:12px}
+#qinghui-lite-panel .ql-bulk-check{display:flex;align-items:center;gap:7px;margin:0;flex:0 0 auto}
+#qinghui-lite-panel .ql-bulk-check input{width:auto;flex:0 0 auto}
+#qinghui-lite-panel .ql-library-thumb{display:block;width:auto;max-width:100%;max-height:160px;object-fit:contain;margin:8px 0;border-radius:9px}
+#qinghui-lite-panel .ql-image-reference-editor{margin:12px 0;padding:10px;border:1px dashed var(--ql-border);border-radius:10px}
+#qinghui-lite-panel #ql-library-image-file{min-height:40px;padding:6px}
+#qinghui-lite-panel .ql-library-image-preview{display:flex;align-items:center;justify-content:center;min-height:110px;max-height:280px;overflow:auto;border-radius:8px;background:rgba(127,127,127,.06)}
+#qinghui-lite-panel .ql-library-image-preview img{display:block;max-width:100%;max-height:260px;object-fit:contain;border-radius:8px}
+#qinghui-lite-panel .ql-library-image-preview>.ql-muted{padding:24px;text-align:center}
