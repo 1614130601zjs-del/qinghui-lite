@@ -512,3 +512,22 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 @media(max-width:600px){
  #qinghui-lite-panel{border-radius:0!important}
 }
+
+/* Readability pass: pale/transparent controls use dark ink instead of white labels. */
+#qinghui-lite-panel button,
+#qinghui-lite-panel .ql-primary,
+#qinghui-lite-panel .ql-secondary,
+#qinghui-lite-panel .ql-tab,
+#qinghui-lite-panel .ql-subtab,
+#qinghui-lite-panel #ql-vibe-pick,
+#qinghui-lite-panel .ql-library-copy-icon,
+#ql-image-cache-modal button,
+#ql-image-cache-modal .ql-cache-copy-icon{
+ color:#30313a!important;
+ text-shadow:none!important;
+}
+#qinghui-lite-panel button:disabled,
+#ql-image-cache-modal button:disabled{
+ color:#62636b!important;
+ opacity:.62;
+}
