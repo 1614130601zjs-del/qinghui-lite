@@ -2065,8 +2065,6 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 /* 0.5.38: one-click artist-only migration control */
 #qinghui-lite-panel #ql-migrate-toggle{white-space:nowrap;}
 
-/* 标题栏插件总开关：手机窄屏时允许按钮组收缩，不挤压标题。 */
-#qinghui-lite-panel .ql-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex:0 0 auto;min-width:0}
-#qinghui-lite-panel #ql-plugin-toggle{position:static;float:none;flex:0 0 auto;margin:0;min-height:34px;white-space:nowrap}
+/* 偏好区中的插件总开关。 */
+#qinghui-lite-panel #ql-plugin-toggle{width:100%;min-height:40px;white-space:nowrap}
 #qinghui-lite-panel #ql-plugin-toggle.ql-plugin-disabled{opacity:.72;border-style:dashed}
-@media(max-width:420px){#qinghui-lite-panel .ql-header{gap:6px;padding-left:10px;padding-right:10px}#qinghui-lite-panel .ql-brand span{display:none}#qinghui-lite-panel .ql-header-actions{gap:4px}#qinghui-lite-panel #ql-plugin-toggle,#qinghui-lite-panel #ql-close{padding-left:8px;padding-right:8px;font-size:12px}}
