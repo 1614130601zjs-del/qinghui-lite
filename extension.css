@@ -91,7 +91,9 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel .ql-subtabs{position:relative;z-index:25;pointer-events:auto}
 #qinghui-lite-panel .ql-subtab{position:relative;z-index:26;pointer-events:auto;touch-action:manipulation}
 #qinghui-lite-panel .ql-subpage{position:relative;z-index:1}
-#qinghui-lite-panel #ql-theme-css{min-height:130px;font-family:monospace;font-size:12px}
+#qinghui-lite-panel .ql-color-picker-row{display:flex;align-items:center;gap:12px;padding:8px 0}
+#qinghui-lite-panel #ql-theme-color{width:58px!important;height:52px;padding:4px;border:1px solid var(--ql-border);border-radius:14px;background:var(--ql-card);cursor:pointer;flex:0 0 58px}
+#qinghui-lite-panel #ql-theme-color-value{font-family:monospace;font-size:13px;letter-spacing:.04em}
 #qinghui-lite-panel #ql-theme-apply,#qinghui-lite-panel #ql-theme-reset{min-height:40px}
 #qinghui-lite-panel .ql-secondary{background:var(--ql-card);border:1px solid var(--ql-border)}
 
