@@ -821,3 +821,91 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="4"] .ql-cache-actions button,
  #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="5"] .ql-cache-actions button{min-height:23px;font-size:9px!important}
 }
+
+ 
+/* Cache gallery layout fix (2026-10-25): preserve intrinsic image ratio and isolate actions below it. */
+#qinghui-lite-panel #ql-history .ql-cache-grid{
+ display:grid!important;
+ grid-template-columns:repeat(var(--ql-history-columns,3),minmax(0,1fr))!important;
+ align-items:start!important;
+ gap:10px!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-tile{
+ display:flex!important;
+ flex-direction:column!important;
+ align-self:start!important;
+ min-width:0!important;
+ height:auto!important;
+ overflow:visible!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-image{
+ display:block!important;
+ position:relative!important;
+ flex:none!important;
+ width:100%!important;
+ height:auto!important;
+ min-height:0!important;
+ aspect-ratio:auto!important;
+ overflow:hidden!important;
+ padding:0!important;
+ line-height:0!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-image img{
+ display:block!important;
+ width:100%!important;
+ height:auto!important;
+ min-height:0!important;
+ max-height:none!important;
+ aspect-ratio:auto!important;
+ object-fit:contain!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-actions{
+ position:static!important;
+ display:grid!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ flex:none!important;
+ width:100%!important;
+ height:auto!important;
+ gap:5px!important;
+ margin:7px 0 0!important;
+ padding:0!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-actions button{
+ position:static!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ box-sizing:border-box!important;
+ width:100%!important;
+ min-width:0!important;
+ min-height:30px!important;
+ height:auto!important;
+ margin:0!important;
+ padding:5px 2px!important;
+ overflow:hidden!important;
+ white-space:nowrap!important;
+ font-size:11px!important;
+ line-height:1.2!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="4"] .ql-cache-actions,
+#qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="5"] .ql-cache-actions{
+ grid-template-columns:minmax(0,1fr)!important;
+ gap:3px!important;
+ margin-top:5px!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="4"] .ql-cache-actions button,
+#qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="5"] .ql-cache-actions button{
+ min-height:23px!important;
+ padding:3px 1px!important;
+ font-size:10px!important;
+}
+@media(max-width:520px){
+ #qinghui-lite-panel #ql-history .ql-cache-grid{gap:7px!important}
+ #qinghui-lite-panel #ql-history .ql-cache-tile{padding:3px!important}
+ #qinghui-lite-panel #ql-history .ql-cache-actions{gap:3px!important;margin-top:5px!important}
+ #qinghui-lite-panel #ql-history .ql-cache-actions button{min-height:27px!important;font-size:10px!important}
+ #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="4"] .ql-cache-actions,
+ #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="5"] .ql-cache-actions{gap:2px!important}
+ #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="4"] .ql-cache-actions button,
+ #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="5"] .ql-cache-actions button{min-height:21px!important;font-size:9px!important}
+}
