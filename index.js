@@ -323,33 +323,44 @@ function renderActiveVibes(){
 async function saveCleanImage(src,filename){
  if(!src)throw new Error('这条缓存记录没有可保存的图片数据。');
  const name=filename||'qinghui-image.png';
+ let objectUrl=src;
  try{
-  let objectUrl=src;
-  if(/^data:image\\//i.test(src)){
+  if(/^data:image\//i.test(src)){
    const comma=src.indexOf(',');
    if(comma<0)throw new Error('图片数据格式无效');
    const header=src.slice(0,comma),raw=src.slice(comma+1);
    let blob;
    if(/;base64/i.test(header)){
-    const binary=atob(raw.replace(/\\s/g,''));
-    const chunks=[];for(let i=0;i<binary.length;i+=0x8000){const part=binary.slice(i,i+0x8000),bytes=new Uint8Array(part.length);for(let j=0;j<part.length;j++)bytes[j]=part.charCodeAt(j);chunks.push(bytes);}
+    const binary=atob(raw.replace(/\s/g,''));
+    const chunks=[];
+    for(let i=0;i<binary.length;i+=0x8000){
+     const part=binary.slice(i,i+0x8000),bytes=new Uint8Array(part.length);
+     for(let j=0;j<part.length;j++)bytes[j]=part.charCodeAt(j);
+     chunks.push(bytes);
+    }
     blob=new Blob(chunks,{type:(header.match(/^data:([^;]+)/i)||[])[1]||'image/png'});
-   }else blob=new Blob([decodeURIComponent(raw)],{type:(header.match(/^data:([^;]+)/i)||[])[1]||'image/png'});
+   }else{
+    blob=new Blob([decodeURIComponent(raw)],{type:(header.match(/^data:([^;]+)/i)||[])[1]||'image/png'});
+   }
    objectUrl=URL.createObjectURL(blob);
   }
-  // Android WebView often ignores the download attribute for Blob URLs.
-  // Prefer opening the image in a user-initiated tab so it can be long-pressed and saved.
+  // Open synchronously from the button gesture; Android WebView may not honor download=.
   const opened=window.open(objectUrl,'_blank');
   if(opened){
    if(objectUrl!==src)setTimeout(()=>URL.revokeObjectURL(objectUrl),120000);
    return {opened:true};
   }
-  // If popups are blocked, fall back to a normal download link.
-  const a=document.createElement('a');a.href=objectUrl;a.download=name;a.rel='noopener';a.target='_blank';
-  a.style.position='fixed';a.style.left='-9999px';document.body.append(a);a.click();a.remove();
+  const a=document.createElement('a');
+  a.href=objectUrl;a.download=name;a.rel='noopener';a.style.position='fixed';a.style.left='-10000px';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
   if(objectUrl!==src)setTimeout(()=>URL.revokeObjectURL(objectUrl),120000);
   return {opened:false};
- }catch(error){throw new Error('保存图片失败：'+(error?.message||String(error)));}
+ }catch(error){
+  if(objectUrl!==src)URL.revokeObjectURL(objectUrl);
+  throw new Error('保存图片失败：'+(error?.message||String(error))+'。如果酒馆内置页面拦截了保存，请尝试打开图片详情后长按图片。');
+ }
 }
 function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
  if(!host)return;
@@ -641,7 +652,7 @@ function history(){
  const settings=$('#ql-history-columns');
  if(settings){settings.value=String(cols);settings.onchange=()=>{s.historyColumns=Math.max(1,Math.min(5,Number(settings.value)||3));save();history();};}
  host.style.setProperty('--ql-history-columns',String(cols));
- host.innerHTML=(records.length?'<div class="ql-cache-bulk-tools"><label class="ql-cache-select-all"><input type="checkbox" data-ql-select-all> 全选</label><span class="ql-cache-selected-count" data-ql-selected-count>已选 0 张</span><button type="button" class="menu_button" data-ql-bulk-delete disabled>删除所选</button></div><div class="ql-cache-grid">'+records.map((r,i)=>'<article class="ql-cache-tile"><label class="ql-cache-select-one"><input type="checkbox" data-ql-select="'+i+'" aria-label="选择第 '+(i+1)+' 张缓存图片"> 选择</label><button type="button" class="ql-cache-image" data-ql-detail="'+i+'" aria-label="查看图片详情"><img loading="lazy" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></button><div class="ql-cache-caption">'+esc((r.prompt||'').slice(0,70)||'无提示词')+'</div><div class="ql-cache-actions"><button type="button" class="menu_button" data-ql-detail="'+i+'">详情</button><button type="button" class="menu_button" data-ql-download="'+i+'">保存</button><button type="button" class="menu_button" data-ql-delete="'+i+'">删除</button></div></article>').join('')+'</div>':'<p class="ql-muted">暂无缓存图片。生成的图片会保存在这里。</p>');
+ host.innerHTML=(records.length?'<div class="ql-cache-grid">'+records.map((r,i)=>'<article class="ql-cache-tile"><button type="button" class="ql-cache-image" data-ql-detail="'+i+'" aria-label="查看图片详情"><img loading="lazy" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></button><label class="ql-cache-select-one"><input type="checkbox" data-ql-select="'+i+'" aria-label="选择第 '+(i+1)+' 张缓存图片"> 选择</label><div class="ql-cache-caption">'+esc((r.prompt||'').slice(0,70)||'无提示词')+'</div><div class="ql-cache-actions"><button type="button" class="menu_button" data-ql-detail="'+i+'">详情</button><button type="button" class="menu_button" data-ql-download="'+i+'">保存</button><button type="button" class="menu_button" data-ql-delete="'+i+'">删除</button></div></article>').join('')+'</div><div class="ql-cache-bulk-tools"><label class="ql-cache-select-all"><input type="checkbox" data-ql-select-all> 全选</label><span class="ql-cache-selected-count" data-ql-selected-count>已选 0 张</span><button type="button" class="menu_button" data-ql-bulk-delete disabled>删除所选</button></div>':'<p class="ql-muted">暂无缓存图片。生成的图片会保存在这里。</p>');
  let modal=document.getElementById('ql-image-cache-modal');
  if(!modal){
   const modalHost=document.getElementById('ql-overlay')||document.body;modalHost.insertAdjacentHTML('beforeend','<div id="ql-image-cache-modal" hidden role="dialog" aria-modal="true" aria-label="图片详情"><div class="ql-cache-modal-panel"><button type="button" class="menu_button ql-cache-modal-close">关闭</button><div class="ql-cache-modal-content"></div></div></div>');
