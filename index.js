@@ -846,8 +846,21 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   const prev=document.createElement('button');prev.type='button';prev.className='ql-statusbar-arrow';prev.style.cssText='display:flex!important;align-items:center;justify-content:center;min-width:36px;min-height:32px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.25);color:#fff;pointer-events:auto;touch-action:manipulation;';prev.setAttribute('aria-label','上一张');prev.title='上一张';prev.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
   const count=document.createElement('span');count.className='ql-statusbar-count';count.setAttribute('aria-live','polite');count.setAttribute('aria-label','当前图片序号');count.style.cssText='display:none!important;';count.textContent='1 / 1';
   const next=document.createElement('button');next.type='button';next.className='ql-statusbar-arrow';next.style.cssText='display:flex!important;align-items:center;justify-content:center;min-width:36px;min-height:32px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.25);color:#fff;pointer-events:auto;touch-action:manipulation;';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+  let controlsHideTimer=null;
+  const showControlsBriefly=()=>{
+   controls.style.transition='opacity .22s ease';
+   controls.style.opacity='1';
+   controls.style.visibility='visible';
+   controls.style.pointerEvents='auto';
+   if(controlsHideTimer)clearTimeout(controlsHideTimer);
+   controlsHideTimer=setTimeout(()=>{
+    controls.style.opacity='0';
+    controls.style.pointerEvents='none';
+    controls.style.visibility='hidden';
+   },1600);
+  };
   const updateControls=()=>{const total=card._qlCandidates.length;count.textContent=total?String(card._qlIndex+1)+' / '+total:'0 / 0';prev.disabled=total<2;next.disabled=total<2;};
-  card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;updateControls();};
+  card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;updateControls();showControlsBriefly();};
   card._qlAddCandidate=url=>{if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});}card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
   const moveCandidate=delta=>{const total=card._qlCandidates.length;if(total<2)return;card._qlIndex=(card._qlIndex+delta+total)%total;card._qlRender();};
   prev.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();moveCandidate(-1);});
@@ -860,7 +873,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   img.style.touchAction='manipulation';
   // 手机浏览器的 pointerup 与 touchend 可能在同一次点击中都触发，混用会把单击误判成双击。
   // 触屏只使用 touchend；鼠标/触控笔使用 dblclick。监听放在覆盖层 card 上，避免图片元素被酒馆重绘替换后失效。
-  let lastTouchTap=0,touchStartX=0,touchStartY=0;
+  let lastTouchTap=0,tapTimer=null,touchStartX=0,touchStartY=0;
   card.addEventListener('touchstart',e=>{
    if(e.target?.closest?.('.ql-statusbar-controls')||e.changedTouches?.length!==1)return;
    touchStartX=e.changedTouches[0].clientX;touchStartY=e.changedTouches[0].clientY;
@@ -871,15 +884,34 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
    const touch=e.changedTouches[0],dx=touch.clientX-touchStartX,dy=touch.clientY-touchStartY;
    if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25){
     e.preventDefault();e.stopPropagation();lastTouchTap=0;
+    if(tapTimer){clearTimeout(tapTimer);tapTimer=null;}
     const total=card._qlCandidates.length;
     if(total>1){card._qlIndex=(card._qlIndex+(dx<0?1:-1)+total)%total;card._qlRender();}
     return;
    }
-   const now=Date.now();
-   if(now-lastTouchTap>0&&now-lastTouchTap<650){
-    e.preventDefault();e.stopPropagation();lastTouchTap=0;reroll();
-   }else lastTouchTap=now;
+   const now=Date.now(),rect=card.getBoundingClientRect();
+   if(lastTouchTap>0&&now-lastTouchTap<420){
+    e.preventDefault();e.stopPropagation();lastTouchTap=0;
+    if(tapTimer){clearTimeout(tapTimer);tapTimer=null;}
+    reroll();
+   }else{
+    lastTouchTap=now;
+    if(tapTimer)clearTimeout(tapTimer);
+    tapTimer=setTimeout(()=>{
+     tapTimer=null;lastTouchTap=0;
+     const total=card._qlCandidates.length;
+     if(total<2)return;
+     moveCandidate(touch.clientX<rect.left+rect.width/2?-1:1);
+    },260);
+   }
   },{passive:false});
+  card.addEventListener('click',e=>{
+   if(e.detail>1||e.target?.closest?.('.ql-statusbar-controls'))return;
+   if('ontouchstart' in window)return;
+   const rect=card.getBoundingClientRect();
+   if(e.clientX<rect.left+rect.width/2)moveCandidate(-1);else moveCandidate(1);
+   e.preventDefault();e.stopPropagation();
+  });
   card.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll();});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
   card.append(img,controls);frame.append(card);
