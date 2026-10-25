@@ -75,7 +75,13 @@ function hideMarkersInTextNode(root,entries=[]){
   node.parentNode?.replaceChild(fragment,node);
  }
 }
+let qlImageRequestQueue=Promise.resolve();
 async function requestImage(prompt, negativeOverride, vibeItem=null){
+ const queued=qlImageRequestQueue.then(()=>requestImageUnlocked(prompt,negativeOverride,vibeItem));
+ qlImageRequestQueue=queued.catch(()=>{});
+ return queued;
+}
+async function requestImageUnlocked(prompt, negativeOverride, vibeItem=null){
  const c=cfg();
  let raw='',data=null,res;
  if(c.provider==='novelai'||c.provider==='novelai-thirdparty'){
@@ -625,13 +631,15 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
   const count=document.createElement('span');count.className='ql-chat-image-count';count.textContent='1 / 1';
   const next=document.createElement('button');next.type='button';next.className='menu_button ql-chat-image-arrow';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
   const reroll=document.createElement('button');reroll.type='button';reroll.className='menu_button ql-chat-image-reroll';reroll.setAttribute('aria-label','重新生成');reroll.title='重新生成';reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14 5l2-2"/><path d="M20 20v-4h-4"/></svg>';
+  const collapse=document.createElement('button');collapse.type='button';collapse.className='ql-chat-image-collapse';collapse.setAttribute('aria-label','折叠图片');collapse.title='折叠图片';collapse.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg>';
   const editor=document.createElement('div');editor.className='ql-chat-image-editor';editor.hidden=true;
   const textarea=document.createElement('textarea');textarea.className='ql-chat-image-tag-input';textarea.rows=3;textarea.value=String(prompt||'');textarea.setAttribute('aria-label','画面提示词');
   const saveTag=document.createElement('button');saveTag.type='button';saveTag.className='menu_button';saveTag.textContent='保存 tag';
   const cancelTag=document.createElement('button');cancelTag.type='button';cancelTag.className='menu_button';cancelTag.textContent='取消';
   const editorActions=document.createElement('div');editorActions.className='ql-chat-image-editor-actions';editorActions.append(saveTag,cancelTag);editor.append(textarea,editorActions);
-  controls.append(edit,prev,count,next,reroll);card.append(img,controls,editor);host.append(card);
-  edit.addEventListener('click',()=>{editor.hidden=!editor.hidden;if(!editor.hidden){textarea.value=card.dataset.qlPrompt||'';textarea.focus();}});
+  controls.append(edit,prev,count,next,reroll);card.append(img,collapse,controls,editor);host.append(card);
+  collapse.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const collapsed=card.classList.toggle('ql-image-collapsed');collapse.setAttribute('aria-label',collapsed?'展开图片':'折叠图片');collapse.title=collapsed?'展开图片':'折叠图片';collapse.innerHTML=collapsed?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6 6 6-6"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg>';});
+  edit.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const currentUrl=card._qlCandidates[card._qlIndex]?.url||img.getAttribute('src');editor.hidden=!editor.hidden;if(!editor.hidden){textarea.value=card.dataset.qlPrompt||'';if(currentUrl)img.src=currentUrl;textarea.focus();}});
   cancelTag.addEventListener('click',()=>{textarea.value=card.dataset.qlPrompt||'';editor.hidden=true;});
   saveTag.addEventListener('click',()=>{
    const updated=textarea.value.trim();if(!updated){textarea.focus();return;}
@@ -720,7 +728,8 @@ async function runInlineImageTrigger(button,entry){
  }catch(error){
   triggerRegistry.markFailed(taskKey,error?.message||String(error));
   button.dataset.qlBusy='0';button.disabled=false;button.textContent='重试生图';
-  statusNode.textContent=' 生成失败：'+(error?.message||String(error));
+  statusNode.remove();
+  alert('轻绘生成失败：'+(error?.message||String(error)));
  }finally{if(button.isConnected)button.dataset.qlBusy='0';}
 }
 async function processLatestAssistantMessage(){
@@ -796,9 +805,10 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;};
   card._qlAddCandidate=url=>{card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
   const reroll=async()=>{if(card.dataset.busy==='1')return;const candidate=triggerRegistry.beginCandidate(taskKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(taskKey);card.dataset.busy='1';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlAddCandidate(fresh);storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}finally{card.dataset.busy='0';}};
-  img.addEventListener('dblclick',e=>{e.preventDefault();reroll();});
-  let lastTap=0;
-  img.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTap<320){e.preventDefault();reroll();lastTap=0;}else lastTap=now;},{passive:false});
+  img.style.touchAction='manipulation';
+  img.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll();});
+  let lastPointerTap=0;
+  img.addEventListener('pointerup',e=>{if(e.pointerType!=='touch')return;const now=Date.now();if(now-lastPointerTap<480){e.preventDefault();e.stopPropagation();lastPointerTap=0;reroll();}else lastPointerTap=now;},{passive:false});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
   card.append(img);frame.append(card);
 
