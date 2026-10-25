@@ -109,17 +109,22 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
    parameters.prompt=prompt;
   }
   if(vibeItem){
-   if(!isV4)throw new Error('当前所选 NovelAI 模型不支持 V4 Vibe 编码，请切换到 NovelAI Diffusion V4 / V4.5 模型。');
    const vibes=Array.isArray(vibeItem.entries)
-    ?vibeItem.entries.map(item=>{const extracted=extractUsableVibe(item.raw||item);const image=typeof item.image==='string'&&item.image.trim()?String(item.image).trim().replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,''):extracted?.image||'';return image?{image,strength:Number(item.strength??extracted?.strength??0.6),informationExtracted:Number(item.informationExtracted??extracted?.informationExtracted??1)}:null;}).filter(Boolean)
+    ?vibeItem.entries.map(item=>{const extracted=extractUsableVibe(item.raw||item);const image=typeof item.image==='string'&&item.image.trim()?String(item.image).trim().replace(/^data:(?:application\\/octet-stream|image\\/[^;]+);base64,/i,'').replace(/\\s+/g,''):extracted?.image||'';return image?{image,strength:Number(item.strength??extracted?.strength??0.6),informationExtracted:Number(item.informationExtracted??extracted?.informationExtracted??1)}:null;}).filter(Boolean)
     :(()=>{const one=extractUsableVibe(vibeItem.raw||vibeItem);return one?[one]:[];})();
-   if(!vibes.length)throw new Error('这个 Vibe 组没有可用的预编码资源。请重新导入官网 .naiv4vibe / bundle，或检查智绘姬导出 JSON 是否包含 vibeData 编码；普通预览图不能替代编码。');
+   if(!vibes.length)throw new Error('这个 Vibe 组没有识别到可发送的编码。请重新导入包含 encoding 数据的 .naiv4vibe / bundle 或智绘姬导出 JSON；普通预览图不能替代编码。');
    if(vibes.length>16)throw new Error('NovelAI 单次最多使用 16 条 Vibe 参考，请先删除多余条目。');
    if(vibes.some(v=>!Number.isFinite(v.strength)||v.strength<0||v.strength>1||!Number.isFinite(v.informationExtracted)||v.informationExtracted<0||v.informationExtracted>1))throw new Error('Vibe 强度与 Information Extracted 必须在 0 到 1 之间。');
-   parameters.reference_image_multiple=vibes.map(v=>v.image);
    parameters.reference_strength_multiple=vibes.map(v=>v.strength);
-   parameters.reference_information_extracted_multiple=vibes.map(v=>v.informationExtracted);
    parameters.normalize_reference_strength_multiple=c.naiNormalizeVibeStrengths!==false;
+   if(isV3){
+    parameters.reference_image_multiple=vibes.map(v=>v.image);
+    parameters.reference_information_extracted_multiple=vibes.map(v=>v.informationExtracted);
+   }else if(isV4){
+    parameters.reference_image_multiple_cached=vibes.map(v=>({cache_secret_key:(crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,ch=>{const n=Math.random()*16|0;return(ch==='x'?n:(n&3|8)).toString(16);})),data:v.image}));
+   }else{
+    throw new Error('当前 NovelAI 模型不支持 Vibe Transfer，请切换到 V3、V4/V4.5 或受支持的 V5 模型。');
+   }
   }
   const third=c.provider==='novelai-thirdparty';
   const naiKey=third?(c.naiThirdKey||''):(c.naiApiKey||'');
@@ -246,7 +251,7 @@ async function requestWithActiveSettings(prompt, negativeOverride){
 }
 
 function extractUsableVibe(raw){
- const encodedKeys=/^(?:referenceImage|reference_image|referenceImageData|reference_image_data|base64|imageBase64|image_base64|encoded|encodedVibe|encoded_vibe|vibeEncoding|vibe_encoding|vibeData|vibe_data|payload)$/i;
+ const encodedKeys=/^(?:encoding|referenceImage|reference_image|referenceImageData|reference_image_data|base64|imageBase64|image_base64|encoded|encodedVibe|encoded_vibe|vibeEncoding|vibe_encoding|vibeData|vibe_data|payload)$/i;
  const seen=new WeakSet();let found='';
  const clean=value=>String(value||'').trim().replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,'').replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
  const walk=(value,key='',canonical=false)=>{
@@ -260,7 +265,15 @@ function extractUsableVibe(raw){
   seen.add(value);
   if(Array.isArray(value)){for(const item of value)walk(item,key,canonical);return;}
   const isCanonical=value.identifier==='novelai-vibe-transfer'&&value.type==='image';
-  if(isCanonical&&typeof value.image==='string')walk(value.image,'image',true);
+  if(isCanonical&&value.encodings&&typeof value.encodings==='object'){
+   const modelKeys={'nai-diffusion-4-5-full':'v4-5full','nai-diffusion-4-5-curated':'v4-5curated','nai-diffusion-4-full':'v4full','nai-diffusion-4-curated':'v4curated','nai-diffusion-5-full':'v5full','nai-diffusion-5-curated':'v5curated','nai-diffusion-3':'v3'};
+   const modelGroup=value.encodings[modelKeys[cfg().naiModel]||'v4-5full']||Object.values(value.encodings).find(group=>group&&typeof group==='object');
+   if(modelGroup&&typeof modelGroup==='object'){
+    const encodedEntry=Object.values(modelGroup).find(entry=>entry&&typeof entry.encoding==='string'&&entry.encoding.length>160);
+    if(encodedEntry){found=clean(encodedEntry.encoding);return;}
+   }
+  }
+  if(isCanonical&&typeof value.image==='string'&&value.image.length>160)walk(value.image,'image',true);
   for(const [k,v] of Object.entries(value)){
    if(isCanonical&&k==='image')continue;
    walk(v,k,false);
@@ -287,9 +300,19 @@ function renderActiveVibes(){
  select.value=cfg().vibes[Number(prior)]?prior:'-1';
  select.onchange=()=>{cfg().activeVibeIndex=Number(select.value);save();};
 }
-function saveCleanImage(src,filename){
+async function saveCleanImage(src,filename){
  if(!src)return;
- const a=document.createElement('a');a.href=src;a.download=filename||'qinghui-image.png';a.rel='noopener';a.style.display='none';document.body.append(a);a.click();a.remove();
+ try{
+  const response=await fetch(src);
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const blob=await response.blob(),objectUrl=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=objectUrl;a.download=filename||'qinghui-image.png';a.rel='noopener';a.style.cssText='position:fixed;left:-9999px;top:0';
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
+ }catch(error){
+  console.error('[轻绘 Lite] 保存图片失败',error);
+  if(src.startsWith('data:')){const a=document.createElement('a');a.href=src;a.download=filename||'qinghui-image.png';a.style.cssText='position:fixed;left:-9999px;top:0';document.body.append(a);a.click();a.remove();return;}
+  status('保存图片失败：'+(error?.message||String(error))+'。请长按放大图选择保存。');
+ }
 }
 function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
  if(!host)return;
