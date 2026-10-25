@@ -716,3 +716,108 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #qinghui-lite-panel #ql-history .ql-cache-actions{gap:3px}
  #qinghui-lite-panel #ql-history .ql-cache-actions button{font-size:10px;min-height:30px}
 }
+
+
+/* 缓存图片比例与按钮布局修复：图片按原始比例显示，按钮区独立占位不再挤进图片。 */
+#qinghui-lite-panel #ql-history .ql-cache-grid{
+ display:grid;
+ grid-template-columns:repeat(var(--ql-history-columns,3),minmax(0,1fr));
+ align-items:start;
+ gap:12px;
+}
+#qinghui-lite-panel #ql-history .ql-cache-tile{
+ min-width:0;
+ align-self:start;
+ overflow:visible;
+}
+#qinghui-lite-panel #ql-history .ql-cache-image{
+ display:block;
+ position:relative;
+ width:100%;
+ height:auto!important;
+ aspect-ratio:auto!important;
+ min-height:0!important;
+ padding:0!important;
+ overflow:hidden;
+ line-height:0;
+}
+#qinghui-lite-panel #ql-history .ql-cache-image img{
+ display:block;
+ width:100%!important;
+ height:auto!important;
+ max-width:100%!important;
+ max-height:none!important;
+ aspect-ratio:auto!important;
+ object-fit:contain!important;
+ object-position:center;
+}
+#qinghui-lite-panel #ql-history .ql-cache-actions{
+ position:relative;
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ align-items:stretch;
+ gap:4px;
+ width:100%;
+ margin:8px 0 0!important;
+ padding:0!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-actions button{
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ box-sizing:border-box;
+ width:100%;
+ min-width:0!important;
+ min-height:32px;
+ height:auto;
+ margin:0!important;
+ padding:5px 1px!important;
+ overflow:hidden;
+ white-space:nowrap;
+ text-overflow:clip;
+ font-size:clamp(8px,2.3vw,11px)!important;
+ line-height:1.2;
+ flex:none!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-tile.is-selected .ql-cache-image:after{
+ content:"已选择";
+ position:absolute;
+ inset:0;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ background:rgba(96,119,110,.28);
+ color:#fff;
+ font-size:12px;
+ font-weight:700;
+ line-height:1;
+}
+#qinghui-lite-panel #ql-history .ql-cache-tile.is-selected .ql-cache-image:after{
+ pointer-events:none;
+}
+#qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="4"],
+#qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="5"]{
+ gap:8px;
+}
+#qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="4"] .ql-cache-actions,
+#qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="5"] .ql-cache-actions{
+ grid-template-columns:minmax(0,1fr);
+ gap:3px;
+ margin-top:6px!important;
+}
+#qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="4"] .ql-cache-actions button,
+#qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="5"] .ql-cache-actions button{
+ min-height:25px;
+ padding:4px 2px!important;
+ font-size:10px!important;
+}
+@media(max-width:520px){
+ #qinghui-lite-panel #ql-history .ql-cache-grid{gap:7px}
+ #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="4"],
+ #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="5"]{gap:5px}
+ #qinghui-lite-panel #ql-history .ql-cache-tile{padding:4px}
+ #qinghui-lite-panel #ql-history .ql-cache-actions{gap:2px}
+ #qinghui-lite-panel #ql-history .ql-cache-actions button{min-height:29px;font-size:9px!important}
+ #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="4"] .ql-cache-actions button,
+ #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="5"] .ql-cache-actions button{min-height:23px;font-size:9px!important}
+}
