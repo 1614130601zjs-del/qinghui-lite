@@ -1159,46 +1159,15 @@ function renderLibrary(){
 
 async function readVibeArchiveJson(file){const buffer=await file.arrayBuffer(),view=new DataView(buffer),bytes=new Uint8Array(buffer),out=[];const u16=o=>view.getUint16(o,true),u32=o=>view.getUint32(o,true);const decoder=new TextDecoder();for(let p=0;p+46<=bytes.length;){if(u32(p)!==0x02014b50){p++;continue;}const method=u16(p+10),compressed=u32(p+20),nameLen=u16(p+28),extraLen=u16(p+30),commentLen=u16(p+32),localOffset=u32(p+42);const name=decoder.decode(bytes.slice(p+46,p+46+nameLen));if(/\.json$/i.test(name)){if(u32(localOffset)!==0x04034b50)throw new Error('Vibe 压缩包中的文件头无法识别：'+name);const localName=u16(localOffset+26),localExtra=u16(localOffset+28),start=localOffset+30+localName+localExtra,packed=bytes.slice(start,start+compressed);let raw;if(method===0)raw=packed;else if(method===8&&typeof DecompressionStream!=='undefined'){const stream=new Blob([packed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));raw=new Uint8Array(await new Response(stream).arrayBuffer());}else throw new Error('当前浏览器不支持该 Vibe 压缩算法。');try{out.push(JSON.parse(decoder.decode(raw)));}catch{}}p+=46+nameLen+extraLen+commentLen;}return out;}
 let migrationCandidate=null;
-function walkChatu8(data, pathName='', out={artists:[],prompts:[],vibes:[],warnings:[]}, seen=new WeakSet()){
+function walkChatu8(data, pathName='', out={artists:[],warnings:[]}, seen=new WeakSet()){
  if(!data||typeof data!=='object'||seen.has(data))return out;
  seen.add(data);
  const pushUnique=(arr,item,keyFn)=>{if(!arr.some(x=>keyFn(x)===keyFn(item)))arr.push(item);};
  const normName=(obj,fallback)=>String(obj?.name||obj?.title||obj?.label||obj?.id||fallback||'未命名').slice(0,160);
+ if(Array.isArray(data)){for(let i=0;i<data.length;i++)walkChatu8(data[i],pathName+'['+i+']',out,seen);return out;}
  const entries=Object.entries(data);
  const textValue=(...keys)=>{for(const [k,v] of entries)if(keys.some(re=>re.test(k))&&typeof v==='string'&&v.trim())return v.trim();return '';};
- const isChatu8VibeExport=data.groups&&typeof data.groups==='object'&&data.vibeData&&typeof data.vibeData==='object';
- if(isChatu8VibeExport){
-  for(const [groupName,group] of Object.entries(data.groups)){
-   if(!group||typeof group!=='object'||!Array.isArray(group.vibes))continue;
-   const images=[];
-   for(const ref of group.vibes){
-    const stored=ref?.vibeDataId?data.vibeData[ref.vibeDataId]:null;
-    if(!stored||typeof stored!=='object'){
-     out.warnings.push('Vibe 分组「'+groupName+'」中的数据引用未找到：'+String(ref?.vibeDataId||'未知 ID'));
-     continue;
-    }
-    // 智绘姬的标准 Vibe 资源使用 identifier/type 标识，stored.image 是编码载荷，不是缩略图。
-    // 只有确认是 novelai-vibe-transfer 编码时才作为生图输入；缩略图单独保留。
-    const previewImage=[stored.previewImage,stored.thumbnail,stored.avatar].find(v=>typeof v==='string'&&v.trim())||'';
-    // 优先从当前 NAI 模型对应的 encodings 中取编码，不能把预览图或其他模型的编码直接发给接口。
-    const modelForImport=cfg().naiModel||'nai-diffusion-4-5-full';
-    const extracted=extractUsableVibe(stored,modelForImport);
-    const storedImage=typeof stored.image==='string'?stored.image.trim():'';
-    const normalizedImage=String(extracted?.image||storedImage).replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,'').replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
-    // 只有有效的模型预编码才视为可用于生图的载荷。
-    const hasPayload=/^[A-Za-z0-9+/]+={0,2}$/.test(normalizedImage)&&normalizedImage.length>160;
-    // 编码只保留一份，避免 raw 再复制一份超大的 Base64 让酒馆设置膨胀。
-    const rawMeta={identifier:stored.identifier||'',version:stored.version??1,type:stored.type||'image',informationExtracted:stored.informationExtracted??stored.information_extracted??1};
-    images.push({vibeDataId:ref.vibeDataId,image:hasPayload?normalizedImage:'',previewImage,raw:rawMeta,strength:Number.isFinite(Number(ref.strength))?Number(ref.strength):0.6,informationExtracted:Number.isFinite(Number(extracted?.informationExtracted??stored.informationExtracted??stored.information_extracted))?Number(extracted?.informationExtracted??stored.informationExtracted??stored.information_extracted):1,identifier:stored.identifier||'',version:stored.version??1,type:stored.type||'image',hasPayload});
-   }
-   if(images.length)pushUnique(out.vibes,{name:String(groupName||'未命名 Vibe'),groupName:String(groupName||'未命名 Vibe'),entries:images,hasPayload:images.some(v=>v.hasPayload),hasRef:false,rawGroup:group,sourcePath:pathName,source:'st-chatu8'},x=>x.name+'|'+x.sourcePath);
-   else if(group.vibes.length)out.warnings.push('Vibe 分组「'+groupName+'」没有可保留的数据。');
-  }
-  for(const [k,v] of entries){if(k==='groups'||k==='vibeData')continue;if(v&&typeof v==='object')walkChatu8(v,pathName?pathName+'.'+k:k,out,seen);}
-  return out;
- }
- if(Array.isArray(data)){for(let i=0;i<data.length;i++)walkChatu8(data[i],pathName+'['+i+']',out,seen);return out;}
- // 智绘姬导出的画师串集合：presets -> 名称 -> fixedPrompt/fixedPrompt_end/negativePrompt。
+ // 智绘姬画师串导出：presets -> 名称 -> fixedPrompt / fixedPrompt_end / negativePrompt。
  if(data.presets&&typeof data.presets==='object'&&!Array.isArray(data.presets)){
   for(const [presetName,preset] of Object.entries(data.presets)){
    if(!preset||typeof preset!=='object')continue;
@@ -1209,21 +1178,15 @@ function walkChatu8(data, pathName='', out={artists:[],prompts:[],vibes:[],warni
    if(positive.trim())pushUnique(out.artists,{name:String(presetName||'未命名画师串'),positive,negative,sourcePath:(pathName?pathName+'.':'')+'presets.'+presetName,source:'st-chatu8'},x=>x.name+'|'+x.positive+'|'+x.negative);
   }
  }
- const isVibeKey=/vibe|氛围转移|参考图组|参考组/i.test(pathName);
  const name=normName(data,pathName.split(/[.[]/).filter(Boolean).pop());
  const pos=textValue(/^fixedPrompt$|画师串|画师|artist|positive.?prompt|正向提示词|正面提示词|promptPositive/i);
  const neg=textValue(/^negativePrompt$|negative.?prompt|负向提示词|负面提示词/i);
- const prompt=textValue(/^prompt$|提示词内容|完整提示词|正文提示词|正向提示词/i);
- const vibeLike=isVibeKey||/vibe|氛围转移|参考图组|参考组/i.test(String(data.type||data.kind||''));
- if(vibeLike){
-  const serialized=safeMigrationStringify(data)||'';
-  const hasPayload=serialized.includes('data:image/')||/base64|encoded.?image|imageData|referenceImage|vibeData|vibe.*data/i.test(serialized);
-  const hasRef=/https?:\/\/|blob:|cache.?id|image.?id|file.?name|path/i.test(serialized);
-  pushUnique(out.vibes,{name,sourcePath:pathName,raw:data,hasPayload,hasRef},x=>x.name+'|'+x.sourcePath);
- }
  if(pos)pushUnique(out.artists,{name,positive:pos,negative:neg,sourcePath:pathName},x=>x.name+'|'+x.positive);
- else if(prompt&&(entries.some(([k])=>/preset|预设|artist|画师|style|画风/i.test(k))||/preset|预设|artist|画师|style|画风/i.test(pathName)))pushUnique(out.prompts,{name,category:'智绘姬迁移',prompt,negative:neg,sourcePath:pathName},x=>x.name+'|'+x.prompt);
- for(const [k,v] of entries){if(data.presets&&k==='presets')continue;if(v&&typeof v==='object')walkChatu8(v,pathName?pathName+'.'+k:k,out,seen);else if(typeof v==='string'&&/画师串|artist.?string/i.test(k)&&v.trim())pushUnique(out.artists,{name,positive:v.trim(),negative:neg,sourcePath:pathName+'.'+k},x=>x.name+'|'+x.positive);}
+ for(const [k,v] of entries){
+  if(k==='presets'||/vibe|氛围转移|参考图组|参考组|vibeData/i.test(k))continue;
+  if(v&&typeof v==='object')walkChatu8(v,pathName?pathName+'.'+k:k,out,seen);
+  else if(typeof v==='string'&&/画师串|artist.?string/i.test(k)&&v.trim())pushUnique(out.artists,{name,positive:v.trim(),negative:neg,sourcePath:pathName+'.'+k},x=>x.name+'|'+x.positive);
+ }
  return out;
 }
 function renderMigrationPreview(candidate,source){
@@ -1249,7 +1212,7 @@ async function scanChatu8Settings(){
  const looksRelevant=(value,depth=0,seen=new WeakSet())=>{
   if(!value||typeof value!=='object'||depth>6||seen.has(value))return false;
   seen.add(value);
-  if(value.groups&&typeof value.groups==='object'&&value.vibeData&&typeof value.vibeData==='object')return true;
+  
   if(value.presets&&typeof value.presets==='object'&&!Array.isArray(value.presets)&&Object.values(value.presets).some(p=>p&&typeof p==='object'&&('fixedPrompt' in p||'fixedPrompt_end' in p)))return true;
   for(const [k,v] of Object.entries(value)){
    if(/chatu8|智绘姬|zhihuiji/i.test(k)&&v&&typeof v==='object')return true;
