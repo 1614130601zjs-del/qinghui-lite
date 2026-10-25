@@ -896,6 +896,10 @@ function statusbarPromptForTarget(target){
   ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
+ // data-ql-prompt 保存的是已解析后的纯提示词，不含 image###...### 包裹；
+ // 因此不能再交给 parseStatusbarMarker，否则刷新后会被误判为空提示词。
+ const savedPrompt=String(target?.getAttribute?.('data-ql-prompt')||target?.dataset?.qlPrompt||'').trim();
+ if(savedPrompt)return savedPrompt;
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
   const prompt=parseStatusbarMarker(ancestor.getAttribute?.('data-tag'));
