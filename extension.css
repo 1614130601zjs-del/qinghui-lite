@@ -558,6 +558,8 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  border:1px solid var(--ql-glass-line,var(--SmartThemeBorderColor));
  background:color-mix(in srgb,var(--SmartThemeBlurTintColor,rgba(255,255,255,.04)) 65%,transparent);
 }
+#qinghui-lite-panel #ql-history .ql-cache-bulk-tools .ql-cache-selected-count{margin-right:0}
+#qinghui-lite-panel #ql-history .ql-cache-bulk-tools #ql-clear{margin-left:0}
 #qinghui-lite-panel #ql-history .ql-cache-bulk-tools label,
 #qinghui-lite-panel #ql-history .ql-cache-select-one{
  display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;
