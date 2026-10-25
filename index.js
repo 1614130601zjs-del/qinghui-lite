@@ -976,3 +976,36 @@ jQuery(()=>{
  if(event_types.CHARACTER_SELECTED)eventSource.on(event_types.CHARACTER_SELECTED,()=>{renderBindings();applyCurrentBinding();});
  applyCurrentBinding();
 });
+
+// 独立兜底：入口不依赖面板是否首次创建。热重载时即使面板已存在，也重新确保魔法棒菜单入口存在。
+jQuery(()=>{
+ const ensureQinghuiLauncher=()=>{
+  const menu=document.querySelector('#extensionsMenu');
+  if(!menu)return;
+  let launch=document.querySelector('#ql-chat-launch');
+  if(!launch){
+   launch=document.createElement('div');
+   launch.id='ql-chat-launch';
+   launch.className='list-group-item flex-container flexGap5';
+   launch.setAttribute('role','button');
+   launch.setAttribute('tabindex','0');
+   launch.title='打开轻绘 Lite 生图工作区';
+   launch.innerHTML='<i class="fa-solid fa-palette"></i><span>轻绘 Lite</span>';
+  }
+  if(launch.parentElement!==menu)menu.append(launch);
+  const openLite=()=>{
+   const overlay=document.querySelector('#ql-overlay');
+   if(!overlay){console.warn('[轻绘 Lite] 面板尚未初始化');return;}
+   overlay.hidden=false;
+   document.body.classList.add('ql-modal-open');
+  };
+  launch.onclick=openLite;
+  launch.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openLite();}};
+ };
+ ensureQinghuiLauncher();
+ if(!document.documentElement.dataset.qlLauncherObserver){
+  document.documentElement.dataset.qlLauncherObserver='1';
+  const observer=new MutationObserver(()=>ensureQinghuiLauncher());
+  observer.observe(document.documentElement,{childList:true,subtree:true});
+ }
+});
