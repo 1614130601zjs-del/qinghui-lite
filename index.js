@@ -1112,9 +1112,13 @@ function history(){
     if(spreadNumber)spreadNumber.textContent=String(spreadPage+1)+'/'+String(totalPages);
     const prev=albums.querySelector('[data-spread-step="-1"]'),next=albums.querySelector('[data-spread-step="1"]');
     if(prev)prev.disabled=spreadPage===0;if(next)next.disabled=spreadPage>=totalPages-1;
-    spreadGrid.querySelectorAll('[data-album-photo]').forEach(button=>button.addEventListener('click',()=>openDetail(Number(button.dataset.albumPhoto))));
-    spreadGrid.querySelectorAll('[data-ql-unfavorite]').forEach(button=>button.addEventListener('click',()=>{const record=settings.records[Number(button.dataset.qlUnfavorite)];if(record){delete record.albumCharacterName;delete record.albumCharacterKey;save();history();status('已从相册移除，缓存图片仍保留。');}}));
    };
+   spreadGrid?.addEventListener('click',event=>{
+    const photo=event.target?.closest?.('[data-album-photo]');
+    if(photo){openDetail(Number(photo.dataset.albumPhoto));return;}
+    const remove=event.target?.closest?.('[data-ql-unfavorite]');
+    if(remove){const record=settings.records[Number(remove.dataset.qlUnfavorite)];if(record){delete record.albumCharacterName;delete record.albumCharacterKey;save();history();status('已从相册移除，缓存图片仍保留。');}}
+   });
    albums.querySelectorAll('[data-spread-step]').forEach(button=>button.addEventListener('click',()=>{spreadPage=Math.max(0,Math.min(Math.max(0,Math.ceil(items.length/6)-1),spreadPage+Number(button.dataset.spreadStep)));paintSpread();}));
    const spreadArea=albums.querySelector('.ql-album-spread-grid');let spreadStartX=0;
    spreadArea?.addEventListener('touchstart',event=>{spreadStartX=event.changedTouches[0].clientX;},{passive:true});
