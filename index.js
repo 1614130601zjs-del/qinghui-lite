@@ -12,6 +12,14 @@ function cfg(){
  const s=extension_settings[EXT];
  if(typeof s.naiNormalizeVibeStrengths!=='boolean')s.naiNormalizeVibeStrengths=true;
  for(const key of ['records','presets','characters','prompts','vibes','bindings'])if(!Array.isArray(s[key]))s[key]=[];
+ // 仅清理一次旧版智绘姬迁移留下的 Vibe 项目，避免升级后用户还要手动删除数百条。
+ if(!s.vibeMigrationCleared20261025){
+  s.vibes=[];
+  s.activeVibeIndex=-1;
+  for(const binding of s.bindings)binding.vibeIndex=-1;
+  s.vibeMigrationCleared20261025=true;
+  saveSettingsDebounced();
+ }
  let migrated=false;
  for(const vibe of s.vibes){
   if(!vibe||vibe._vibeMigrationVersion===1)continue;
@@ -428,7 +436,7 @@ function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-pa
 </div>
 <div class="ql-page" data-page-panel="history" role="tabpanel" hidden><div class="ql-card"><h3>最近生成</h3><p class="ql-muted">本地保存的最近生成记录。</p><div id="ql-history"></div><button id="ql-clear" class="menu_button">清空记录</button></div></div>
 <div class="ql-page" data-page-panel="settings" role="tabpanel" hidden><div class="ql-card"><h3>外观与配色</h3><p class="ql-muted">内置低饱和配色，默认跟随酒馆主题；也可以自定义 CSS 变量。</p><label for="ql-theme-preset">配色预设</label><select id="ql-theme-preset"><option value="auto">自适配酒馆美化</option><option value="mist">雾灰蓝</option><option value="sage">鼠尾草绿</option><option value="lavender">灰紫</option><option value="oat">燕麦奶茶</option><option value="ink">墨蓝灰</option><option value="custom">自定义 CSS</option></select><label for="ql-theme-css">自定义 CSS（仅作用于轻绘 Lite）</label><textarea id="ql-theme-css" placeholder="例如：--ql-accent: #8799ad;\n--ql-panel: rgba(230, 235, 240, .96);"></textarea><div class="ql-row"><button id="ql-theme-apply" type="button" class="menu_button">应用配色</button><button id="ql-theme-reset" type="button" class="menu_button">恢复自适配</button></div><p id="ql-theme-status" class="ql-muted" role="status"></p></div><div class="ql-card"><h3>接口连接设置</h3><p class="ql-muted">模型、尺寸、质量、步数和采样器已放在第一页“模型参数”。此处只填写 OpenAI 兼容接口连接信息。</p><label for="ql-endpoint">API 地址</label><input id="ql-endpoint" placeholder="https://api.openai.com/v1"><label for="ql-key">API Key</label><input id="ql-key" type="password" autocomplete="off" placeholder="不会写入 GitHub"><button id="ql-save" class="menu_button ql-primary">保存接口设置</button></div><div hidden><select id="ql-provider"><option value="openai">OpenAI</option><option value="novelai">NovelAI</option></select><input id="ql-model"><select id="ql-size"><option>1024x1024</option><option>1536x1024</option><option>1024x1536</option></select><select id="ql-quality"><option>low</option><option>medium</option><option>high</option></select><input id="ql-nai-model"><input id="ql-nai-steps"><input id="ql-nai-scale"><select id="ql-nai-width"><option>512</option><option>640</option><option>768</option><option>832</option><option>1024</option></select><select id="ql-nai-height"><option>512</option><option>640</option><option>768</option><option>832</option><option>1024</option><option>1216</option><option>1536</option></select><select id="ql-nai-sampler"><option value="k_euler_ancestral">Euler Ancestral</option><option value="k_euler">Euler</option><option value="k_dpmpp_2m">DPM++ 2M</option><option value="k_dpmpp_2s_ancestral">DPM++ 2S Ancestral</option></select><select id="ql-nai-scheduler"><option value="karras">Karras</option><option value="native">Native</option></select><input id="ql-nai-normalize" type="checkbox"><div id="ql-openai-settings" hidden></div><div id="ql-nai-settings" hidden></div></div></div>
-<div class="ql-page" data-page-panel="migration" role="tabpanel" hidden><div class="ql-card"><h3>智绘姬数据迁移</h3><p class="ql-muted">先扫描当前酒馆可访问的智绘姬设置，也可以选择智绘姬导出的 JSON 文件。迁移前会预览，已有数据不会被覆盖。</p><div class="ql-row ql-migrate-actions"><button id="ql-migrate-scan" class="menu_button">扫描当前酒馆</button><button id="ql-migrate-file-btn" class="menu_button">选择导出文件</button><input id="ql-migrate-file" type="file" accept=".json,.json5,.txt,application/json" hidden></div><div id="ql-migrate-preview" class="ql-muted" role="status">尚未扫描。</div><button id="ql-migrate-import" class="menu_button" disabled>确认导入</button><p class="ql-muted">画师串与文本预设可迁移；Vibe 项目会先保留原始数据供核对，确认资源格式后再接入生图。</p><div id="ql-vibes-migration-list"></div></div></div>
+<div class="ql-page" data-page-panel="migration" role="tabpanel" hidden><div class="ql-card"><h3>智绘姬数据迁移</h3><p class="ql-muted">先扫描当前酒馆可访问的智绘姬设置，也可以选择智绘姬导出的 JSON 文件。迁移前会预览，已有数据不会被覆盖。</p><div class="ql-row ql-migrate-actions"><button id="ql-migrate-scan" class="menu_button">扫描当前酒馆</button><button id="ql-migrate-file-btn" class="menu_button">选择导出文件</button><input id="ql-migrate-file" type="file" accept=".json,.json5,.txt,application/json" hidden></div><div id="ql-migrate-preview" class="ql-muted" role="status">尚未扫描。</div><button id="ql-migrate-import" class="menu_button" disabled>确认导入</button><p class="ql-muted">此处只迁移画师串（正向与负向提示词）。Vibe 与其他文本预设不参与扫描和导入；独立的 Vibe 手动导入入口不受影响。</p></div></div>
 </section></div>`;}
 
 function syncFastControls(){if(!$('#ql-fast-provider'))return;$('#ql-provider').value=$('#ql-fast-provider').value;$('#ql-model').value=$('#ql-fast-model').value;$('#ql-size').value=$('#ql-fast-size').value;$('#ql-quality').value=$('#ql-fast-quality').value;$('#ql-nai-model').value=$('#ql-fast-nai-model').value;$('#ql-nai-steps').value=$('#ql-fast-nai-steps').value;$('#ql-nai-scale').value=$('#ql-fast-nai-scale').value;$('#ql-nai-width').value=$('#ql-fast-nai-width').value;$('#ql-nai-height').value=$('#ql-fast-nai-height').value;$('#ql-nai-sampler').value=$('#ql-fast-nai-sampler').value;$('#ql-nai-scheduler').value=$('#ql-fast-nai-scheduler').value;$('#ql-nai-normalize').checked=$('#ql-fast-nai-normalize').checked;}
@@ -576,12 +584,11 @@ function walkChatu8(data, pathName='', out={artists:[],prompts:[],vibes:[],warni
  return out;
 }
 function renderMigrationPreview(candidate,source){
- migrationCandidate=candidate;
+ // 迁移功能仅保留画师串；不再显示、导入文本预设或 Vibe。
+ migrationCandidate={artists:Array.isArray(candidate.artists)?candidate.artists:[],prompts:[],vibes:[],warnings:candidate.warnings||[]};
  const host=$('#ql-migrate-preview');if(!host)return;
- const vibePayload=candidate.vibes.filter(v=>v.hasPayload).length;
- const vibeRef=candidate.vibes.length-vibePayload;
- host.textContent=source+'：画师串 '+candidate.artists.length+' 条，提示词预设 '+candidate.prompts.length+' 条，Vibe 项目 '+candidate.vibes.length+' 条。'+(candidate.warnings?.length?' 扫描警告 '+candidate.warnings.length+' 条。':'')+(vibeRef?' 其中 '+vibeRef+' 条未检测到可确认的内嵌图片编码。':'')+(candidate.artists.length+candidate.prompts.length+candidate.vibes.length?' 请确认后导入。':' 未识别到可迁移项目；建议在智绘姬中导出完整设置 JSON，再用文件导入。');
- $('#ql-migrate-import').disabled=!(candidate.artists.length||candidate.prompts.length||candidate.vibes.length);
+ host.textContent=source+'：识别到画师串 '+migrationCandidate.artists.length+' 条。'+(migrationCandidate.artists.length?' 请确认后导入。':' 未识别到画师串；请确认所选文件包含 presets，并包含 fixedPrompt / fixedPrompt_end。');
+ $('#ql-migrate-import').disabled=!migrationCandidate.artists.length;
 }
 function scanChatu8Settings(){
  const found=[];
@@ -603,6 +610,7 @@ function scanChatu8Settings(){
  const merged={artists:[],prompts:[],vibes:[],warnings:[]};
  const seenKeys=new Set();
  for(const item of found){if(seenKeys.has(item.key))continue;seenKeys.add(item.key);try{walkChatu8(item.value,item.key,merged);}catch(e){merged.warnings.push(item.key+'：读取失败');}}
+ merged.prompts=[];merged.vibes=[];
  renderMigrationPreview(merged,found.length?'当前酒馆扫描（'+found.map(x=>x.key).join('、')+'）':'当前酒馆扫描');
 }
 function safeMigrationStringify(value){try{return JSON.stringify(value);}catch{return '';}}
@@ -612,37 +620,21 @@ async function readMigrationFile(file){
   let data;
   try{data=JSON.parse(text);}catch{throw new Error('文件不是有效 JSON。请从智绘姬导出设置/预设文件后再选择。');}
   const candidate=walkChatu8(data,file.name);
+  candidate.prompts=[];candidate.vibes=[];
   renderMigrationPreview(candidate,'文件 '+file.name);
  }catch(e){$('#ql-migrate-preview').textContent='读取失败：'+(e?.message||String(e));$('#ql-migrate-import').disabled=true;}
 }
 function importChatu8Candidate(){
  const candidate=migrationCandidate;if(!candidate)return;
- const s=cfg();let artists=0,prompts=0,vibes=0;
- for(const item of candidate.artists){
+ const s=cfg();let artists=0;
+ for(const item of candidate.artists||[]){
   if(!item.positive)continue;
   if(s.presets.some(x=>x.name===item.name&&x.positive===item.positive))continue;
   s.presets.unshift({name:item.name,positive:item.positive,negative:item.negative||'',source:'st-chatu8',sourcePath:item.sourcePath,updatedAt:Date.now()});artists++;
  }
- for(const item of candidate.prompts){
-  if(!item.prompt)continue;
-  if(s.prompts.some(x=>x.name===item.name&&x.prompt===item.prompt))continue;
-  s.prompts.unshift({name:item.name,category:item.category||'智绘姬迁移',prompt:item.prompt,negative:item.negative||'',source:'st-chatu8',sourcePath:item.sourcePath,updatedAt:Date.now()});prompts++;
- }
- for(const item of candidate.vibes){
-  const existingIndex=s.vibes.findIndex(x=>x.name===item.name&&x.sourcePath===item.sourcePath);
-  const imported={name:item.name,groupName:item.groupName||item.name,entries:Array.isArray(item.entries)?item.entries.map(v=>({...v})):undefined,raw:item.raw,rawGroup:item.rawGroup,hasPayload:item.hasPayload,hasRef:item.hasRef,sourcePath:item.sourcePath,source:'st-chatu8',importedAt:Date.now()};
-  if(existingIndex>=0){
-   const existing=s.vibes[existingIndex];
-   const oldHasPayload=Array.isArray(existing.entries)&&existing.entries.some(v=>typeof v.image==='string'&&v.image.replace(/\s+/g,'').length>160);
-   const newHasPayload=Array.isArray(imported.entries)&&imported.entries.some(v=>typeof v.image==='string'&&v.image.replace(/\s+/g,'').length>160);
-   if(!oldHasPayload&&newHasPayload){s.vibes[existingIndex]={...existing,...imported};vibes++;}
-   continue;
-  }
-  s.vibes.push(imported);vibes++;
- }
- s.presets=s.presets.slice(0,500);s.prompts=s.prompts.slice(0,500);s.vibes=s.vibes.slice(0,200);
+ s.presets=s.presets.slice(0,500);
  save();renderLibrary();
- status('迁移完成：画师串 '+artists+' 条，提示词 '+prompts+' 条，Vibe 项目 '+vibes+' 条。Vibe 资源仍需逐项检查是否含完整编码/图片数据。');
+ status('画师串迁移完成：新增 '+artists+' 条。未迁移 Vibe 或其他文本预设。');
  $('#ql-migrate-import').disabled=true;
 }
 
