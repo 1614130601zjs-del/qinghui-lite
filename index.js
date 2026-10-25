@@ -110,7 +110,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
   }
   if(vibeItem){
    const vibes=Array.isArray(vibeItem.entries)
-    ?vibeItem.entries.map(item=>{const extracted=extractUsableVibe(item.raw||item,naiModel);const image=typeof item.image==='string'&&item.image.trim()?String(item.image).trim().replace(/^data:(?:application\\/octet-stream|image\\/[^;]+);base64,/i,'').replace(/\\s+/g,''):extracted?.image||'';return image?{image,strength:Number(item.strength??extracted?.strength??0.6),informationExtracted:Number(item.informationExtracted??extracted?.informationExtracted??1)}:null;}).filter(Boolean)
+    ?vibeItem.entries.map(item=>{const source=item.raw||item;const extracted=extractUsableVibe(source,naiModel);const hasModelMap=JSON.stringify(source).includes('"encodings"');const image=extracted?.image||(!hasModelMap&&typeof item.image==='string'&&item.image.trim()?String(item.image).trim().replace(/^data:(?:application\\/octet-stream|image\\/[^;]+);base64,/i,'').replace(/\\s+/g,''):'');return image?{image,strength:Number(item.strength??extracted?.strength??0.6),informationExtracted:Number(item.informationExtracted??extracted?.informationExtracted??1)}:null;}).filter(Boolean)
     :(()=>{const one=extractUsableVibe(vibeItem.raw||vibeItem,naiModel);return one?[one]:[];})();
    if(!vibes.length)throw new Error('这个 Vibe 组没有识别到可发送的编码。请重新导入包含 encoding 数据的 .naiv4vibe / bundle 或智绘姬导出 JSON；普通预览图不能替代编码。');
    if(vibes.length>16)throw new Error('NovelAI 单次最多使用 16 条 Vibe 参考，请先删除多余条目。');
@@ -281,6 +281,8 @@ function extractUsableVibe(raw,model='nai-diffusion-4-5-full'){
     const payload=typeof enc==='string'?enc:enc.encoding||enc.encoded||enc.data;
     if(typeof payload==='string'&&clean(payload).length>160){found=clean(payload);return;}
    }
+   // 这个对象明确按模型存编码；缺少当前模型项时禁止退回其他模型的编码。
+   return;
   }
   const isCanonical=value.identifier==='novelai-vibe-transfer'&&value.type==='image';
   if(isCanonical&&typeof value.image==='string')walk(value.image,'image',true);
@@ -309,20 +311,29 @@ function renderActiveVibes(){
  select.value=cfg().vibes[Number(prior)]?prior:'-1';
  select.onchange=()=>{cfg().activeVibeIndex=Number(select.value);save();};
 }
-async async function saveCleanImage(src,filename){
+async function saveCleanImage(src,filename){
  if(!src)return;
  const name=filename||'qinghui-image.png';
  try{
-  const response=await fetch(src);
-  if(!response.ok)throw new Error('无法读取图片');
-  const blob=await response.blob();
-  const objectUrl=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=objectUrl;a.download=name;a.rel='noopener';a.style.position='fixed';a.style.left='-9999px';document.body.append(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
- }catch(error){
+  // data URL 在点击回调内同步转 Blob，避免 Android WebView 因 await 后失去用户手势而拦截下载。
+  if(/^data:image\//i.test(src)){
+   const comma=src.indexOf(',');
+   if(comma<0)throw new Error('图片数据格式无效');
+   const header=src.slice(0,comma),raw=src.slice(comma+1);
+   let blob;
+   if(/;base64/i.test(header)){
+    const binary=atob(raw.replace(/\s/g,''));
+    const chunks=[];for(let i=0;i<binary.length;i+=0x8000){const part=binary.slice(i,i+0x8000),bytes=new Uint8Array(part.length);for(let j=0;j<part.length;j++)bytes[j]=part.charCodeAt(j);chunks.push(bytes);}
+    blob=new Blob(chunks,{type:(header.match(/^data:([^;]+)/i)||[])[1]||'image/png'});
+   }else blob=new Blob([decodeURIComponent(raw)],{type:(header.match(/^data:([^;]+)/i)||[])[1]||'image/png'});
+   const objectUrl=URL.createObjectURL(blob);
+   const a=document.createElement('a');a.href=objectUrl;a.download=name;a.rel='noopener';a.style.position='fixed';a.style.left='-9999px';document.body.append(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
+   return;
+  }
   const opened=window.open(src,'_blank','noopener');
-  if(!opened)throw new Error('浏览器阻止了图片下载或新窗口，请允许酒馆打开图片，或长按放大后的图片保存。');
- }
+  if(!opened)throw new Error('浏览器阻止了打开图片，请允许酒馆打开新窗口后长按图片保存。');
+ }catch(error){throw new Error('保存图片失败：'+(error?.message||String(error)));}
 }
 function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
  if(!host)return;
