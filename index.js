@@ -29,7 +29,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
    payload.reference_image_multiple=vibes.map(v=>v.image);
    payload.reference_strength_multiple=vibes.map(v=>v.strength);
    payload.reference_information_extracted_multiple=vibes.map(v=>v.informationExtracted);
-   if(naiModel.includes('nai-diffusion-4-5')||naiModel.includes('nai-diffusion-4-full'))payload.normalize_reference_strength_multiple=true;
+   if(/^nai-diffusion-4(?:-|$)/i.test(naiModel))payload.normalize_reference_strength_multiple=true;
   }
   if(naiModel.includes('nai-diffusion-5'))payload.use_new_shared_trial=true;
   res=await fetch('/api/novelai/generate-image',{method:'POST',headers:getRequestHeaders(window.token),body:JSON.stringify(payload)});
@@ -405,7 +405,7 @@ function renderLibrary(){
   const usable=entries.filter(entry=>typeof entry.image==='string'&&entry.image.length>160).length;
   const entryRows=entries.map((entry,j)=>{
    const ready=typeof entry.image==='string'&&entry.image.length>160;
-   return '<div class="ql-vibe-entry"><strong>参考 '+(j+1)+'</strong><p class="ql-muted">'+(ready?'已保存预编码 Vibe（可用于生成）':'没有可用编码；预览图不会作为生图输入')+'</p><div class="ql-row"><div><label>参考强度</label><input type="number" min="0" max="1" step="0.05" data-vibe-entry-strength="'+i+'-'+j+'" value="'+Math.max(0,Math.min(1,Number(entry.strength??0.6)))+'"></div><div><label>Information Extracted</label><input type="number" min="0" max="1" step="0.05" data-vibe-entry-info="'+i+'-'+j+'" value="'+Math.max(0,Math.min(1,Number(entry.informationExtracted??1)))+'"></div></div><button type="button" class="menu_button" data-vibe-entry-delete="'+i+'-'+j+'">移除此参考</button></div>';
+   return '<div class="ql-vibe-entry"><strong>参考 '+(j+1)+'</strong><p class="ql-muted">'+(ready?'已保存预编码 Vibe（可用于生成）':'没有可用编码；预览图不会作为生图输入')+'</p><div class="ql-row"><div><label>参考强度</label><input type="number" min="0" max="1" step="0.05" data-vibe-entry-strength="'+i+'-'+j+'" value="'+Math.max(0,Math.min(1,Number(entry.strength??0.6)))+'"></div><div><label>Information Extracted</label><input type="number" min="0" max="1" step="0.05" disabled title="编码完成后该值固定；修改它需要重新编码原始图片" data-vibe-entry-info="'+i+'-'+j+'" value="'+Math.max(0,Math.min(1,Number(entry.informationExtracted??1)))+'"></div></div><button type="button" class="menu_button" data-vibe-entry-delete="'+i+'-'+j+'">移除此参考</button></div>';
   }).join('');
   return '<div class="ql-record"><strong>'+esc(v.name||'未命名 Vibe')+'</strong><p>'+usable+' / '+entries.length+' 条编码可用于生成'+(v.hasRef?' · 原始数据还含外部引用':'')+'</p><label>Vibe 组名称</label><input data-vibe-name="'+i+'" value="'+esc(v.name||'')+'">'+(entryRows||'<p class="ql-muted">没有可编辑的编码条目。请重新导入包含预编码资源的官网文件或智绘姬组 JSON。</p>')+'<details><summary>查看导入来源</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto">'+esc(JSON.stringify({source:v.source,sourcePath:v.sourcePath,groupName:v.groupName,identifier:entries.map(e=>e.identifier).filter(Boolean),rawPreserved:!!(v.raw||v.rawGroup)},null,2).slice(0,2000))+'</pre></details><button type="button" class="menu_button" data-vibe-save="'+i+'">保存 Vibe 修改</button><button type="button" class="menu_button" data-vibe-delete="'+i+'">删除整组</button></div>';
  }).join('')||'<p class="ql-muted">暂无 Vibe。可导入官网预编码文件或智绘姬导出的 Vibe 组 JSON。</p>';
