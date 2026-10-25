@@ -1018,10 +1018,13 @@ function statusbarError(frame,prompt,taskKey,error){
 async function processStatusbarFrames(){
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
- const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
+ // 刷新后状态栏 frame 可能已经没有 scanning class（首次渲染成功时会移除），
+ // 只扫描 scanning 会导致缓存恢复不执行，直到小铅笔重新生成 marker。
+ // 同时检查 data-tag 和已标记提示词节点，再按 image### 标记筛选。
+ const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"], [data-tag], [data-ql-prompt]')).filter(frame=>{
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)return false;
-  return !Array.from(frame.querySelectorAll('[class~="scanning"]')).some(child=>statusbarPromptForTarget(child)===prompt);
+  return !Array.from(frame.querySelectorAll('[class~="scanning"], [data-tag], [data-ql-prompt]')).some(child=>statusbarPromptForTarget(child)===prompt);
  }));
  for(const frame of frames){
   const prompt=statusbarPromptForTarget(frame);
