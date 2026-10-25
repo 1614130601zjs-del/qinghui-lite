@@ -1181,3 +1181,51 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #chat .ql-chat-image-controls .ql-chat-image-reroll{flex-basis:27px!important;width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important;padding:3px!important;}
  #chat .ql-chat-image-controls .ql-chat-image-count{min-width:27px!important;font-size:9px!important;}
 }
+
+
+/* 0.5.13: album controls are unfilled; text adapts to each album skin. */
+#chat .ql-chat-image-controls{
+ background:transparent!important;
+ border-color:transparent!important;
+ box-shadow:none!important;
+}
+#chat .ql-chat-image-controls button{
+ background:transparent!important;
+ background-color:transparent!important;
+ box-shadow:none!important;
+ color:var(--ql-text,var(--SmartThemeBodyColor,#555))!important;
+ border-color:color-mix(in srgb,var(--ql-text,var(--SmartThemeBodyColor,#555)) 34%,transparent)!important;
+ -webkit-backdrop-filter:none!important;
+ backdrop-filter:none!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-reroll{
+ background:transparent!important;
+ background-color:transparent!important;
+ border-color:color-mix(in srgb,var(--ql-text,var(--SmartThemeBodyColor,#555)) 40%,transparent)!important;
+ color:var(--ql-text,var(--SmartThemeBodyColor,#555))!important;
+}
+#chat .ql-chat-image.ql-album-film .ql-chat-image-controls{
+ background:transparent!important;
+ border-color:transparent!important;
+}
+#chat .ql-chat-image.ql-album-film .ql-chat-image-controls button,
+#chat .ql-chat-image.ql-album-film .ql-chat-image-controls .ql-chat-image-reroll{
+ background:transparent!important;
+ background-color:transparent!important;
+ border-color:rgba(255,255,255,.42)!important;
+ color:#f4f1f5!important;
+}
+#chat .ql-chat-image.ql-album-soft .ql-chat-image-controls{
+ background:transparent!important;
+ border-color:transparent!important;
+}
+#chat .ql-chat-image.ql-album-soft .ql-chat-image-controls button,
+#chat .ql-chat-image.ql-album-soft .ql-chat-image-controls .ql-chat-image-reroll{
+ background:transparent!important;
+ background-color:transparent!important;
+ border-color:rgba(87,68,82,.38)!important;
+ color:#574452!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-count{
+ color:var(--ql-text,var(--SmartThemeBodyColor,#555))!important;
+}
