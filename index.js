@@ -59,42 +59,53 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
   const negative=String(negativeOverride??c.negative??'');
   const isV4=/^nai-diffusion-4(?:-|$)/i.test(naiModel);
   const isV45=/^nai-diffusion-4-5-/i.test(naiModel);
+  const isV5=/^nai-diffusion-5-/i.test(naiModel);
   const isV3=/^nai-diffusion-3(?:-|$)/i.test(naiModel);
+  const width=Number(c.naiWidth)||832;
+  const height=Number(c.naiHeight)||1216;
+  const sampler=c.naiSampler||'k_euler_ancestral';
   const parameters={
-   params_version:3,
-   width:Number(c.naiWidth)||832,
-   height:Number(c.naiHeight)||1216,
+   params_version:isV5?4:3,
+   width,
+   height,
    scale:Number(c.naiScale)||5,
-   sampler:c.naiSampler||'k_euler_ancestral',
-   noise_schedule:c.naiScheduler||'karras',
+   sampler,
    steps:Number(c.naiSteps)||28,
    n_samples:1,
-   seed:-1,
+   seed:Math.floor(Math.random()*2147483647),
    negative_prompt:negative,
    ucPreset:3,
    qualityToggle:true,
-   legacy_uc:false,
-   stream:'msgpack',
-   sm:false,
-   sm_dyn:false,
    dynamic_thresholding:false,
    controlnet_strength:1,
    legacy:false,
+   legacy_uc:false,
    add_original_image:true,
-   uncond_scale:1,
    cfg_rescale:0,
-   deliberate_euler_ancestral_bug:false,
-   prefer_brownian:true
+   skip_cfg_above_sigma:null,
+   legacy_v3_extend:false,
+   stream:'msgpack',
+   reference_strength_multiple:[],
+   normalize_reference_strength_multiple:c.naiNormalizeVibeStrengths!==false,
+   use_coords:false
   };
-  if(isV4){
+  if(sampler==='k_euler_ancestral'){
+   parameters.deliberate_euler_ancestral_bug=false;
+   parameters.prefer_brownian=true;
+  }
+  if(isV3){
+   parameters.sm=false;
+   parameters.sm_dyn=false;
+   parameters.reference_image_multiple=[];
+   parameters.reference_information_extracted_multiple=[];
+   parameters.prompt=prompt;
+  }else if(isV4){
+   parameters.reference_image_multiple_cached=[];
+   parameters.characterPrompts=[];
    parameters.v4_prompt={caption:{base_caption:prompt,char_captions:[]},use_coords:false,use_order:true};
    parameters.v4_negative_prompt={caption:{base_caption:negative,char_captions:[]},legacy_uc:false};
-   parameters.ucPreset=3;
-   parameters.skip_cfg_above_sigma=null;
-   parameters.qualityToggle=true;
   }else{
    parameters.prompt=prompt;
-   if(isV3)parameters.legacy_v3_extend=true;
   }
   if(vibeItem){
    if(!isV4)throw new Error('当前所选 NovelAI 模型不支持 V4 Vibe 编码，请切换到 NovelAI Diffusion V4 / V4.5 模型。');
