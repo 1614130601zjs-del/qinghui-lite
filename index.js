@@ -344,37 +344,45 @@ async function saveCleanImage(src,filename){
    }
    objectUrl=URL.createObjectURL(blob);
   }
-  // 所有浏览器统一显示轻绘下载面板，不依赖 UA 检测，避免 Edge Android 标识差异导致面板不出现。
-  const isEdgeAndroid=true;
   const a=document.createElement('a');
   a.href=objectUrl;a.download=name;a.rel='noopener';
-  if(isEdgeAndroid){
-   document.querySelector('[data-ql-download-sheet]')?.remove();
-   const overlay=document.createElement('div');
-   overlay.setAttribute('data-ql-download-sheet','');
-   overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;background:rgba(20,12,18,.58);display:flex;align-items:flex-end;justify-content:center;padding:14px;box-sizing:border-box;';
-   const sheet=document.createElement('section');
-   sheet.setAttribute('role','dialog');sheet.setAttribute('aria-modal','true');sheet.setAttribute('aria-label','下载图片');
-   sheet.style.cssText='width:min(100%,480px);max-height:88dvh;overflow:auto;box-sizing:border-box;border-radius:22px;background:#fff8fc;color:#422b38;padding:20px;box-shadow:0 12px 42px #0005;font-family:system-ui,sans-serif;';
-   const top=document.createElement('div');
-   top.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;';
-   const title=document.createElement('strong');title.textContent='下载图片';title.style.cssText='font-size:20px;';
-   const close=document.createElement('button');close.type='button';close.textContent='关闭';close.style.cssText='border:0;border-radius:10px;background:#f0e3eb;padding:9px 13px;color:#422b38;font-size:14px;';
-   top.append(title,close);
-   const preview=document.createElement('img');preview.src=objectUrl;preview.alt='待保存的图片预览';preview.style.cssText='display:block;width:100%;max-height:42dvh;object-fit:contain;border-radius:12px;background:#f2edf0;';
-   const filename=document.createElement('div');filename.textContent=name;filename.style.cssText='margin:12px 0 6px;overflow-wrap:anywhere;font-size:14px;font-weight:600;';
-   const hint=document.createElement('p');hint.textContent='点击下方按钮尝试保存到设备。若浏览器显示下载确认，请按提示继续。';hint.style.cssText='margin:0 0 16px;color:#76636e;font-size:13px;line-height:1.5;';
-   a.textContent='保存图片';a.setAttribute('aria-label','保存图片到设备');a.style.cssText='display:block;box-sizing:border-box;width:100%;padding:14px 16px;border-radius:13px;background:#e9b9d1;color:#48263a;text-align:center;text-decoration:none;font-weight:750;font-size:16px;';
-   const cleanup=()=>{overlay.remove();if(objectUrl!==src)setTimeout(()=>URL.revokeObjectURL(objectUrl),60*1000);};
-   close.onclick=cleanup;overlay.addEventListener('click',e=>{if(e.target===overlay)cleanup();});
-   sheet.append(top,preview,filename,hint,a);overlay.append(sheet);document.body.append(overlay);
-   status('已打开下载面板，请点击“保存图片”。');
-   return {opened:false,downloadStarted:false,edgeFallback:true};
-  }
-  a.style.position='fixed';a.style.left='-10000px';
-  document.body.appendChild(a);a.click();a.remove();
-  if(objectUrl!==src)setTimeout(()=>URL.revokeObjectURL(objectUrl),5*60*1000);
-  return {opened:false,downloadStarted:true};
+  // Always use a body-level sheet. Avoid nesting under Tavern dialogs/panels, whose transforms
+  // and stacking contexts can displace fixed-position children on mobile.
+  document.querySelector('[data-ql-download-sheet]')?.remove();
+  const overlay=document.createElement('div');
+  overlay.setAttribute('data-ql-download-sheet','');
+  overlay.style.cssText='position:fixed;inset:0;width:100%;height:100%;height:100dvh;z-index:2147483647;background:rgba(20,12,18,.62);display:flex;align-items:flex-end;justify-content:center;padding:12px;box-sizing:border-box;margin:0;overflow:auto;overscroll-behavior:contain;';
+  overlay.style.setProperty('position','fixed','important');
+  overlay.style.setProperty('inset','0','important');
+  overlay.style.setProperty('width','100vw','important');
+  overlay.style.setProperty('height','100dvh','important');
+  overlay.style.setProperty('z-index','2147483647','important');
+  overlay.style.setProperty('transform','none','important');
+  overlay.style.setProperty('visibility','visible','important');
+  overlay.style.setProperty('opacity','1','important');
+  overlay.style.setProperty('pointer-events','auto','important');
+  const sheet=document.createElement('section');
+  sheet.setAttribute('role','dialog');sheet.setAttribute('aria-modal','true');sheet.setAttribute('aria-label','下载图片');
+  sheet.style.cssText='position:relative;flex:0 1 480px;width:100%;max-width:480px;max-height:calc(100dvh - 24px);overflow:auto;box-sizing:border-box;border-radius:22px;background:#fff8fc;color:#422b38;padding:18px;box-shadow:0 12px 42px #0005;font-family:system-ui,sans-serif;margin:0 auto;transform:none;';
+  const top=document.createElement('div');
+  top.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;';
+  const title=document.createElement('strong');title.textContent='下载图片';title.style.cssText='font-size:20px;';
+  const close=document.createElement('button');close.type='button';close.textContent='关闭';close.style.cssText='border:0;border-radius:10px;background:#f0e3eb;padding:9px 13px;color:#422b38;font-size:14px;';
+  top.append(title,close);
+  const preview=document.createElement('img');preview.src=objectUrl;preview.alt='待保存的图片预览';preview.style.cssText='display:block;width:100%;max-height:min(38dvh,320px);object-fit:contain;border-radius:12px;background:#f2edf0;';
+  const filenameNode=document.createElement('div');filenameNode.textContent=name;filenameNode.style.cssText='margin:12px 0 6px;overflow-wrap:anywhere;font-size:14px;font-weight:600;';
+  const hint=document.createElement('p');hint.textContent='点击下方按钮保存到设备；如果浏览器要求确认，请按提示继续。';hint.style.cssText='margin:0 0 16px;color:#76636e;font-size:13px;line-height:1.5;';
+  a.textContent='保存图片';a.setAttribute('aria-label','保存图片到设备');a.style.cssText='display:block;box-sizing:border-box;width:100%;padding:14px 16px;border-radius:13px;background:#e9b9d1;color:#48263a;text-align:center;text-decoration:none;font-weight:750;font-size:16px;';
+  const cleanup=()=>{overlay.remove();if(objectUrl!==src)setTimeout(()=>URL.revokeObjectURL(objectUrl),60*1000);};
+  close.onclick=cleanup;
+  overlay.addEventListener('click',e=>{if(e.target===overlay)cleanup();});
+  sheet.append(top,preview,filenameNode,hint,a);
+  overlay.append(sheet);
+  // Append directly to document.body and reassert after insertion in case Tavern CSS overrides it.
+  document.body.append(overlay);
+  Object.assign(overlay.style,{position:'fixed',left:'0',top:'0',right:'0',bottom:'0',width:'100vw',height:'100dvh',zIndex:'2147483647'});
+  status('已打开下载面板，请点击“保存图片”。');
+  return {opened:true,downloadStarted:false,edgeFallback:true};
  }catch(error){
   if(objectUrl!==src)URL.revokeObjectURL(objectUrl);
   throw new Error('保存图片失败：'+(error?.message||String(error))+'。如果酒馆内置页面拦截了保存，请尝试打开图片详情后长按图片。');
