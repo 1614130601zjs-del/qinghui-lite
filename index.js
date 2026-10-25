@@ -1394,7 +1394,9 @@ async function scanChatu8Settings(){
  merged.prompts=[];
  renderMigrationPreview(merged);
  const host=$('#ql-migrate-preview');
- if(host)host.textContent+='\\n扫描到 '+found.length+' 个可能相关的数据源；只迁移画师串。';
+ if(host)host.textContent+='\\n扫描到 '+found.length+' 个可能相关的数据源；仅处理画师串。';
+ if((migrationCandidate?.artists||[]).length)importChatu8Candidate();
+ else if(host)host.textContent+='\\n没有发现新的可迁移画师串。若扩展数据不在当前酒馆可访问范围内，请使用备用 JSON 导入。';
 }
 function safeMigrationStringify(value){try{return JSON.stringify(value);}catch{return '';}}
 async function readMigrationFile(file){
