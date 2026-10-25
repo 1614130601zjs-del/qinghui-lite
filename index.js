@@ -15,12 +15,13 @@ function cfg(){
  const s=extension_settings[EXT];
  if(typeof s.naiNormalizeVibeStrengths!=='boolean')s.naiNormalizeVibeStrengths=true;
  for(const key of ['records','presets','characters','prompts','vibes','bindings'])if(!Array.isArray(s[key]))s[key]=[];
- // 仅清理一次旧版智绘姬迁移留下的 Vibe 项目，避免升级后用户还要手动删除数百条。
- if(!s.vibeMigrationCleared20261025){
+ // 升级到本版时统一清空旧版导入的 Vibe 与角色绑定，确保迁移只保留画师串；此清理只执行一次。
+ if(!s.vibeImportCleanupV2){
   s.vibes=[];
   s.activeVibeIndex=-1;
   for(const binding of s.bindings)binding.vibeIndex=-1;
   s.vibeMigrationCleared20261025=true;
+  s.vibeImportCleanupV2=true;
   saveSettingsDebounced();
  }
  let migrated=false;
