@@ -553,18 +553,18 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 
 
 /* Cache actions: explicit click targets and multi-select deletion controls. */
-#qinghui-lite-panel #ql-history .ql-cache-bulk-tools{
+#qinghui-lite-panel #ql-cache-footer{
  display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 0;padding:9px;
  border:1px solid var(--ql-glass-line,var(--SmartThemeBorderColor));
  background:color-mix(in srgb,var(--SmartThemeBlurTintColor,rgba(255,255,255,.04)) 65%,transparent);
 }
-#qinghui-lite-panel #ql-history .ql-cache-bulk-tools .ql-cache-selected-count{margin-right:0}
-#qinghui-lite-panel #ql-history .ql-cache-bulk-tools #ql-clear{margin-left:0}
-#qinghui-lite-panel #ql-history .ql-cache-bulk-tools label,
+#qinghui-lite-panel #ql-cache-footer .ql-cache-selected-count{margin-right:0}
+#qinghui-lite-panel #ql-cache-footer #ql-clear{margin-left:0}
+#qinghui-lite-panel #ql-cache-footer label,
 #qinghui-lite-panel #ql-history .ql-cache-select-one{
  display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;
 }
-#qinghui-lite-panel #ql-history .ql-cache-selected-count{font-size:12px;opacity:.75;margin-right:auto}
+#qinghui-lite-panel #ql-cache-footer .ql-cache-selected-count{font-size:12px;opacity:.75;margin-right:auto}
 #qinghui-lite-panel #ql-history .ql-cache-grid{
  display:grid;grid-template-columns:repeat(var(--ql-history-columns,3),minmax(0,1fr));gap:10px;
 }
@@ -587,5 +587,5 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 
 /* Preserve the original cache-image grid; bulk selection controls sit below the entire gallery. */
 #qinghui-lite-panel #ql-history .ql-cache-grid{order:1}
-#qinghui-lite-panel #ql-history .ql-cache-bulk-tools{order:2}
+#qinghui-lite-panel #ql-cache-footer{order:2}
 #qinghui-lite-panel #ql-history .ql-cache-select-one{padding:2px 0}
