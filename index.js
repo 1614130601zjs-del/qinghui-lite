@@ -52,7 +52,7 @@ const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
 function hideMarkersInTextNode(root,entries=[]){
  if(!root)return;
- const byMarker=new Map(entries.map(entry=>[entry.raw,entry]));
+ let entryCursor=0;
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
  const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue?.includes('image###'))nodes.push(walker.currentNode);
  let ordinal=0;
@@ -63,7 +63,7 @@ function hideMarkersInTextNode(root,entries=[]){
   const fragment=document.createDocumentFragment();let last=0,match;
   while((match=re.exec(value))!==null){
    fragment.append(document.createTextNode(value.slice(last,match.index)));
-   const entry=byMarker.get(match[0]),prompt=match[1].trim();
+   const entry=entries[entryCursor++],prompt=match[1].trim();
    if(!prompt){last=re.lastIndex;continue;}
    const button=document.createElement('button');
    button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='轻绘生图';button.title='点击将提示词提交给 NovelAI，并把图片插入当前消息';
