@@ -323,7 +323,7 @@ function renderActiveVibes(){
 async function saveCleanImage(src,filename){
  if(!src)throw new Error('这条缓存记录没有可保存的图片数据。');
  const name=filename||'qinghui-image.png';
- let objectUrl=src;
+ let objectUrl=src, fileBlob=null;
  try{
   if(/^data:image\//i.test(src)){
    const comma=src.indexOf(',');
@@ -373,6 +373,14 @@ async function saveCleanImage(src,filename){
   const filenameNode=document.createElement('div');filenameNode.textContent=name;filenameNode.style.cssText='margin:12px 0 6px;overflow-wrap:anywhere;font-size:14px;font-weight:600;';
   const hint=document.createElement('p');hint.textContent='点击下方按钮保存到设备；如果浏览器要求确认，请按提示继续。';hint.style.cssText='margin:0 0 16px;color:#76636e;font-size:13px;line-height:1.5;';
   a.textContent='保存图片';a.setAttribute('aria-label','保存图片到设备');a.style.cssText='display:block;box-sizing:border-box;width:100%;padding:14px 16px;border-radius:13px;background:#e9b9d1;color:#48263a;text-align:center;text-decoration:none;font-weight:750;font-size:16px;';
+  a.addEventListener('click',async event=>{
+   if(!fileBlob||!navigator.share||!navigator.canShare)return;
+   const file=new File([fileBlob],name,{type:fileBlob.type||'image/png'});
+   if(!navigator.canShare({files:[file]}))return;
+   event.preventDefault();
+   try{await navigator.share({files:[file],title:name});}
+   catch(error){if(error?.name!=='AbortError')hint.textContent='系统分享失败：'+(error?.message||String(error))+'。请长按预览图，或尝试其他浏览器下载。';}
+  });
   const cleanup=()=>{overlay.remove();if(objectUrl!==src)setTimeout(()=>URL.revokeObjectURL(objectUrl),60*1000);};
   close.onclick=cleanup;
   overlay.addEventListener('click',e=>{if(e.target===overlay)cleanup();});
@@ -675,9 +683,29 @@ async function downloadImagesAsZip(items,filename){
  const centralSize=central.reduce((n,b)=>n+b.length,0),end=new Uint8Array(22),ev=new DataView(end.buffer);
  u32(ev,0,0x06054b50);u16(ev,4,0);u16(ev,6,0);u16(ev,8,central.length);u16(ev,10,central.length);u32(ev,12,centralSize);u32(ev,16,offset);u16(ev,20,0);
  const blob=new Blob([...local,...central,end],{type:'application/zip'});
- const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;a.rel='noopener';a.style.display='none';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ showGeneratedFileSheet(blob,filename,'压缩包已打包完成。若 Edge 没有直接下载，请点“分享/保存文件”，在系统分享面板中选择可用的保存位置。');
  return {success,failed:items.length-success,size:blob.size};
 }
+function showGeneratedFileSheet(blob,filename,hintText){
+ const old=document.querySelector('[data-ql-generated-file-sheet]');old?.remove();
+ const url=URL.createObjectURL(blob);
+ const overlay=document.createElement('div');
+ overlay.dataset.qlGeneratedFileSheet='';
+ overlay.style.cssText='position:fixed;inset:0;width:100vw;height:100dvh;z-index:2147483647;background:rgba(20,12,18,.62);display:flex;align-items:flex-end;justify-content:center;padding:12px;box-sizing:border-box;overflow:auto;';
+ const sheet=document.createElement('section');
+ sheet.style.cssText='width:100%;max-width:480px;box-sizing:border-box;border-radius:20px;background:#fff8fc;color:#422b38;padding:18px;box-shadow:0 12px 42px #0005;font-family:system-ui,sans-serif;';
+ const title=document.createElement('strong');title.textContent='文件已准备好';title.style.cssText='display:block;font-size:19px;margin-bottom:10px;';
+ const name=document.createElement('p');name.textContent=filename;name.style.cssText='overflow-wrap:anywhere;font-size:14px;';
+ const hint=document.createElement('p');hint.textContent=hintText;hint.style.cssText='font-size:13px;line-height:1.55;color:#76636e;';
+ const download=document.createElement('a');download.href=url;download.download=filename;download.textContent='下载文件';download.style.cssText='display:block;box-sizing:border-box;text-align:center;text-decoration:none;padding:14px;border-radius:12px;background:#e9b9d1;color:#48263a;font-weight:750;margin-top:12px;';
+ const share=document.createElement('button');share.type='button';share.textContent='分享 / 保存文件';share.style.cssText='display:block;width:100%;padding:14px;border:0;border-radius:12px;background:#f0e3eb;color:#422b38;font-weight:750;margin-top:9px;font-size:15px;';
+ const close=document.createElement('button');close.type='button';close.textContent='关闭';close.style.cssText='display:block;width:100%;padding:11px;border:0;background:transparent;color:#76636e;margin-top:6px;';
+ const cleanup=()=>{overlay.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);};
+ share.onclick=async()=>{try{const file=new File([blob],filename,{type:blob.type||'application/octet-stream'});if(!navigator.share||!navigator.canShare||!navigator.canShare({files:[file]}))throw new Error('当前浏览器不支持分享文件，请使用上方“下载文件”或打开浏览器下载列表。');await navigator.share({files:[file],title:filename});}catch(error){if(error?.name!=='AbortError')hint.textContent='系统分享失败：'+(error?.message||String(error))+'。请再试上方“下载文件”。';}};
+ close.onclick=cleanup;overlay.addEventListener('click',e=>{if(e.target===overlay)cleanup();});
+ sheet.append(title,name,hint,download,share,close);overlay.append(sheet);document.body.append(overlay);
+}
+
 function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-panel">
 <header class="ql-header"><div class="ql-brand"><strong>轻绘 Lite</strong><span>独立生图工作区</span></div><button id="ql-close" class="menu_button" type="button">关闭</button></header>
 <nav class="ql-tabs" aria-label="轻绘功能导航" role="tablist">
