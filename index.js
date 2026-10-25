@@ -487,9 +487,7 @@ function renderLibrary(){
   const ctx=getContext()||{},cards=Array.isArray(ctx.characters)?ctx.characters:[];
   const prior=characterSelect.value;
   characterSelect.innerHTML='<option value="">选择角色卡</option>'+cards.map((ch,i)=>'<option value="'+i+'">'+esc(ch?.name||ch?.avatar||('角色 '+(i+1)))+'</option>').join('');
-  if(cards.some((ch,i)=>String(i)===prior))characterSelect.value=prior;
-  else if(cards.some((ch,i)=>String(i)===String(ctx.characterId)))characterSelect.value=String(ctx.characterId);
-  else {const linked=s.characters.find(x=>x.characterKey!=null&&cards[Number(x.characterKey)]);if(linked)characterSelect.value=String(linked.characterKey);}
+  if(cards.some((ch,i)=>String(i)===prior))characterSelect.value=prior;else characterSelect.value='';
  }
  const promptFilter=$('#ql-prompt-filter');
  if(promptFilter){const prior=promptFilter.value;const categories=['单人','双人','BG','BL','GL','其他',...new Set((s.prompts||[]).map(p=>String(p.category||'其他').trim()).filter(Boolean))].filter((v,i,a)=>a.indexOf(v)===i);promptFilter.innerHTML='<option value="">全部分类</option>'+categories.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');if(categories.includes(prior))promptFilter.value=prior;}
@@ -551,7 +549,7 @@ function renderLibrary(){
   prompts?.querySelectorAll('[data-prompt-delete]').forEach(b=>b.onclick=()=>{s.prompts.splice(+b.dataset.promptDelete,1);save();renderLibrary();});
  chars?.querySelectorAll('[data-character-select]').forEach(b=>b.onchange=()=>{const i=Number(b.dataset.characterSelect);if(b.checked)selectedCharacters.add(i);else selectedCharacters.delete(i);});
   chars?.querySelectorAll('[data-character-apply]').forEach(b=>b.onclick=()=>{const p=s.characters[+b.dataset.characterApply];$('#ql-prompt').value=[$('#ql-prompt').value.trim(),p.appearance].filter(Boolean).join(', ');read();status('已追加角色外貌词：'+p.name);});
- chars?.querySelectorAll('[data-character-edit]').forEach(b=>b.onclick=()=>{const p=s.characters[+b.dataset.characterEdit],select=$('#ql-character-card');if(select&&p.characterKey!=null)select.value=String(p.characterKey);$('#ql-character-appearance').value=p.appearance||'';$('#ql-character-save').textContent='保存角色词条';});
+ chars?.querySelectorAll('[data-character-edit]').forEach(b=>b.onclick=()=>{const p=s.characters[+b.dataset.characterEdit],select=$('#ql-character-card');if(select)select.value=p.characterKey==null?'':String(p.characterKey);$('#ql-character-name').value=p.name||p.characterName||'';$('#ql-character-appearance').value=p.appearance||'';$('#ql-character-save').dataset.edit=String(+b.dataset.characterEdit);$('#ql-character-save').textContent='保存修改';$('#ql-character-status').textContent='正在编辑：'+(p.name||p.characterName||'未命名角色');$('#ql-character-name').scrollIntoView({behavior:'smooth',block:'center'});});
   chars?.querySelectorAll('[data-character-delete]').forEach(b=>b.onclick=()=>{s.characters.splice(+b.dataset.characterDelete,1);save();renderLibrary();});
  presets?.querySelectorAll('[data-preset-apply]').forEach(b=>b.onclick=()=>{const i=+b.dataset.presetApply,p=s.presets[i];s.activePresetIndex=i;renderActivePresets();save();status('已选中画师串：'+p.name+'，生成时会自动组合。');});
  const loadPresetForEdit=index=>{const p=s.presets[index];if(!p)return;$('#ql-preset-editor').hidden=false;$('#ql-preset-edit-select').value=String(index);$('#ql-preset-name').value=p.name||'';$('#ql-preset-positive').value=p.positive||'';$('#ql-preset-negative').value=p.negative||'';$('#ql-preset-save').dataset.edit=String(index);$('#ql-preset-save').textContent='保存修改';};
