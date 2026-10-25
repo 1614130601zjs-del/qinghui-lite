@@ -61,27 +61,33 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
  return url;
 }
 function extractUsableVibe(raw){
- const imageKeys=/^(?:image|imageData|image_data|referenceImage|reference_image|referenceImageData|reference_image_data|vibeImage|vibe_image|base64|imageBase64|image_base64|data|encoded|encodedVibe|encoded_vibe|vibeEncoding|vibe_encoding)$/i;
+ const encodedKeys=/^(?:referenceImage|reference_image|referenceImageData|reference_image_data|base64|imageBase64|image_base64|encoded|encodedVibe|encoded_vibe|vibeEncoding|vibe_encoding|vibeData|vibe_data|payload)$/i;
  const seen=new WeakSet();let found='';
- const walk=(value,key='')=>{
+ const clean=value=>String(value||'').trim().replace(/^data:(?:application\\/octet-stream|image\\/[^;]+);base64,/i,'');
+ const walk=(value,key='',canonical=false)=>{
   if(found||value==null)return;
   if(typeof value==='string'){
-   const v=value.trim();
-   if(/^data:image\/[^;]+;base64,/i.test(v)){found=v.replace(/^data:image\/[^;]+;base64,/i,'');return;}
-   if(imageKeys.test(key)&&/^[A-Za-z0-9+/]+={0,2}$/.test(v)&&v.length>160){found=v;return;}
+   const v=clean(value);
+   if((canonical||encodedKeys.test(key))&&/^[A-Za-z0-9+/]+={0,2}$/.test(v)&&v.length>160){found=v;return;}
    return;
   }
-  if(typeof value!=='object'||seen.has(value))return;seen.add(value);
-  if(Array.isArray(value)){for(const item of value)walk(item,key);return;}
-  for(const [k,v] of Object.entries(value))walk(v,k);
+  if(typeof value!=='object'||seen.has(value))return;
+  seen.add(value);
+  if(Array.isArray(value)){for(const item of value)walk(item,key,canonical);return;}
+  const isCanonical=value.identifier==='novelai-vibe-transfer'&&value.type==='image';
+  if(isCanonical&&typeof value.image==='string')walk(value.image,'image',true);
+  for(const [k,v] of Object.entries(value)){
+   if(isCanonical&&k==='image')continue;
+   walk(v,k,false);
+  }
  };
  walk(raw);
  if(!found)return null;
  const serialized=safeMigrationStringify(raw)||'';
  const readNumber=(re,fallback)=>{const m=serialized.match(re);return m?Number(m[1]):fallback;};
- const strength=readNumber(/"(?:reference_strength|referenceStrength|strength)"\s*:\s*([0-9.]+)/i,0.6);
- const informationExtracted=readNumber(/"(?:reference_information_extracted|referenceInformationExtracted|information_extracted|informationExtracted|info_extracted)"\s*:\s*([0-9.]+)/i,0.7);
- const norm=serialized.match(/"normalize_reference_strength"\s*:\s*(true|false)/i);
+ const strength=readNumber(/"(?:reference_strength|referenceStrength|strength)"\\s*:\\s*([0-9.]+)/i,0.6);
+ const informationExtracted=readNumber(/"(?:reference_information_extracted|referenceInformationExtracted|information_extracted|informationExtracted|info_extracted)"\\s*:\\s*([0-9.]+)/i,1);
+ const norm=serialized.match(/"normalize_reference_strength"\\s*:\\s*(true|false)/i);
  return {image:found,strength,informationExtracted,normalize:norm?norm[1]==='true':undefined};
 }
 function renderActivePresets(){const select=$('#ql-active-preset');if(!select)return;const s=cfg(),prior=String(s.activePresetIndex??-1);select.innerHTML='<option value="-1">不使用画师串预设</option>'+s.presets.map((p,i)=>'<option value="'+i+'">'+esc(p.name||('画师串 '+(i+1)))+'</option>').join('');select.value=s.presets[Number(prior)]?prior:'-1';select.onchange=()=>{s.activePresetIndex=Number(select.value);save();};}
@@ -425,11 +431,13 @@ function walkChatu8(data, pathName='', out={artists:[],prompts:[],vibes:[],warni
      out.warnings.push('Vibe 分组「'+groupName+'」中的数据引用未找到：'+String(ref?.vibeDataId||'未知 ID'));
      continue;
     }
-    // 智绘姬导出的 image 可能只是用于辨识的 PNG 头像；保留原始记录，但绝不把它当作 NovelAI Vibe 输入。
-    const previewImage=[stored.previewImage,stored.thumbnail,stored.avatar,stored.image].find(v=>typeof v==='string'&&v.trim())||'';
-    const payloadKeys=Object.keys(stored).filter(k=>/encoded|embedding|vibe.?data|reference.?data|payload/i.test(k)&&!/(id|name|label)/i.test(k));
-    const hasPayload=payloadKeys.some(k=>typeof stored[k]==='string'&&stored[k].length>160);
-    images.push({vibeDataId:ref.vibeDataId,image:'',previewImage,raw:stored,strength:Number.isFinite(Number(ref.strength))?Number(ref.strength):0.6,informationExtracted:Number.isFinite(Number(stored.informationExtracted??stored.information_extracted))?Number(stored.informationExtracted??stored.information_extracted):1,identifier:stored.identifier||'',version:stored.version??1,type:stored.type||'image',hasPayload});
+    // 智绘姬的标准 Vibe 资源使用 identifier/type 标识，stored.image 是编码载荷，不是缩略图。
+    // 只有确认是 novelai-vibe-transfer 编码时才作为生图输入；缩略图单独保留。
+    const previewImage=[stored.previewImage,stored.thumbnail,stored.avatar].find(v=>typeof v==='string'&&v.trim())||'';
+    const storedImage=typeof stored.image==='string'?stored.image.trim():'';
+    const normalizedImage=storedImage.replace(/^data:image\\/[^;]+;base64,/i,'');
+    const hasPayload=stored.identifier==='novelai-vibe-transfer'&&stored.type==='image'&&/^[A-Za-z0-9+/]+={0,2}$/.test(normalizedImage)&&normalizedImage.length>160;
+    images.push({vibeDataId:ref.vibeDataId,image:hasPayload?normalizedImage:'',previewImage,raw:stored,strength:Number.isFinite(Number(ref.strength))?Number(ref.strength):0.6,informationExtracted:Number.isFinite(Number(stored.informationExtracted??stored.information_extracted))?Number(stored.informationExtracted??stored.information_extracted):1,identifier:stored.identifier||'',version:stored.version??1,type:stored.type||'image',hasPayload});
    }
    if(images.length)pushUnique(out.vibes,{name:String(groupName||'未命名 Vibe'),groupName:String(groupName||'未命名 Vibe'),entries:images,hasPayload:images.some(v=>v.hasPayload),hasRef:false,rawGroup:group,sourcePath:pathName,source:'st-chatu8'},x=>x.name+'|'+x.sourcePath);
    else if(group.vibes.length)out.warnings.push('Vibe 分组「'+groupName+'」没有可保留的数据。');
