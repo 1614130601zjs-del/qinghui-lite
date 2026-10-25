@@ -876,7 +876,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   const showControlsBriefly=()=>{
    controls.style.setProperty('opacity','1','important');
    controls.style.setProperty('visibility','visible','important');
-   controls.style.setProperty('pointer-events','auto','important');
+   controls.style.setProperty('pointer-events','none','important');
    if(controlsHideTimer)clearTimeout(controlsHideTimer);
    controlsHideTimer=setTimeout(()=>{
     controls.style.setProperty('opacity','0','important');
