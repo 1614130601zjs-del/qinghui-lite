@@ -663,7 +663,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   img.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY;},{passive:true});
   img.addEventListener('touchend',e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25)step(dx<0?1:-1);},{passive:true});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
-  img.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll.click();});
+  img.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();runChatReroll();});
   let lastTap=0,tapTimer=null;
   img.addEventListener('touchend',e=>{
    const t=e.changedTouches?.[0];if(!t)return;
@@ -671,20 +671,33 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
    if(now-lastTap>0&&now-lastTap<480){e.preventDefault();e.stopPropagation();lastTap=0;if(tapTimer){clearTimeout(tapTimer);tapTimer=null;}reroll.click();}
    else{lastTap=now;}
   },{passive:false});
-  reroll.addEventListener('click',async()=>{
-   if(card.dataset.qlBusy==='1')return;
-   const currentPrompt=String(card.dataset.qlPrompt||'').trim();if(!currentPrompt)return;
-   // 使用独立的重 Roll 任务键，避免原 marker 已成功的去重状态拦截再次生成。
-   const rerollKey=taskKey+':reroll:'+Date.now();
-   const candidate=triggerRegistry.begin(rerollKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});
-   if(!candidate?.accepted)return;
-   triggerRegistry.markRunning(rerollKey);card.dataset.qlBusy='1';reroll.disabled=true;
-   try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([75,45,75]);}catch{}
-   const old=reroll.innerHTML;reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l-2.12 2.12"/></svg>';
-   try{const fresh=await requestWithActiveSettings(currentPrompt);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();storeChatRecord(fresh,currentPrompt,taskKey,recordMeta);triggerRegistry.markSucceeded(rerollKey,rerollKey+':candidate:'+Date.now());}
-   catch(e){triggerRegistry.markFailed(rerollKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}
-   finally{card.dataset.qlBusy='0';reroll.disabled=false;reroll.innerHTML=old;}
-  });
+  const runChatReroll=async()=>{
+   // 兼容旧版或中断请求留下的永久 busy 锁；旧锁没有时间戳时立即恢复。
+   const busySince=Number(card.dataset.qlBusySince)||0;
+   if(card.dataset.qlBusy==='1'&&busySince&&Date.now()-busySince<120000)return;
+   if(card.dataset.qlBusy==='1'&&(!busySince||Date.now()-busySince>=120000)){card.dataset.qlBusy='0';card.dataset.qlBusySince='0';}
+   const currentPrompt=String(card.dataset.qlPrompt||'').trim();
+   if(!currentPrompt){alert('这张图片没有找到可用的画面提示词，请点击“修改 tag”检查。');return;}
+   const rerollKey=taskKey+':reroll:'+Date.now()+':'+Math.random().toString(36).slice(2,7);
+   let candidate;
+   try{candidate=triggerRegistry.begin(rerollKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});}
+   catch(error){console.error('[轻绘 Lite] 重 Roll 任务初始化失败',error);alert('重 Roll 未启动：'+(error?.message||String(error)));return;}
+   if(!candidate?.accepted){console.warn('[轻绘 Lite] 重 Roll 任务被拒绝',candidate);alert('重 Roll 任务暂时被拦截，请再点一次。');return;}
+   triggerRegistry.markRunning(rerollKey);card.dataset.qlBusy='1';card.dataset.qlBusySince=String(Date.now());reroll.disabled=true;
+   try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([45,35,45]);}catch{}
+   const old=reroll.innerHTML;reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l2.12 2.12"/></svg>';
+   try{
+    const fresh=await requestWithActiveSettings(currentPrompt);
+    card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();
+    storeChatRecord(fresh,currentPrompt,taskKey,recordMeta);
+    triggerRegistry.markSucceeded(rerollKey,rerollKey+':candidate:'+Date.now());
+   }catch(error){
+    try{triggerRegistry.markFailed(rerollKey,error?.message||String(error));}catch{}
+    console.error('[轻绘 Lite] 正文图片重 Roll 失败',error);
+    alert('轻绘重 Roll 失败：'+(error?.message||String(error)));
+   }finally{card.dataset.qlBusy='0';card.dataset.qlBusySince='0';reroll.disabled=false;reroll.innerHTML=old;}
+  };
+  reroll.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();runChatReroll();});
   card._qlRender=render;
  }
  card.dataset.qlPrompt=String(prompt||card.dataset.qlPrompt||'');
