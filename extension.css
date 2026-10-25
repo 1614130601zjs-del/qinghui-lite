@@ -257,3 +257,125 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #ql-image-cache-modal .ql-cache-prompt-section{padding:9px;}
  #ql-image-cache-modal .ql-cache-section-note{font-size:9px;}
 }
+
+
+/* 词库详情编辑区：与轻绘卡片主题统一，画面提示词独立成组，复制按钮置于输入框上方。 */
+#qinghui-lite-panel #ql-prompt-editor{
+ margin:14px 0 10px;
+ padding:14px;
+ border:1px solid color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor)) 32%,var(--ql-border,var(--SmartThemeBorderColor)));
+ border-radius:14px;
+ background:linear-gradient(155deg,color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor)) 7%,var(--ql-card,var(--SmartThemeBlurTintColor))),var(--ql-card,var(--SmartThemeBlurTintColor)));
+ box-shadow:0 7px 22px rgba(0,0,0,.07);
+}
+#qinghui-lite-panel #ql-prompt-editor>label{
+ display:block;
+ margin:14px 0 6px;
+ color:var(--ql-muted,var(--SmartThemeBodyColor));
+ font-size:12px;
+ font-weight:650;
+ letter-spacing:.02em;
+}
+#qinghui-lite-panel #ql-prompt-editor>#ql-library-prompt-zh{
+ display:block;
+ width:100%;
+ min-height:84px;
+ box-sizing:border-box;
+ padding:11px 12px;
+ border:1px solid var(--ql-border,var(--SmartThemeBorderColor));
+ border-radius:10px;
+ line-height:1.65;
+}
+#qinghui-lite-panel .ql-library-prompt-field{
+ margin:16px 0 12px;
+ padding:12px;
+ border:1px solid color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor)) 26%,var(--ql-border,var(--SmartThemeBorderColor)));
+ border-radius:12px;
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor)) 5%,var(--ql-card,var(--SmartThemeBlurTintColor)));
+}
+#qinghui-lite-panel .ql-library-prompt-field-head{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:12px;
+ margin-bottom:9px;
+}
+#qinghui-lite-panel .ql-library-prompt-field-head>label{
+ display:flex;
+ flex-direction:column;
+ gap:3px;
+ min-width:0;
+ margin:0;
+ font-size:14px;
+ font-weight:750;
+ color:var(--ql-text,var(--SmartThemeBodyColor));
+}
+#qinghui-lite-panel .ql-library-field-kicker{
+ color:var(--ql-accent,var(--SmartThemeQuoteColor));
+ font-size:9px;
+ font-weight:800;
+ letter-spacing:.16em;
+}
+#qinghui-lite-panel .ql-library-copy-icon{
+ display:flex;
+ flex:0 0 36px;
+ align-items:center;
+ justify-content:center;
+ width:36px;
+ height:36px;
+ margin:0;
+ padding:8px;
+ border:1px solid color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor)) 45%,var(--ql-border,var(--SmartThemeBorderColor)));
+ border-radius:10px;
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor)) 16%,var(--ql-card,var(--SmartThemeBlurTintColor)));
+ color:var(--ql-text,var(--SmartThemeBodyColor));
+ cursor:pointer;
+ transition:transform .16s ease,background .16s ease,border-color .16s ease;
+}
+#qinghui-lite-panel .ql-library-copy-icon svg{
+ display:block;
+ width:19px;
+ height:19px;
+ fill:none;
+ stroke:currentColor;
+ stroke-width:1.8;
+ stroke-linecap:round;
+ stroke-linejoin:round;
+}
+#qinghui-lite-panel .ql-library-copy-icon:active{transform:scale(.92)}
+#qinghui-lite-panel .ql-library-copy-icon.is-copied{
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor)) 38%,var(--ql-card,var(--SmartThemeBlurTintColor)));
+ border-color:var(--ql-accent,var(--SmartThemeQuoteColor));
+}
+#qinghui-lite-panel #ql-library-prompt-en{
+ display:block;
+ width:100%;
+ min-height:150px;
+ box-sizing:border-box;
+ margin:0;
+ padding:12px;
+ border:1px solid color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor)) 35%,var(--ql-border,var(--SmartThemeBorderColor)));
+ border-radius:10px;
+ background:var(--ql-field,var(--SmartThemeBlurTintColor));
+ font-size:13px;
+ line-height:1.75;
+ overflow-wrap:anywhere;
+}
+#qinghui-lite-panel .ql-library-field-note{
+ margin:7px 2px 0;
+ color:var(--ql-muted,var(--SmartThemeBodyColor));
+ font-size:10px;
+ line-height:1.5;
+ opacity:.8;
+}
+#qinghui-lite-panel .ql-image-reference-editor{
+ margin-top:14px;
+ padding:12px;
+ border-style:solid;
+ background:color-mix(in srgb,var(--ql-card,var(--SmartThemeBlurTintColor)) 86%,var(--ql-accent,var(--SmartThemeQuoteColor)));
+}
+@media(max-width:420px){
+ #qinghui-lite-panel #ql-prompt-editor{padding:10px}
+ #qinghui-lite-panel .ql-library-prompt-field{padding:9px}
+ #qinghui-lite-panel #ql-library-prompt-en{min-height:135px;font-size:12px}
+}
