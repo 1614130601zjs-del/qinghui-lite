@@ -512,7 +512,7 @@ $('#ql-clear').onclick=()=>{if(confirm('清空轻绘本地生成记录？不会�
 }
 jQuery(()=>{
  if(!$('#ql-overlay')){
-  document.body.insertAdjacentHTML('beforeend',html());
+  document.documentElement.insertAdjacentHTML('beforeend',html());
   const overlay=$('#ql-overlay');
   const panel=$('#qinghui-lite-panel');
   panel.setAttribute('role','dialog');
