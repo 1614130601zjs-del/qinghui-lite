@@ -115,3 +115,5 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel .ql-vibe-state{font-size:.8em;padding:3px 7px;border-radius:999px;background:var(--ql-panel)}
 #qinghui-lite-panel .ql-vibe-state.is-ready{color:var(--ql-accent)}
 #qinghui-lite-panel .ql-vibe-state.is-missing{color:var(--ql-muted)}
+
+#qinghui-lite-panel .ql-inline-check{display:flex!important;align-items:center;gap:8px;margin:10px 0}#qinghui-lite-panel .ql-inline-check input{width:auto!important;flex:0 0 auto;margin:0}
