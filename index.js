@@ -890,7 +890,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
     return;
    }
    const now=Date.now(),rect=card.getBoundingClientRect();
-   if(lastTouchTap>0&&now-lastTouchTap<420){
+   if(lastTouchTap>0&&now-lastTouchTap<450){
     e.preventDefault();e.stopPropagation();lastTouchTap=0;
     if(tapTimer){clearTimeout(tapTimer);tapTimer=null;}
     reroll();
@@ -902,7 +902,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
      const total=card._qlCandidates.length;
      if(total<2)return;
      moveCandidate(touch.clientX<rect.left+rect.width/2?-1:1);
-    },260);
+    },450);
    }
   },{passive:false});
   card.addEventListener('click',e=>{
