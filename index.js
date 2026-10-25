@@ -3,7 +3,7 @@ import { saveSettingsDebounced, eventSource, event_types, getRequestHeaders } fr
 import { parseImageMarkers, makeTriggerId, TriggerRegistry } from './trigger-core.js';
 
 const EXT = 'qinghui_lite';
-const defaults = { vibes:[], activeVibeIndex:-1, provider:'openai', endpoint:'https://api.openai.com/v1', apiKey:'', model:'gpt-image-1', size:'1024x1024', quality:'medium', naiModel:'nai-diffusion-4-5-full', naiSteps:28, naiScale:5, naiWidth:832, naiHeight:1216, naiSampler:'k_euler_ancestral', naiScheduler:'karras', prompt:'', negative:'', records:[], presets:[], characters:[], prompts:[] };
+const defaults = { vibes:[], activeVibeIndex:-1, activePresetIndex:-1, bindings:[], provider:'openai', endpoint:'https://api.openai.com/v1', apiKey:'', model:'gpt-image-1', size:'1024x1024', quality:'medium', naiModel:'nai-diffusion-4-5-full', naiSteps:28, naiScale:5, naiWidth:832, naiHeight:1216, naiSampler:'k_euler_ancestral', naiScheduler:'karras', prompt:'', negative:'', records:[], presets:[], characters:[], prompts:[] };
 const $ = (s, root=document) => root.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let busy=false;
@@ -344,23 +344,24 @@ function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-pa
 <header class="ql-header"><div class="ql-brand"><strong>轻绘 Lite</strong><span>独立生图工作区</span></div><button id="ql-close" class="menu_button" type="button">关闭</button></header>
 <nav class="ql-tabs" aria-label="轻绘功能导航" role="tablist">
 <button type="button" class="ql-tab active" data-page="generate" role="tab" aria-selected="true">生图</button>
-<button type="button" class="ql-tab" data-page="library" role="tab" aria-selected="false">素材库</button>
+<button type="button" class="ql-tab" data-page="library" role="tab" aria-selected="false">预设</button>
 <button type="button" class="ql-tab" data-page="history" role="tab" aria-selected="false">历史</button>
 <button type="button" class="ql-tab" data-page="settings" role="tab" aria-selected="false">设置</button>
 <button type="button" class="ql-tab" data-page="migration" role="tab" aria-selected="false">迁移</button>
 </nav>
 <div class="ql-page active" data-page-panel="generate" role="tabpanel">
-<div class="ql-card"><h3>开始创作</h3>
-<label for="ql-active-vibe">Vibe 参考（仅 NovelAI）</label><select id="ql-active-vibe"><option value="-1">不使用 Vibe</option></select><p class="ql-muted">仅包含完整参考图编码的 Vibe 可用于生成。</p>
-<label for="ql-prompt">正向提示词</label><textarea id="ql-prompt" placeholder="输入完整提示词"></textarea>
-<label for="ql-negative">负向提示词</label><textarea id="ql-negative" placeholder="可选"></textarea>
-<button id="ql-generate" class="menu_button ql-primary">生成一张</button><p id="ql-status" class="ql-muted" role="status"></p><div id="ql-result"></div>
-</div>
+<div class="ql-card"><h3>图片放置区</h3><p class="ql-muted">生成结果会显示在这里；长按图片可保存。</p><div id="ql-result" class="ql-image-stage"><div class="ql-image-placeholder">等待生成图片</div></div></div>
+<div class="ql-card"><h3>提示词 Tag 调整</h3><div class="ql-row"><input id="ql-tag-input" placeholder="输入一个 Tag，例如 1girl"><button id="ql-tag-add" class="menu_button" type="button">添加 Tag</button></div><div id="ql-tag-chips" class="ql-tag-chips"></div><label for="ql-prompt">正向提示词</label><textarea id="ql-prompt" placeholder="输入完整提示词"></textarea><label for="ql-negative">负向提示词</label><textarea id="ql-negative" placeholder="可选"></textarea></div>
+<div class="ql-card"><h3>画师串与 Vibe</h3><label for="ql-active-preset">画师串组合</label><select id="ql-active-preset"><option value="-1">不使用画师串预设</option></select><div class="ql-row"><button id="ql-apply-preset" class="menu_button" type="button">应用画师串</button><button id="ql-open-preset" class="menu_button" type="button">编辑 / 管理预设</button></div><label for="ql-active-vibe">Vibe 参考（仅 NovelAI）</label><select id="ql-active-vibe"><option value="-1">不使用 Vibe</option></select><p class="ql-muted">仅包含完整参考图编码的 Vibe 可用于生成。</p></div>
+<div class="ql-card"><h3>模型参数</h3><p class="ql-muted">后端、模型、尺寸和质量在“设置”中配置；NovelAI 的步数、CFG、尺寸、采样器和调度器也在设置中配置。</p><button id="ql-generate" class="menu_button ql-primary">生成一张</button><p id="ql-status" class="ql-muted" role="status"></p></div>
 </div>
 <div class="ql-page" data-page-panel="library" role="tabpanel" hidden>
+<nav class="ql-subtabs" role="tablist" aria-label="预设分区"><button type="button" class="ql-subtab active" data-subpage="artists" aria-selected="true">画师串编辑</button><button type="button" class="ql-subtab" data-subpage="vibes" aria-selected="false">Vibe 管理</button><button type="button" class="ql-subtab" data-subpage="bindings" aria-selected="false">角色绑定</button></nav>
+<section class="ql-subpage active" data-subpage-panel="artists"><div class="ql-card"><h3>画师串编辑区</h3><p class="ql-muted">每组画师串独立保存，可在生图页快速应用。</p><input id="ql-preset-name" placeholder="组合名称"><label>正向画师串</label><textarea id="ql-preset-positive" placeholder="artist:xxx, style tags..."></textarea><label>负向画师串</label><textarea id="ql-preset-negative" placeholder="可选"></textarea><button id="ql-preset-save" class="menu_button">保存画师串组合</button><div id="ql-presets-list"></div></div></section>
+<section class="ql-subpage" data-subpage-panel="vibes" hidden><div class="ql-card"><h3>Vibe 导入与编辑</h3><p class="ql-muted">支持 JSON / 智绘姬组格式导入；也可选择 .naiv4vibe、.naiv4vibeBundle 或图片。编码可能消耗 NovelAI Anlas。</p><label>导入文件</label><input id="ql-vibe-import-file" type="file" accept=".json,.json5,.txt,.naiv4vibe,.naiv4vibeBundle,image/png,image/jpeg,image/webp"><label>Vibe 名称</label><input id="ql-vibe-name" placeholder="例如：柔和配色参考"><label>Information Extracted</label><input id="ql-vibe-info" type="number" min="0.01" max="1" step="0.05" value="1"><button id="ql-vibe-encode" class="menu_button">将选中的图片编码为 Vibe</button><p id="ql-vibe-status" class="ql-muted" role="status">尚未选择文件。</p><div id="ql-vibes-list"></div></div></section>
+<section class="ql-subpage" data-subpage-panel="bindings" hidden><div class="ql-card"><h3>角色卡组合绑定</h3><p class="ql-muted">为角色卡绑定画师串与 Vibe，切换角色卡时自动选择已保存的组合。</p><label>角色卡</label><select id="ql-bind-character"><option value="">选择角色卡</option></select><label>画师串组合</label><select id="ql-bind-preset"><option value="-1">不绑定画师串</option></select><label>Vibe 组合</label><select id="ql-bind-vibe"><option value="-1">不绑定 Vibe</option></select><button id="ql-bind-save" class="menu_button">保存此角色绑定</button><div id="ql-bindings-list"></div></div></section>
 <div class="ql-card"><h3>提示词库</h3><div class="ql-row"><input id="ql-prompt-name" placeholder="名称"><input id="ql-prompt-category" placeholder="分类"></div><label>完整正向提示词</label><textarea id="ql-library-prompt" placeholder="保存完整提示词"></textarea><label>负向提示词</label><textarea id="ql-library-negative" placeholder="可选"></textarea><button id="ql-prompt-save" class="menu_button">保存提示词</button><div id="ql-prompts-list"></div></div>
 <div class="ql-card"><h3>角色库</h3><input id="ql-character-name" placeholder="角色名称"><label>固定外貌词</label><textarea id="ql-character-appearance" placeholder="角色固定外貌特征"></textarea><button id="ql-character-save" class="menu_button">保存角色</button><div id="ql-characters-list"></div></div>
-<div class="ql-card"><h3>画风预设</h3><input id="ql-preset-name" placeholder="预设名称"><label>正向画风串</label><textarea id="ql-preset-positive" placeholder="正向画风提示词"></textarea><label>负向提示词</label><textarea id="ql-preset-negative" placeholder="可选"></textarea><button id="ql-preset-save" class="menu_button">保存预设</button><div id="ql-presets-list"></div></div>
 </div>
 <div class="ql-page" data-page-panel="history" role="tabpanel" hidden><div class="ql-card"><h3>最近生成</h3><p class="ql-muted">本地保存的最近生成记录。</p><div id="ql-history"></div><button id="ql-clear" class="menu_button">清空记录</button></div></div>
 <div class="ql-page" data-page-panel="settings" role="tabpanel" hidden>
@@ -518,7 +519,7 @@ $('#ql-generate').onclick=async()=>{
  if(conf.provider!=='novelai'&&(!conf.endpoint||!conf.apiKey)){status('请填写 OpenAI 兼容 API 地址和 Key。');return;}
  busy=true;$('#ql-generate').disabled=true;$('#ql-result').replaceChildren();status('正在请求生图接口……');
  try{
-  const activeIndex=Number(conf.activeVibeIndex??-1);const activeVibe=activeIndex>=0?conf.vibes[activeIndex]:null;const url=await requestImage(conf.prompt.trim(),conf.negative.trim(),activeVibe);
+  const activeIndex=Number(conf.activeVibeIndex??-1);const activeVibe=activeIndex>=0?conf.vibes[activeIndex]:null;const activePresetIndex=Number(conf.activePresetIndex??-1);const activePreset=activePresetIndex>=0?conf.presets[activePresetIndex]:null;const finalPrompt=[conf.prompt.trim(),activePreset?.positive].filter(Boolean).join(', ');const finalNegative=[conf.negative.trim(),activePreset?.negative].filter(Boolean).join(', ');const url=await requestImage(finalPrompt,finalNegative,activeVibe);
   const img=document.createElement('img');img.alt='轻绘生成结果';img.src=url;$('#ql-result').append(img);
   conf.records.unshift({at:Date.now(),prompt:conf.prompt.trim(),negative:conf.negative.trim(),provider:conf.provider,model:conf.provider==='novelai'?conf.naiModel:conf.model,size:conf.provider==='novelai'?(conf.naiWidth+'x'+conf.naiHeight):conf.size,quality:conf.quality,dataUrl:url});
   conf.records=conf.records.slice(0,20);save();history();status('生成完成。记录已保存在酒馆扩展设置中。');
