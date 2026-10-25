@@ -326,19 +326,59 @@ async function preparePngDownloadBlob(blob){
  if(!blob||cfg().pngDownloadMode!=='clean')return blob;
  const bytes=new Uint8Array(await blob.arrayBuffer());
  const signature=[137,80,78,71,13,10,26,10];
- if(bytes.length<8||!signature.every((v,i)=>bytes[i]===v))return blob;
- const keep=new Set(['IHDR','PLTE','IDAT','IEND','tRNS','sRGB','gAMA','cHRM','iCCP','sBIT','bKGD','hIST','pHYs','acTL','fcTL','fdAT']);
- const chunks=[bytes.slice(0,8)],removed=[];
- let offset=8,ended=false;
+ if(bytes.length<8||!signature.every((v,i)=>bytes[i]===v)){
+  lastPngCleanReport='未执行清洗：下载内容不是标准 PNG，已保留原文件，避免错误转换。';
+  return blob;
+ }
+ // APNG 有动画帧；canvas 只能可靠导出当前帧，因此动画 PNG 继续采用无损数据块清理。
+ let hasAnimation=false,offset=8;
  while(offset+12<=bytes.length){
   const length=((bytes[offset]<<24)|(bytes[offset+1]<<16)|(bytes[offset+2]<<8)|bytes[offset+3])>>>0;
   const end=offset+12+length;
   if(end>bytes.length)throw new Error('PNG 数据块长度异常，已停止清洗以避免损坏图片。');
   const type=String.fromCharCode(bytes[offset+4],bytes[offset+5],bytes[offset+6],bytes[offset+7]);
-  const critical=type.charCodeAt(0)>=65&&type.charCodeAt(0)<=90;
-  if(critical||keep.has(type))chunks.push(bytes.slice(offset,end));
-  else removed.push(type);
+  if(type==='acTL'){hasAnimation=true;break;}
   offset=end;
+  if(type==='IEND')break;
+ }
+ if(!hasAnimation){
+  // 解码后用同尺寸 Canvas 重新编码 PNG：不缩放、不裁切、不转 JPG，避免沿用原文件中的提示词/生成参数块。
+  let bitmap=null;
+  try{
+   if(typeof createImageBitmap==='function'){
+    bitmap=await createImageBitmap(blob);
+    const canvas=document.createElement('canvas');
+    canvas.width=bitmap.width;canvas.height=bitmap.height;
+    const context=canvas.getContext('2d',{alpha:true,willReadFrequently:false});
+    if(!context)throw new Error('无法创建 Canvas 画布');
+    context.clearRect(0,0,canvas.width,canvas.height);
+    context.drawImage(bitmap,0,0);
+    const cleaned=await new Promise((resolve,reject)=>{
+     canvas.toBlob(result=>result?resolve(result):reject(new Error('浏览器重新编码 PNG 失败')),'image/png');
+    });
+    if(!cleaned||cleaned.type!=='image/png')throw new Error('浏览器未能导出 PNG');
+    lastPngCleanReport='清洗完成：已按原始宽高重新编码为 PNG，未缩放或裁切；原文件中的附加元数据不会被复制。PNG 为无损编码，但浏览器颜色管理可能造成极细微的像素差异。';
+    return cleaned;
+   }
+  }catch(error){
+   console.warn('[轻绘 Lite] Canvas PNG 重编码不可用，改用 PNG 数据块清理',error);
+  }finally{
+   bitmap?.close?.();
+  }
+ }
+ // 动画 PNG 或浏览器不支持 Canvas 解码时，保留图像数据块并移除常见文本/附加元数据块。
+ const keep=new Set(['IHDR','PLTE','IDAT','IEND','tRNS','sRGB','gAMA','cHRM','iCCP','sBIT','bKGD','hIST','pHYs','acTL','fcTL','fdAT']);
+ const chunks=[bytes.slice(0,8)],removed=[];
+ offset=8;let ended=false;
+ while(offset+12<=bytes.length){
+  const length=((bytes[offset]<<24)|(bytes[offset+1]<<16)|(bytes[offset+2]<<8)|bytes[offset+3])>>>0;
+  const chunkEnd=offset+12+length;
+  if(chunkEnd>bytes.length)throw new Error('PNG 数据块长度异常，已停止清洗以避免损坏图片。');
+  const type=String.fromCharCode(bytes[offset+4],bytes[offset+5],bytes[offset+6],bytes[offset+7]);
+  const critical=type.charCodeAt(0)>=65&&type.charCodeAt(0)<=90;
+  if(critical||keep.has(type))chunks.push(bytes.slice(offset,chunkEnd));
+  else removed.push(type);
+  offset=chunkEnd;
   if(type==='IEND'){ended=true;break;}
  }
  if(!ended)throw new Error('PNG 缺少 IEND 结束块，无法安全清洗元数据。');
@@ -347,8 +387,8 @@ async function preparePngDownloadBlob(blob){
  if(!cleaned.size)throw new Error('PNG 元数据清洗失败。');
  const unique=[...new Set(removed)];
  lastPngCleanReport=removed.length||trailingBytes
-  ? '清洗结果：移除 '+removed.length+' 个数据块'+(unique.length?'（'+unique.join('、')+'）':'')+(trailingBytes?'，并移除 IEND 后的 '+trailingBytes+' 字节附加数据':'')+'。'
-  : '检查完成：没有发现可移除的 PNG 附加数据块；如果生成参数仍可读取，可能存放在受支持范围之外。';
+  ? '清洗完成：移除 '+removed.length+' 个附加数据块'+(unique.length?'（'+unique.join('、')+'）':'')+(trailingBytes?'，并移除 IEND 后的 '+trailingBytes+' 字节附加数据':'')+'。'
+  : '检查完成：未发现可移除的数据块；此文件可能含动画或其他非标准嵌入数据。';
  return cleaned;
 }
 async function saveCleanImage(src,filename){
