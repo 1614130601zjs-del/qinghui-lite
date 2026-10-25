@@ -930,10 +930,13 @@ jQuery(()=>{
    if(launch.parentElement!==menu)menu.append(launch);
    return true;
   };
-  // 酒馆移动端可能在初始化后重建扩展菜单，因此持续监听并在菜单被重绘时补回入口。
-  mountLauncher();
-  const launcherObserver=new MutationObserver(()=>{mountLauncher();});
-  launcherObserver.observe(document.body,{childList:true,subtree:true});
+  // 恢复此前稳定版本：菜单已存在就立即挂载；未创建时只等待首次出现。
+  if(!mountLauncher()){
+   const observer=new MutationObserver(()=>{
+    if(mountLauncher())observer.disconnect();
+   });
+   observer.observe(document.body,{childList:true,subtree:true});
+  }
    // 统一用捕获阶段委托处理所有主导航与子导航，减少移动端点击被内部控件/重绘节点打断的情况。
    panel.addEventListener('click',event=>{
     const node=event.target instanceof Element?event.target:null;
@@ -975,37 +978,4 @@ jQuery(()=>{
  if(event_types.CHAT_CHANGED)eventSource.on(event_types.CHAT_CHANGED,()=>{autoTasks.clear();renderBindings();applyCurrentBinding();});
  if(event_types.CHARACTER_SELECTED)eventSource.on(event_types.CHARACTER_SELECTED,()=>{renderBindings();applyCurrentBinding();});
  applyCurrentBinding();
-});
-
-// 独立兜底：入口不依赖面板是否首次创建。热重载时即使面板已存在，也重新确保魔法棒菜单入口存在。
-jQuery(()=>{
- const ensureQinghuiLauncher=()=>{
-  const menu=document.querySelector('#extensionsMenu');
-  if(!menu)return;
-  let launch=document.querySelector('#ql-chat-launch');
-  if(!launch){
-   launch=document.createElement('div');
-   launch.id='ql-chat-launch';
-   launch.className='list-group-item flex-container flexGap5';
-   launch.setAttribute('role','button');
-   launch.setAttribute('tabindex','0');
-   launch.title='打开轻绘 Lite 生图工作区';
-   launch.innerHTML='<i class="fa-solid fa-palette"></i><span>轻绘 Lite</span>';
-  }
-  if(launch.parentElement!==menu)menu.append(launch);
-  const openLite=()=>{
-   const overlay=document.querySelector('#ql-overlay');
-   if(!overlay){console.warn('[轻绘 Lite] 面板尚未初始化');return;}
-   overlay.hidden=false;
-   document.body.classList.add('ql-modal-open');
-  };
-  launch.onclick=openLite;
-  launch.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openLite();}};
- };
- ensureQinghuiLauncher();
- if(!document.documentElement.dataset.qlLauncherObserver){
-  document.documentElement.dataset.qlLauncherObserver='1';
-  const observer=new MutationObserver(()=>ensureQinghuiLauncher());
-  observer.observe(document.documentElement,{childList:true,subtree:true});
- }
 });
