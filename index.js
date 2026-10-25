@@ -166,7 +166,21 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
      if(dataStart+compressed>view.byteLength)throw new Error('图片压缩数据不完整');
      let bytes=u8.slice(dataStart,dataStart+compressed);
      if(method===8){
-      bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+      if(typeof DecompressionStream==='undefined')throw new Error('当前浏览器不支持 ZIP 的 DEFLATE 解压，请更新浏览器内核。');
+      try{
+       const reader=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader();
+       const chunks=[];let total=0;
+       while(true){
+        const part=await reader.read();
+        if(part.done)break;
+        chunks.push(part.value);total+=part.value.length;
+       }
+       bytes=new Uint8Array(total);
+       let pos=0;
+       for(const chunk of chunks){bytes.set(chunk,pos);pos+=chunk.length;}
+      }catch(error){
+       throw new Error('ZIP 图片 DEFLATE 解压失败：'+(error?.message||String(error))+'。压缩数据可能不完整，或当前浏览器内核不兼容 deflate-raw。');
+      }
      }else if(method!==0){
       throw new Error('暂不支持 ZIP 压缩方式：'+method);
      }
