@@ -1033,11 +1033,23 @@ async function processStatusbarFrames(){
   }
   if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
   frame.dataset.qlBusy='1';
-  const taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
-  // 恢复已缓存的状态栏图片：DOM 重绘/重新打开消息时不应自动重新请求 NAI。
-  const savedStatusbar=(cfg().records||[])
+  let taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
+  // 恢复已缓存的状态栏图片：酒馆刷新后消息 DOM 的 mesid/同消息标记序号偶尔会变化，
+  // 先精确匹配任务键；精确匹配失败时，再按当前消息 ID + 提示词哈希匹配，忽略标记序号变化。
+  const message=frame.closest('.mes[mesid]')||frame.closest('.mes');
+  const messageId=message?.getAttribute('mesid')||message?.dataset?.mesid||'no-message-id';
+  const promptHash=taskKey.split(':').at(-1);
+  let savedStatusbar=(cfg().records||[])
    .filter(item=>item&&item.dataUrl&&item.taskKey===taskKey&&(item.source||'chat')==='statusbar')
    .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+  if(!savedStatusbar.length){
+   const prefix='statusbar:'+String(getContext()?.chatId||'chat')+':'+messageId+':';
+   savedStatusbar=(cfg().records||[])
+    .filter(item=>item&&item.dataUrl&&(item.source||'chat')==='statusbar'&&String(item.taskKey||'').startsWith(prefix)&&String(item.taskKey||'').endsWith(':'+promptHash))
+    .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+   // 继续沿用缓存记录原本的 taskKey，确保收藏、删除等操作也能找到记录。
+   if(savedStatusbar.length)taskKey=savedStatusbar[savedStatusbar.length-1].taskKey;
+  }
   if(savedStatusbar.length){
    const latest=savedStatusbar[savedStatusbar.length-1];
    renderStatusbarCard(frame,prompt,latest.dataUrl,taskKey);
