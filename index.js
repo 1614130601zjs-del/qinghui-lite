@@ -1,7 +1,10 @@
 import { extension_settings, getContext } from '/scripts/extensions.js';
-import { saveSettingsDebounced, eventSource, event_types, getRequestHeaders, generateQuietPrompt } from '/script.js';
+import { saveSettingsDebounced, eventSource, event_types, getRequestHeaders } from '/script.js';
+import * as scriptApi from '/script.js';
 import { initFloorImageFeature } from './floor-image.js';
-import { getWorldInfoPrompt } from '/scripts/world-info.js';
+import * as worldInfoApi from '/scripts/world-info.js';
+const generateQuietPrompt = scriptApi.generateQuietPrompt;
+const getWorldInfoPrompt = worldInfoApi.getWorldInfoPrompt;
 import { parseImageMarkers, makeTriggerId, TriggerRegistry } from './trigger-core.js';
 
 const EXT = 'qinghui_lite';
@@ -1557,7 +1560,17 @@ jQuery(()=>{
     if(page)page.scrollTop=0;
    },true);
   init();
-  initFloorImageFeature({getContext,generateQuietPrompt,getWorldInfoPrompt,cfg,save:saveSettingsDebounced,resolveActiveGeneration,requestWithActiveSettings,storeChatRecord,addMessageImage,defaults,eventSource,event_types});
+  // Feature initialization is performed outside the panel-creation branch.
+ }
+ // 楼层生图功能独立初始化：避免绑定在“首次创建面板”的分支里。
+ if (!document.documentElement.dataset.qlFloorImageInit) {
+  document.documentElement.dataset.qlFloorImageInit = '1';
+  try {
+   initFloorImageFeature({getContext,generateQuietPrompt,getWorldInfoPrompt,cfg,save:saveSettingsDebounced,resolveActiveGeneration,requestWithActiveSettings,storeChatRecord,addMessageImage,defaults,eventSource,event_types});
+  } catch (error) {
+   delete document.documentElement.dataset.qlFloorImageInit;
+   console.error('[拾帧] 楼层生图功能初始化失败；基础工作区与正文按钮继续加载。', error);
+  }
  }
  observeStatusbarFrames();
  // 扩展启用时先扫描现有聊天；再观察酒馆正文重绘，避免事件时序导致 marker 一直以原文显示。
