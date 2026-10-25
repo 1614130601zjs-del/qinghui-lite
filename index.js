@@ -114,7 +114,7 @@ async function requestWithActiveSettings(prompt, negativeOverride){
 function extractUsableVibe(raw){
  const encodedKeys=/^(?:referenceImage|reference_image|referenceImageData|reference_image_data|base64|imageBase64|image_base64|encoded|encodedVibe|encoded_vibe|vibeEncoding|vibe_encoding|vibeData|vibe_data|payload)$/i;
  const seen=new WeakSet();let found='';
- const clean=value=>String(value||'').trim().replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,'');
+ const clean=value=>String(value||'').trim().replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,'').replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
  const walk=(value,key='',canonical=false)=>{
   if(found||value==null)return;
   if(typeof value==='string'){
@@ -422,7 +422,7 @@ function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-pa
 </div>
 <div class="ql-page" data-page-panel="library" role="tabpanel" hidden>
 <nav class="ql-subtabs" role="tablist" aria-label="预设分区"><button type="button" class="ql-subtab active" data-subpage="artists" aria-selected="true">画师串编辑</button><button type="button" class="ql-subtab" data-subpage="vibes" aria-selected="false">Vibe 管理</button><button type="button" class="ql-subtab" data-subpage="bindings" aria-selected="false">角色绑定</button></nav>
-<section class="ql-subpage active" data-subpage-panel="artists"><div class="ql-card"><h3>画师串编辑区</h3><p class="ql-muted">每组画师串独立保存，可在生图页快速应用。</p><input id="ql-preset-name" placeholder="组合名称"><label>正向画师串</label><textarea id="ql-preset-positive" placeholder="artist:xxx, style tags..."></textarea><label>负向画师串</label><textarea id="ql-preset-negative" placeholder="可选"></textarea><button id="ql-preset-save" class="menu_button">保存画师串组合</button><div id="ql-presets-list"></div></div><div class="ql-card"><h3>提示词库</h3><div class="ql-row"><input id="ql-prompt-name" placeholder="名称"><input id="ql-prompt-category" placeholder="分类"></div><label>完整正向提示词</label><textarea id="ql-library-prompt" placeholder="保存完整提示词"></textarea><label>负向提示词</label><textarea id="ql-library-negative" placeholder="可选"></textarea><button id="ql-prompt-save" class="menu_button">保存提示词</button><div id="ql-prompts-list"></div></div><div class="ql-card"><h3>角色词条库</h3><input id="ql-character-name" placeholder="角色名称"><label>固定外貌词</label><textarea id="ql-character-appearance" placeholder="角色固定外貌特征"></textarea><button id="ql-character-save" class="menu_button">保存角色</button><div id="ql-characters-list"></div></div></section>
+<section class="ql-subpage active" data-subpage-panel="artists"><div class="ql-card"><h3>画师串编辑区</h3><p class="ql-muted">可从下方列表切换画师串编辑；保存时更新当前选中的组合，也可以新建组合。</p><label for="ql-preset-edit-select">切换要编辑的画师串</label><div class="ql-row"><select id="ql-preset-edit-select"><option value="">新建画师串</option></select><button type="button" class="menu_button" id="ql-preset-new">新建</button></div><input id="ql-preset-name" placeholder="组合名称"><label>正向画师串</label><textarea id="ql-preset-positive" placeholder="artist:xxx, style tags..."></textarea><label>负向画师串</label><textarea id="ql-preset-negative" placeholder="可选"></textarea><button id="ql-preset-save" class="menu_button">保存画师串组合</button><div id="ql-presets-list"></div></div><div class="ql-card"><h3>提示词库</h3><div class="ql-row"><input id="ql-prompt-name" placeholder="名称"><input id="ql-prompt-category" placeholder="分类"></div><label>完整正向提示词</label><textarea id="ql-library-prompt" placeholder="保存完整提示词"></textarea><label>负向提示词</label><textarea id="ql-library-negative" placeholder="可选"></textarea><button id="ql-prompt-save" class="menu_button">保存提示词</button><div id="ql-prompts-list"></div></div><div class="ql-card"><h3>角色词条库</h3><input id="ql-character-name" placeholder="角色名称"><label>固定外貌词</label><textarea id="ql-character-appearance" placeholder="角色固定外貌特征"></textarea><button id="ql-character-save" class="menu_button">保存角色</button><div id="ql-characters-list"></div></div></section>
 <section class="ql-subpage" data-subpage-panel="vibes" hidden><div class="ql-card"><h3>Vibe 导入与编辑</h3><p class="ql-muted">支持 JSON / 智绘姬组格式和可解析的 .naiv4vibe / bundle 压缩包；也可选择图片。编码可能消耗 NovelAI Anlas。图片编码需要酒馆提供 /api/novelai/encode-vibe 代理接口；若返回 404，需补充后端代理。</p><label>导入文件</label><input id="ql-vibe-import-file" type="file" accept=".json,.json5,.txt,.naiv4vibe,.naiv4vibeBundle,image/png,image/jpeg,image/webp"><button id="ql-vibe-pick" type="button" class="menu_button ql-secondary">选择 Vibe 文件 / 图片</button><label>Vibe 名称</label><input id="ql-vibe-name" placeholder="例如：柔和配色参考"><label>Information Extracted</label><input id="ql-vibe-info" type="number" min="0.01" max="1" step="0.05" value="1"><button id="ql-vibe-encode" class="menu_button">将选中的图片编码为 Vibe</button><p id="ql-vibe-status" class="ql-muted" role="status">尚未选择文件。</p><div id="ql-vibes-list"></div></div></section>
 <section class="ql-subpage" data-subpage-panel="bindings" hidden><div class="ql-card"><h3>角色卡组合绑定</h3><p class="ql-muted">为角色卡绑定画师串与 Vibe，切换角色卡时自动选择已保存的组合。</p><label>角色卡</label><select id="ql-bind-character"><option value="">选择角色卡</option></select><label>画师串组合</label><select id="ql-bind-preset"><option value="-1">不绑定画师串</option></select><label>Vibe 组合</label><select id="ql-bind-vibe"><option value="-1">不绑定 Vibe</option></select><button id="ql-bind-save" class="menu_button">保存此角色绑定</button><div id="ql-bindings-list"></div></div></section>
 </div>
@@ -447,6 +447,8 @@ function renderLibrary(){
  if(prompts)prompts.innerHTML=(s.prompts||[]).map((p,i)=>'<div class="ql-record"><strong>'+esc(p.name)+'</strong><p>'+esc(p.category||'未分类')+' · '+esc((p.prompt||'').slice(0,100))+'</p><button class="menu_button" data-prompt-load="'+i+'">载入</button><button class="menu_button" data-prompt-delete="'+i+'">删除</button></div>').join('')||'<p class="ql-muted">暂无提示词</p>';
  if(chars)chars.innerHTML=(s.characters||[]).map((p,i)=>'<div class="ql-record"><strong>'+esc(p.name)+'</strong><p>'+esc(p.appearance)+'</p><button class="menu_button" data-character-apply="'+i+'">追加外貌词</button><button class="menu_button" data-character-edit="'+i+'">编辑</button><button class="menu_button" data-character-delete="'+i+'">删除</button></div>').join('')||'<p class="ql-muted">暂无角色</p>';
  if(presets)presets.innerHTML=(s.presets||[]).map((p,i)=>'<div class="ql-record"><strong>'+esc(p.name)+'</strong><p>'+esc(p.positive)+'</p><button class="menu_button" data-preset-apply="'+i+'">应用到生图页</button><button class="menu_button" data-preset-edit="'+i+'">编辑</button><button class="menu_button" data-preset-delete="'+i+'">删除</button></div>').join('')||'<p class="ql-muted">暂无预设</p>';
+ const editorSelect=$('#ql-preset-edit-select');
+ if(editorSelect){const old=editorSelect.value;editorSelect.innerHTML='<option value="">新建画师串</option>'+(s.presets||[]).map((p,i)=>'<option value="'+i+'">'+esc(p.name||('画师串 '+(i+1)))+'</option>').join('');if(old!==''&&s.presets[Number(old)])editorSelect.value=old;}
  if(vibes)vibes.innerHTML=(s.vibes||[]).map((v,i)=>{
   const entries=Array.isArray(v.entries)?v.entries:[];
   const usable=entries.filter(entry=>(typeof entry.image==='string'&&entry.image.replace(/\s+/g,'').length>160)||!!extractUsableVibe(entry.raw||entry)?.image).length;
@@ -500,7 +502,10 @@ function renderLibrary(){
  chars?.querySelectorAll('[data-character-edit]').forEach(b=>b.onclick=()=>{const p=s.characters[+b.dataset.characterEdit];$('#ql-character-name').value=p.name||'';$('#ql-character-appearance').value=p.appearance||'';$('#ql-character-save').dataset.edit=String(+b.dataset.characterEdit);$('#ql-character-save').textContent='保存修改';});
   chars?.querySelectorAll('[data-character-delete]').forEach(b=>b.onclick=()=>{s.characters.splice(+b.dataset.characterDelete,1);save();renderLibrary();});
  presets?.querySelectorAll('[data-preset-apply]').forEach(b=>b.onclick=()=>{const i=+b.dataset.presetApply,p=s.presets[i];s.activePresetIndex=i;renderActivePresets();save();status('已选中画师串：'+p.name+'，生成时会自动组合。');});
- presets?.querySelectorAll('[data-preset-edit]').forEach(b=>b.onclick=()=>{const p=s.presets[+b.dataset.presetEdit];$('#ql-preset-name').value=p.name||'';$('#ql-preset-positive').value=p.positive||'';$('#ql-preset-negative').value=p.negative||'';$('#ql-preset-save').dataset.edit=String(+b.dataset.presetEdit);$('#ql-preset-save').textContent='保存修改';});
+ const loadPresetForEdit=index=>{const p=s.presets[index];if(!p)return;$('#ql-preset-edit-select').value=String(index);$('#ql-preset-name').value=p.name||'';$('#ql-preset-positive').value=p.positive||'';$('#ql-preset-negative').value=p.negative||'';$('#ql-preset-save').dataset.edit=String(index);$('#ql-preset-save').textContent='保存修改';};
+  presets?.querySelectorAll('[data-preset-edit]').forEach(b=>b.onclick=()=>loadPresetForEdit(+b.dataset.presetEdit));
+  $('#ql-preset-edit-select')?.addEventListener('change',()=>{const value=$('#ql-preset-edit-select').value;if(value===''){delete $('#ql-preset-save').dataset.edit;$('#ql-preset-save').textContent='保存画师串组合';$('#ql-preset-name').value='';$('#ql-preset-positive').value='';$('#ql-preset-negative').value='';return;}loadPresetForEdit(Number(value));});
+  $('#ql-preset-new')?.addEventListener('click',()=>{ $('#ql-preset-edit-select').value='';delete $('#ql-preset-save').dataset.edit;$('#ql-preset-save').textContent='保存画师串组合';$('#ql-preset-name').value='';$('#ql-preset-positive').value='';$('#ql-preset-negative').value='';$('#ql-preset-name').focus();});
   presets?.querySelectorAll('[data-preset-delete]').forEach(b=>b.onclick=()=>{s.presets.splice(+b.dataset.presetDelete,1);save();renderLibrary();});
 }
 
@@ -528,8 +533,9 @@ function walkChatu8(data, pathName='', out={artists:[],prompts:[],vibes:[],warni
     // 只有确认是 novelai-vibe-transfer 编码时才作为生图输入；缩略图单独保留。
     const previewImage=[stored.previewImage,stored.thumbnail,stored.avatar].find(v=>typeof v==='string'&&v.trim())||'';
     const storedImage=typeof stored.image==='string'?stored.image.trim():'';
-    const normalizedImage=storedImage.replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,'').replace(/\s+/g,'');
-    const hasPayload=stored.identifier==='novelai-vibe-transfer'&&stored.type==='image'&&/^[A-Za-z0-9+/]+={0,2}$/.test(normalizedImage)&&normalizedImage.length>160;
+    const normalizedImage=storedImage.replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,'').replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
+    // 分组引用已经明确指向 vibeData；即使导出器省略 identifier/type，也以有效编码载荷为准。
+    const hasPayload=/^[A-Za-z0-9+/]+={0,2}$/.test(normalizedImage)&&normalizedImage.length>160;
     // 编码只保留一份，避免 raw 再复制一份超大的 Base64 让酒馆设置膨胀。
     const rawMeta={identifier:stored.identifier||'',version:stored.version??1,type:stored.type||'image',informationExtracted:stored.informationExtracted??stored.information_extracted??1};
     images.push({vibeDataId:ref.vibeDataId,image:hasPayload?normalizedImage:'',previewImage,raw:rawMeta,strength:Number.isFinite(Number(ref.strength))?Number(ref.strength):0.6,informationExtracted:Number.isFinite(Number(stored.informationExtracted??stored.information_extracted))?Number(stored.informationExtracted??stored.information_extracted):1,identifier:stored.identifier||'',version:stored.version??1,type:stored.type||'image',hasPayload});
@@ -579,9 +585,13 @@ function renderMigrationPreview(candidate,source){
 }
 function scanChatu8Settings(){
  const found=[];
+ const isExport=value=>!!value&&typeof value==='object'&&(
+  (value.groups&&typeof value.groups==='object'&&value.vibeData&&typeof value.vibeData==='object')||
+  (value.presets&&typeof value.presets==='object'&&!Array.isArray(value.presets))
+ );
  for(const [key,value] of Object.entries(extension_settings||{})){
-  if(/chatu8|智绘姬|zhihuiji/i.test(key))found.push({key,value});
-  else if(value&&typeof value==='object'&&/vibeGroups?|画师串|artistString|referenceImage|vibeData/i.test(safeMigrationStringify(value)))found.push({key,value});
+  if(key===EXT)continue;
+  if(/chatu8|智绘姬|zhihuiji/i.test(key)||isExport(value))found.push({key,value});
  }
  try{
   for(let i=0;i<localStorage.length;i++){
@@ -645,7 +655,7 @@ $('#ql-generate').onclick=async()=>{
 }
 $('#ql-prompt-save').onclick=()=>{const name=$('#ql-prompt-name').value.trim(),prompt=$('#ql-library-prompt').value.trim();if(!name||!prompt){status('提示词名称和内容不能为空。');return;}const item={name,category:$('#ql-prompt-category').value.trim(),prompt,negative:$('#ql-library-negative').value.trim(),updatedAt:Date.now()};const edit=$('#ql-prompt-save').dataset.edit;if(edit!==undefined){cfg().prompts[Number(edit)]=item;delete $('#ql-prompt-save').dataset.edit;$('#ql-prompt-save').textContent='保存提示词';}else cfg().prompts.unshift(item);cfg().prompts=cfg().prompts.slice(0,200);save();renderLibrary();status('提示词已保存。');};
 $('#ql-character-save').onclick=()=>{const name=$('#ql-character-name').value.trim(),appearance=$('#ql-character-appearance').value.trim();if(!name||!appearance){status('请填写角色名称和外貌词。');return;}const item={name,appearance,updatedAt:Date.now()};const edit=$('#ql-character-save').dataset.edit;if(edit!==undefined){cfg().characters[Number(edit)]=item;delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色';}else cfg().characters.unshift(item);cfg().characters=cfg().characters.slice(0,100);save();renderLibrary();status('角色已保存。');};
-$('#ql-preset-save').onclick=()=>{const name=$('#ql-preset-name').value.trim(),positive=$('#ql-preset-positive').value.trim();if(!name||!positive){status('预设名称和正向画风串不能为空。');return;}const item={name,positive,negative:$('#ql-preset-negative').value.trim(),updatedAt:Date.now()};const edit=$('#ql-preset-save').dataset.edit;if(edit!==undefined){cfg().presets[Number(edit)]=item;delete $('#ql-preset-save').dataset.edit;$('#ql-preset-save').textContent='保存预设';}else cfg().presets.unshift(item);cfg().presets=cfg().presets.slice(0,100);save();renderLibrary();status('预设已保存。');};
+$('#ql-preset-save').onclick=()=>{const name=$('#ql-preset-name').value.trim(),positive=$('#ql-preset-positive').value.trim();if(!name||!positive){status('预设名称和正向画风串不能为空。');return;}const item={name,positive,negative:$('#ql-preset-negative').value.trim(),updatedAt:Date.now()};const edit=$('#ql-preset-save').dataset.edit;if(edit!==undefined){cfg().presets[Number(edit)]=item;delete $('#ql-preset-save').dataset.edit;}else cfg().presets.unshift(item);cfg().presets=cfg().presets.slice(0,100);$('#ql-preset-edit-select').value=String(cfg().presets.findIndex(x=>x.name===item.name&&x.positive===item.positive));const savedIndex=cfg().presets.findIndex(x=>x.name===item.name&&x.positive===item.positive);if(savedIndex>=0){$('#ql-preset-save').dataset.edit=String(savedIndex);$('#ql-preset-save').textContent='保存修改';}save();renderLibrary();status('画师串已保存，可通过上方下拉框切换编辑。');};
 $('#ql-clear').onclick=()=>{if(confirm('清空轻绘本地生成记录？不会删除聊天图片。')){cfg().records=[];save();history();status('记录已清空。');}};
 }
 jQuery(()=>{
