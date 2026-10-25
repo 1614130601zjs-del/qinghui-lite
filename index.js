@@ -431,6 +431,22 @@ async function preparePngDownloadBlob(blob,forceClean=false){
   : '检查完成：未发现可移除的数据块；此文件可能含动画或其他非标准嵌入数据。';
  return cleaned;
 }
+async function convertImageBlobToJpeg(blob){
+ if(!blob)throw new Error('无法读取图片文件，已阻止未转换的原图下载。');
+ let bitmap=null,tempUrl=null;
+ try{
+  let width=0,height=0,source=null;
+  if(typeof createImageBitmap==='function'){bitmap=await createImageBitmap(blob);width=bitmap.width;height=bitmap.height;source=bitmap;}
+  else{tempUrl=URL.createObjectURL(blob);const im=new Image();im.decoding='async';im.src=tempUrl;await new Promise((resolve,reject)=>{im.onload=resolve;im.onerror=()=>reject(new Error('浏览器无法解码图片，JPG 转换失败'));});width=im.naturalWidth;height=im.naturalHeight;source=im;}
+  if(!width||!height)throw new Error('图片尺寸无效，无法转换 JPG');
+  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('无法创建 JPG 转换画布');
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,width,height);ctx.drawImage(source,0,0,width,height);
+  const result=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('JPG 编码失败')),'image/jpeg',0.94));
+  if(!result||result.type!=='image/jpeg')throw new Error('浏览器未能生成 JPG 文件');
+  return result;
+ }finally{bitmap?.close?.();if(tempUrl)URL.revokeObjectURL(tempUrl);}
+}
 async function saveCleanImage(src,filename,forceClean=false){
  if(!src)throw new Error('这条缓存记录没有可保存的图片数据。');
  let name=filename||'qinghui-image.png';
@@ -484,7 +500,7 @@ async function saveCleanImage(src,filename,forceClean=false){
     const previousUrl=objectUrl;objectUrl=URL.createObjectURL(fileBlob);if(previousUrl&&previousUrl!==src)URL.revokeObjectURL(previousUrl);
     lastPngCleanReport='JPG 已重新编码为 image/jpeg；原 PNG 元数据未复制到新文件。';
    }finally{bitmap?.close?.();if(tempUrl)URL.revokeObjectURL(tempUrl);}
-  }else if(forceClean){
+  }else{
    if(!fileBlob)throw new Error('未能读取图片文件，因此已阻止原图下载。');
    const mime=(fileBlob.type||'').toLowerCase();
    const looksPng=mime==='image/png'||/\.png$/i.test(name);
