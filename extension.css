@@ -1693,8 +1693,8 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
   align-items:center!important;justify-content:center!important;transform:translateY(-50%)!important;
   width:38px!important;height:42px!important;min-width:38px!important;min-height:42px!important;
   padding:0!important;margin:0!important;border:1px solid rgba(255,255,255,.58)!important;
-  border-radius:999px!important;color:var(--SmartThemeBodyColor,#fff)!important;
-  background:var(--SmartThemeQuoteColor,rgba(24,20,28,.32))!important;
+  border-radius:999px!important;color:#fff!important;
+  background:rgba(24,20,28,.28)!important;
   box-shadow:0 1px 6px rgba(0,0,0,.15)!important;backdrop-filter:blur(5px)!important;
   -webkit-backdrop-filter:blur(5px)!important;
 }
