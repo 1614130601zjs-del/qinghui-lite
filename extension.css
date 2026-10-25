@@ -1316,3 +1316,83 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #ql-history .ql-cache-favorite,#ql-character-albums .ql-cache-favorite{position:absolute;right:6px;top:6px;z-index:3;width:32px;height:32px;min-width:32px;min-height:32px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(20,20,24,.58)!important;color:#fff!important;border:1px solid rgba(255,255,255,.5)!important;font-size:19px;line-height:1;box-shadow:0 2px 8px rgba(0,0,0,.22)}
 #ql-history .ql-cache-favorite.is-favorite,#ql-character-albums .ql-cache-favorite.is-favorite{color:#ffd36a!important}
 .ql-album-tabs{margin:10px 0}
+
+
+/* 0.5.19: chat image navigation overlays the image; only four actions remain below. */
+#chat .ql-chat-image{
+ position:relative!important;
+}
+#chat .ql-chat-image>img{
+ display:block!important;
+ width:100%!important;
+ height:auto!important;
+ touch-action:pan-y!important;
+}
+#chat .ql-chat-image>.ql-chat-image-arrow{
+ position:absolute!important;
+ top:50%!important;
+ z-index:12!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ transform:translateY(-50%)!important;
+ width:38px!important;
+ height:42px!important;
+ min-width:38px!important;
+ min-height:42px!important;
+ padding:0!important;
+ margin:0!important;
+ border:1px solid rgba(255,255,255,.58)!important;
+ border-radius:999px!important;
+ color:#fff!important;
+ background:rgba(24,20,28,.28)!important;
+ box-shadow:0 1px 6px rgba(0,0,0,.15)!important;
+ backdrop-filter:blur(5px)!important;
+ -webkit-backdrop-filter:blur(5px)!important;
+}
+#chat .ql-chat-image>.ql-chat-image-arrow-prev{left:8px!important;right:auto!important;}
+#chat .ql-chat-image>.ql-chat-image-arrow-next{right:8px!important;left:auto!important;}
+#chat .ql-chat-image>.ql-chat-image-arrow svg{
+ width:22px!important;height:22px!important;fill:none!important;stroke:currentColor!important;
+ stroke-width:2.2!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#chat .ql-chat-image>.ql-chat-image-arrow:disabled{opacity:.28!important;pointer-events:none!important;}
+#chat .ql-chat-image-controls{
+ display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:center!important;
+ gap:clamp(8px,2vw,14px)!important;width:100%!important;padding:8px 4px 4px!important;
+ margin:0!important;box-sizing:border-box!important;overflow:visible!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-edit,
+#chat .ql-chat-image-controls .ql-chat-image-reroll,
+#chat .ql-chat-image-controls .ql-chat-image-remove,
+#chat .ql-chat-image-controls .ql-chat-image-favorite{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 auto!important;min-width:38px!important;min-height:36px!important;height:36px!important;
+ margin:0!important;padding:6px 10px!important;border-radius:999px!important;
+ background:transparent!important;box-shadow:none!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-edit{font-size:12px!important;white-space:nowrap!important;}
+#chat .ql-chat-image-controls .ql-chat-image-reroll,
+#chat .ql-chat-image-controls .ql-chat-image-remove,
+#chat .ql-chat-image-controls .ql-chat-image-favorite{width:38px!important;padding:7px!important;}
+#chat .ql-chat-image-controls .ql-chat-image-reroll svg,
+#chat .ql-chat-image-controls .ql-chat-image-remove svg,
+#chat .ql-chat-image-controls .ql-chat-image-favorite svg{
+ display:block!important;width:19px!important;height:19px!important;fill:none!important;
+ stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite{color:#d6a52f!important;border-color:currentColor!important;}
+#chat .ql-chat-image-collapse,
+#chat .ql-chat-image-count{display:none!important;}
+#chat .ql-chat-image.ql-album-film .ql-chat-image-arrow{background:rgba(255,255,255,.22)!important;color:#fff!important;}
+#chat .ql-chat-image.ql-album-soft .ql-chat-image-arrow{background:rgba(255,255,255,.55)!important;color:#574452!important;border-color:rgba(87,68,82,.3)!important;}
+@media(max-width:360px){
+ #chat .ql-chat-image>.ql-chat-image-arrow{width:32px!important;min-width:32px!important;height:36px!important;min-height:36px!important;}
+ #chat .ql-chat-image>.ql-chat-image-arrow-prev{left:5px!important;}
+ #chat .ql-chat-image>.ql-chat-image-arrow-next{right:5px!important;}
+ #chat .ql-chat-image-controls{gap:6px!important;}
+ #chat .ql-chat-image-controls .ql-chat-image-edit{padding:5px 8px!important;font-size:11px!important;}
+ #chat .ql-chat-image-controls .ql-chat-image-reroll,
+ #chat .ql-chat-image-controls .ql-chat-image-remove,
+ #chat .ql-chat-image-controls .ql-chat-image-favorite{width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important;padding:6px!important;}
+}
