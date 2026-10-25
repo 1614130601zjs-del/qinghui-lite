@@ -1472,8 +1472,8 @@ jQuery(()=>{
    launch.className='list-group-item flex-container flexGap5';
    launch.setAttribute('role','button');
    launch.setAttribute('tabindex','0');
-   launch.title='打开影像集 Lite';
-   launch.innerHTML='<i class="fa-solid fa-images"></i><span>影像集 Lite</span>';
+   launch.title='打开拾帧';
+   launch.innerHTML='<i class="fa-solid fa-images"></i><span>拾帧</span>';
   }
   if(launch.parentElement!==menu)menu.append(launch);
   launch.onclick=()=>{
@@ -1496,7 +1496,7 @@ jQuery(()=>{
   const panel=$('#qinghui-lite-panel');
   panel.setAttribute('role','dialog');
   panel.setAttribute('aria-modal','true');
-  panel.setAttribute('aria-label','影像集 Lite');
+  panel.setAttribute('aria-label','拾帧');
   const close=$('#ql-close',panel);
   const open=()=>{
    overlay.hidden=false;
@@ -1519,8 +1519,8 @@ jQuery(()=>{
     launch.className='list-group-item flex-container flexGap5';
     launch.setAttribute('role','button');
     launch.setAttribute('tabindex','0');
-    launch.title='打开影像集 Lite';
-    launch.innerHTML='<i class="fa-solid fa-images"></i><span>影像集 Lite</span>';
+    launch.title='打开拾帧';
+    launch.innerHTML='<i class="fa-solid fa-images"></i><span>拾帧</span>';
     launch.addEventListener('click',open);
     launch.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
    }
@@ -1607,8 +1607,8 @@ jQuery(() => {
    launch.className = 'list-group-item flex-container flexGap5';
    launch.setAttribute('role', 'button');
    launch.setAttribute('tabindex', '0');
-   launch.title = '打开影像集 Lite';
-   launch.innerHTML = '<i class="fa-solid fa-images"></i><span>影像集 Lite</span>';
+   launch.title = '打开拾帧';
+   launch.innerHTML = '<i class="fa-solid fa-images"></i><span>拾帧</span>';
    launch.addEventListener('click', () => {
     const overlay = document.querySelector('#ql-overlay');
     if (!overlay) {
