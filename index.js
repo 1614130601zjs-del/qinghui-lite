@@ -888,7 +888,6 @@ async function processLatestAssistantMessage(){
 let statusbarObserver=null;
 const statusbarObservedDocs=new WeakSet();
 function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);return match?.[1]?.trim()||'';}
-function plainStatusbarTag(text){return String(text||'').replace(/^image###\s*/i,'').replace(/\s*###$/,'').trim();}
 function statusbarPromptForTarget(target){
  const direct=[
   target?.textContent,
@@ -896,58 +895,25 @@ function statusbarPromptForTarget(target){
   ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
- // 已处理过的状态栏会移除 scanning 类；正则通常把纯提示词放在外层 data-tag，而非 image### 标记里。
- const savedPrompt=String(target?.getAttribute?.('data-ql-prompt')||target?.dataset?.qlPrompt||'').trim();
- if(savedPrompt)return savedPrompt;
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
-  const raw=ancestor.getAttribute?.('data-tag');
-  const marked=parseStatusbarMarker(raw);
-  if(marked)return marked;
-  // 只有包含状态栏图片框架的包装节点才把普通 data-tag 当作提示词，避免误识别其他标签。
-  if(raw&&ancestor.querySelector?.('.shot-frame, [id="frame"], [id$="-frame"]')){
-   const plain=plainStatusbarTag(raw);
-   if(plain)return plain;
-  }
+  const prompt=parseStatusbarMarker(ancestor.getAttribute?.('data-tag'));
+  if(prompt)return prompt;
   ancestor=ancestor.parentElement;
  }
  return '';
-}
-function statusbarTargetsForDoc(doc){
- const candidates=new Set(Array.from(doc.querySelectorAll('[class~="scanning"], [data-ql-prompt]')));
- // 正则将提示词放在外层 data-tag；即使刷新后没有 scanning 类，也按结构定位真正的图片框架。
- for(const tagged of Array.from(doc.querySelectorAll('[data-tag]'))){
-  const frame=tagged.querySelector('.shot-frame, [id="frame"], [id$="-frame"]');
-  if(!frame)continue;
-  const raw=tagged.getAttribute('data-tag');
-  if(!parseStatusbarMarker(raw)&&!plainStatusbarTag(raw))continue;
-  candidates.add(frame);
- }
- const all=Array.from(candidates).filter(el=>statusbarPromptForTarget(el)||el.dataset.qlPrompt);
- return all.filter(el=>!all.some(child=>child!==el&&el.contains(child)&&statusbarPromptForTarget(child)===statusbarPromptForTarget(el)));
 }
 function statusbarTaskKey(target,prompt,doc){
  const message=target.closest('.mes[mesid]')||target.closest('.mes');
  const messageId=message?.getAttribute('mesid')||message?.dataset?.mesid||'no-message-id';
  const scope=message||doc;
- const targets=statusbarTargetsForDoc(scope);
+ const targets=Array.from(scope.querySelectorAll('[class~="scanning"], [data-qlPrompt]')).filter(el=>statusbarPromptForTarget(el)||el.dataset.qlPrompt);
  const ordinal=Math.max(0,targets.indexOf(target));
  let hash=2166136261;
  for(let i=0;i<prompt.length;i++){hash^=prompt.charCodeAt(i);hash=Math.imul(hash,16777619);}
  return 'statusbar:'+String(getContext()?.chatId||'chat')+':'+messageId+':'+ordinal+':'+(hash>>>0).toString(36);
 }
-function revealStatusbarFrame(frame){
-  if(!frame)return;
-  frame.classList.remove('scanning');
-  if(getComputedStyle(frame).position==='static')frame.style.position='relative';
-  // 状态栏正则可能使用 .screen 或 .dy-screen；两种布局都要切换到已显示图片状态。
-  const screen=frame.closest('.screen, .dy-screen');
-  if(screen)screen.classList.add('has-image');
-  frame.style.display='block';
-  frame.style.visibility='visible';
- }
 function renderStatusbarCard(frame,prompt,url,taskKey){
- revealStatusbarFrame(frame);
  let card=frame.querySelector('.ql-statusbar-card');
  // 酒馆刷新后可能只留下卡片 HTML；HTML 不会保留事件监听和轮播状态，必须重建。
  if(!card||card.dataset.qlTask!==taskKey||!card._qlRender){
@@ -1057,7 +1023,11 @@ async function processStatusbarFrames(){
  if(cfg().enabled===false)return;
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
- const frames=docs.flatMap(doc=>statusbarTargetsForDoc(doc));
+ const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
+  const prompt=statusbarPromptForTarget(frame);
+  if(!prompt)return false;
+  return !Array.from(frame.querySelectorAll('[class~="scanning"]')).some(child=>statusbarPromptForTarget(child)===prompt);
+ }));
  for(const frame of frames){
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)continue;
@@ -1066,11 +1036,7 @@ async function processStatusbarFrames(){
    frame.dataset.qlDone='';
    frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading').forEach(el=>el.remove());
   }
-  if(frame.dataset.qlBusy==='1')continue;
-  const existingCard=frame.querySelector('.ql-statusbar-card');
-  // DOM 刷新会清除 JS 事件与 _qlRender；即使 qlDone 属性残留，也必须走缓存恢复。
-  if(frame.dataset.qlDone==='1'&&existingCard?._qlRender)continue;
-  if(frame.dataset.qlDone==='1')frame.dataset.qlDone='';
+  if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
   frame.dataset.qlBusy='1';
   const taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
   // 恢复已缓存的状态栏图片：DOM 重绘/重新打开消息时不应自动重新请求 NAI。
@@ -1093,8 +1059,7 @@ async function processStatusbarFrames(){
   const accepted=triggerRegistry.begin(taskKey,{prompt,source:'statusbar'});
   if(!accepted.accepted){frame.dataset.qlBusy='0';continue;}
   triggerRegistry.markRunning(taskKey);
-  revealStatusbarFrame(frame);
-   const loading=(frame.ownerDocument||document).createElement('div');
+  const loading=(frame.ownerDocument||document).createElement('div');
   loading.className='ql-statusbar-loading';
   loading.textContent='轻绘：正在生成画面…';
   loading.style.cssText='position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);color:#fff;font-size:13px;';
@@ -1168,7 +1133,7 @@ function exportVibeGroups(hideOriginalImages=false,sourceGroups=cfg().vibes||[])
 }
 
 function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-panel">
-<header class="ql-header"><div class="ql-brand"><strong>拾帧</strong><span>故事仍在继续，快门为你停留。</span></div><div class="ql-header-actions"><button id="ql-close" class="menu_button" type="button">关闭</button></div></header>
+<header class="ql-header"><div class="ql-brand"><strong>拾帧</strong><span>故事仍在继续，快门为你停留。</span></div><button id="ql-close" class="menu_button" type="button">关闭</button></header>
 <nav class="ql-tabs" aria-label="拾帧功能导航" role="tablist">
 <button type="button" class="ql-tab" data-page="generate" role="tab" aria-selected="false">取景</button>
 <button type="button" class="ql-tab" data-page="library" role="tab" aria-selected="false">参数</button>
