@@ -1257,10 +1257,10 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-statusbar-card .ql-statusbar-arrow{pointer-events:auto!important;position:relative;z-index:21;min-width:30px;min-height:28px;}
 
 
-/* 0.5.16: statusbar controls must remain visible above template layers */
-.ql-statusbar-card .ql-statusbar-controls{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:2147483000!important}
+/* 0.5.17: statusbar image controls stay hidden until the image is tapped. */
+.ql-statusbar-card .ql-statusbar-controls{display:flex!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;z-index:2147483000!important;left:50%!important;top:50%!important;bottom:auto!important;transform:translate(-50%,-50%)!important}
 .ql-statusbar-card .ql-statusbar-controls button{display:flex!important;visibility:visible!important;pointer-events:auto!important;min-width:36px!important;min-height:32px!important;color:#fff!important;background:rgba(0,0,0,.3)!important}
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-count{display:inline-flex!important;color:#fff!important}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-count{display:none!important;color:#fff!important}
 
 
 /* 相册收录按钮与当前相册皮肤同步，覆盖酒馆 .menu_button 的默认红色按钮色。 */
