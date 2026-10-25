@@ -974,3 +974,12 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 
 /* 2026-10-25: make inline album action easy to notice */
 #chat .mes_text .ql-inline-image-trigger:not(:disabled){min-width:150px;padding-left:24px;padding-right:24px;}
+
+/* User adjustment: keep image action buttons neutral; the album button is the prominent action. */
+#chat .ql-chat-image-controls button{background:transparent!important;box-shadow:none!important;border-color:var(--SmartThemeBorderColor)!important;color:var(--SmartThemeBodyColor)!important;}
+#chat .ql-chat-image-controls .ql-chat-image-reroll{background:transparent!important;border-color:var(--SmartThemeBorderColor)!important;}
+#chat .ql-chat-image-collapse{position:static!important;float:right;display:inline-flex!important;vertical-align:middle;margin:8px 2px 0 auto!important;width:38px;height:38px;}
+#chat .ql-chat-image-collapse svg{width:22px;height:22px;}
+#chat .ql-chat-image.ql-image-collapsed .ql-chat-image-collapse{position:static!important;}
+#chat .ql-chat-image.ql-image-collapsed>img{display:none!important;}
+#chat .ql-chat-image-controls{clear:both!important;}
