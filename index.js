@@ -504,8 +504,8 @@ function renderLibrary(){
  presets?.querySelectorAll('[data-preset-apply]').forEach(b=>b.onclick=()=>{const i=+b.dataset.presetApply,p=s.presets[i];s.activePresetIndex=i;renderActivePresets();save();status('已选中画师串：'+p.name+'，生成时会自动组合。');});
  const loadPresetForEdit=index=>{const p=s.presets[index];if(!p)return;$('#ql-preset-edit-select').value=String(index);$('#ql-preset-name').value=p.name||'';$('#ql-preset-positive').value=p.positive||'';$('#ql-preset-negative').value=p.negative||'';$('#ql-preset-save').dataset.edit=String(index);$('#ql-preset-save').textContent='保存修改';};
   presets?.querySelectorAll('[data-preset-edit]').forEach(b=>b.onclick=()=>loadPresetForEdit(+b.dataset.presetEdit));
-  $('#ql-preset-edit-select')?.addEventListener('change',()=>{const value=$('#ql-preset-edit-select').value;if(value===''){delete $('#ql-preset-save').dataset.edit;$('#ql-preset-save').textContent='保存画师串组合';$('#ql-preset-name').value='';$('#ql-preset-positive').value='';$('#ql-preset-negative').value='';return;}loadPresetForEdit(Number(value));});
-  $('#ql-preset-new')?.addEventListener('click',()=>{ $('#ql-preset-edit-select').value='';delete $('#ql-preset-save').dataset.edit;$('#ql-preset-save').textContent='保存画师串组合';$('#ql-preset-name').value='';$('#ql-preset-positive').value='';$('#ql-preset-negative').value='';$('#ql-preset-name').focus();});
+  $('#ql-preset-edit-select').onchange=()=>{const value=$('#ql-preset-edit-select').value;if(value===''){delete $('#ql-preset-save').dataset.edit;$('#ql-preset-save').textContent='保存画师串组合';$('#ql-preset-name').value='';$('#ql-preset-positive').value='';$('#ql-preset-negative').value='';return;}loadPresetForEdit(Number(value));};
+  $('#ql-preset-new').onclick=()=>{ $('#ql-preset-edit-select').value='';delete $('#ql-preset-save').dataset.edit;$('#ql-preset-save').textContent='保存画师串组合';$('#ql-preset-name').value='';$('#ql-preset-positive').value='';$('#ql-preset-negative').value='';$('#ql-preset-name').focus();};
   presets?.querySelectorAll('[data-preset-delete]').forEach(b=>b.onclick=()=>{s.presets.splice(+b.dataset.presetDelete,1);save();renderLibrary();});
 }
 
@@ -629,8 +629,16 @@ function importChatu8Candidate(){
   s.prompts.unshift({name:item.name,category:item.category||'智绘姬迁移',prompt:item.prompt,negative:item.negative||'',source:'st-chatu8',sourcePath:item.sourcePath,updatedAt:Date.now()});prompts++;
  }
  for(const item of candidate.vibes){
-  if(s.vibes.some(x=>x.name===item.name&&x.sourcePath===item.sourcePath))continue;
-  s.vibes.push({name:item.name,groupName:item.groupName||item.name,entries:Array.isArray(item.entries)?item.entries.map(v=>({...v})):undefined,raw:item.raw,hasPayload:item.hasPayload,hasRef:item.hasRef,sourcePath:item.sourcePath,source:'st-chatu8',importedAt:Date.now()});vibes++;
+  const existingIndex=s.vibes.findIndex(x=>x.name===item.name&&x.sourcePath===item.sourcePath);
+  const imported={name:item.name,groupName:item.groupName||item.name,entries:Array.isArray(item.entries)?item.entries.map(v=>({...v})):undefined,raw:item.raw,rawGroup:item.rawGroup,hasPayload:item.hasPayload,hasRef:item.hasRef,sourcePath:item.sourcePath,source:'st-chatu8',importedAt:Date.now()};
+  if(existingIndex>=0){
+   const existing=s.vibes[existingIndex];
+   const oldHasPayload=Array.isArray(existing.entries)&&existing.entries.some(v=>typeof v.image==='string'&&v.image.replace(/\s+/g,'').length>160);
+   const newHasPayload=Array.isArray(imported.entries)&&imported.entries.some(v=>typeof v.image==='string'&&v.image.replace(/\s+/g,'').length>160);
+   if(!oldHasPayload&&newHasPayload){s.vibes[existingIndex]={...existing,...imported};vibes++;}
+   continue;
+  }
+  s.vibes.push(imported);vibes++;
  }
  s.presets=s.presets.slice(0,500);s.prompts=s.prompts.slice(0,500);s.vibes=s.vibes.slice(0,200);
  save();renderLibrary();
