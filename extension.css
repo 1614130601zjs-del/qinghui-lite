@@ -2008,3 +2008,10 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-floor-dialog-actions button,.ql-floor-image-dialog-card header button{padding:8px 12px;border:1px solid var(--SmartThemeBorderColor);border-radius:9px;background:var(--SmartThemeQuoteColor);color:var(--SmartThemeBodyColor);cursor:pointer}
 .ql-floor-dialog-actions button[data-run]{border-color:var(--SmartThemeUnderlineColor);font-weight:700}
 .ql-floor-dialog-actions button:disabled{opacity:.55;cursor:wait}
+
+
+/* 楼层生图按钮：若酒馆版本没有标准操作栏，也要在正文前提供可见入口。 */
+.ql-floor-image-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;opacity:.95;}
+.ql-floor-image-button-label{font-size:.82em;}
+.ql-floor-image-fallback{width:max-content;max-width:100%;margin:4px 0 8px;padding:5px 9px;border:1px solid var(--SmartThemeBorderColor);border-radius:8px;background:var(--SmartThemeBlurTintColor);color:var(--SmartThemeBodyColor);}
+.ql-floor-image-fallback .ql-floor-image-button-label{display:inline;}
