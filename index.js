@@ -821,7 +821,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   card._qlPrompt=prompt;card._qlCandidates=[];card._qlIndex=0;
   card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;};
   card._qlAddCandidate=url=>{card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
-  const reroll=async()=>{if(card.dataset.busy==='1')return;try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([28,42,28]);}catch{}const manualKey=taskKey+':manual:'+Date.now();const candidate=triggerRegistry.begin(manualKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(manualKey);card.dataset.busy='1';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlAddCandidate(fresh);storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(manualKey,manualKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(manualKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}finally{card.dataset.busy='0';}};
+  const reroll=async()=>{if(card.dataset.busy==='1'||(Date.now()-(Number(card.dataset.lastRerollAt)||0))<900)return;card.dataset.lastRerollAt=Date.now();try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([28,42,28]);}catch{}const manualKey=taskKey+':manual:'+Date.now();const candidate=triggerRegistry.begin(manualKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(manualKey);card.dataset.busy='1';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlAddCandidate(fresh);storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(manualKey,manualKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(manualKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}finally{card.dataset.busy='0';}};
   img.style.touchAction='manipulation';
   // 手机浏览器的 pointerup 与 touchend 可能在同一次点击中都触发，混用会把单击误判成双击。
   // 触屏只使用 touchend；鼠标/触控笔使用 dblclick。监听放在覆盖层 card 上，避免图片元素被酒馆重绘替换后失效。
@@ -865,6 +865,23 @@ async function processStatusbarFrames(){
   if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
   frame.dataset.qlBusy='1';
   const taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
+  // 恢复已缓存的状态栏图片：DOM 重绘/重新打开消息时不应自动重新请求 NAI。
+  const savedStatusbar=(cfg().records||[])
+   .filter(item=>item&&item.dataUrl&&item.taskKey===taskKey&&(item.source||'chat')==='statusbar')
+   .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+  if(savedStatusbar.length){
+   const latest=savedStatusbar[savedStatusbar.length-1];
+   renderStatusbarCard(frame,prompt,latest.dataUrl,taskKey);
+   const card=frame.querySelector('.ql-statusbar-card');
+   if(card){
+    card._qlCandidates=[];
+    for(const item of savedStatusbar){if(!card._qlCandidates.some(candidate=>candidate.url===item.dataUrl))card._qlCandidates.push({url:item.dataUrl,at:Number(item.at)||Date.now()});}
+    card._qlIndex=card._qlCandidates.length-1;
+    card._qlRender?.();
+   }
+   frame.dataset.qlBusy='0';
+   continue;
+  }
   const accepted=triggerRegistry.begin(taskKey,{prompt,source:'statusbar'});
   if(!accepted.accepted){frame.dataset.qlBusy='0';continue;}
   triggerRegistry.markRunning(taskKey);
