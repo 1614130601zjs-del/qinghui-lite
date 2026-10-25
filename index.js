@@ -56,7 +56,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
  let raw='',data=null,res;
  if(c.provider==='novelai'||c.provider==='novelai-thirdparty'){
   const naiModel=c.naiModel||'nai-diffusion-4-5-full';
-  // 第三方兼容接口使用服务商提供的 Key 与地址。
+  // 官网使用扩展内保存的 NovelAI Key；第三方使用服务商提供的 Key 与地址。
   const negative=String(negativeOverride??c.negative??'');
   const isV4=/^nai-diffusion-(?:4(?:-|$)|5-)/i.test(naiModel);
   const isV5=/^nai-diffusion-5-/i.test(naiModel);
