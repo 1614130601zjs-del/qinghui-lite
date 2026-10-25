@@ -725,7 +725,7 @@ jQuery(()=>{
    });
    observer.observe(document.body,{childList:true,subtree:true});
   }
-  panel.addEventListener('click',event=>{const tab=event.target.closest('.ql-subtab');if(!tab||!panel.contains(tab))return;event.preventDefault();const target=tab.dataset.subpage;panel.querySelectorAll('.ql-subtab').forEach(item=>{const active=item===tab;item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});panel.querySelectorAll('[data-subpage-panel]').forEach(page=>{const active=page.dataset.subpagePanel===target;page.hidden=!active;page.classList.toggle('active',active);});const page=panel.querySelector('[data-subpage-panel="'+target+'"]');if(page)page.scrollTop=0;});
+  panel.addEventListener('click',event=>{const tab=event.target.closest('.ql-subtab');if(!tab||!panel.contains(tab))return;event.preventDefault();const target=tab.dataset.subpage;const scope=tab.closest('.ql-page')||panel;scope.querySelectorAll('.ql-subtab').forEach(item=>{const active=item===tab;item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});scope.querySelectorAll('[data-subpage-panel]').forEach(page=>{const active=page.dataset.subpagePanel===target;page.hidden=!active;page.classList.toggle('active',active);});const page=scope.querySelector('[data-subpage-panel="'+target+'"]');if(page)page.scrollTop=0;});
   panel.querySelectorAll('.ql-tab').forEach(tab=>tab.addEventListener('click',()=>{
    const target=tab.dataset.page;
    panel.querySelectorAll('.ql-tab').forEach(item=>{const active=item===tab;item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
