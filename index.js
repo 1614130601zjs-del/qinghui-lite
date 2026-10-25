@@ -566,7 +566,7 @@ function walkChatu8(data, pathName='', out={artists:[],prompts:[],vibes:[],warni
  }
  if(pos)pushUnique(out.artists,{name,positive:pos,negative:neg,sourcePath:pathName},x=>x.name+'|'+x.positive);
  else if(prompt&&(entries.some(([k])=>/preset|预设|artist|画师|style|画风/i.test(k))||/preset|预设|artist|画师|style|画风/i.test(pathName)))pushUnique(out.prompts,{name,category:'智绘姬迁移',prompt,negative:neg,sourcePath:pathName},x=>x.name+'|'+x.prompt);
- for(const [k,v] of entries){if(v&&typeof v==='object')walkChatu8(v,pathName?pathName+'.'+k:k,out,seen);else if(typeof v==='string'&&/画师串|artist.?string/i.test(k)&&v.trim())pushUnique(out.artists,{name,positive:v.trim(),negative:neg,sourcePath:pathName+'.'+k},x=>x.name+'|'+x.positive);}
+ for(const [k,v] of entries){if(data.presets&&k==='presets')continue;if(v&&typeof v==='object')walkChatu8(v,pathName?pathName+'.'+k:k,out,seen);else if(typeof v==='string'&&/画师串|artist.?string/i.test(k)&&v.trim())pushUnique(out.artists,{name,positive:v.trim(),negative:neg,sourcePath:pathName+'.'+k},x=>x.name+'|'+x.positive);}
  return out;
 }
 function renderMigrationPreview(candidate,source){
