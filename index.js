@@ -652,7 +652,7 @@ function history(){
  const settings=$('#ql-history-columns');
  if(settings){settings.value=String(cols);settings.onchange=()=>{s.historyColumns=Math.max(1,Math.min(5,Number(settings.value)||3));save();history();};}
  host.style.setProperty('--ql-history-columns',String(cols));
- host.innerHTML=(records.length?'<div class="ql-cache-grid" data-columns="'+cols+'">'+records.map((r,i)=>'<article class="ql-cache-tile"><button type="button" class="ql-cache-image" data-ql-detail="'+i+'" aria-label="查看图片详情"><img loading="lazy" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></button><div class="ql-cache-actions"><button type="button" class="menu_button" data-ql-detail="'+i+'">详情</button><button type="button" class="menu_button" data-ql-delete="'+i+'">删除</button></div></article>').join('')+'</div>':'<p class="ql-muted">暂无缓存图片。生成的图片会保存在这里。</p>');
+ host.innerHTML=(records.length?'<div class="ql-cache-grid" data-columns="'+cols+'">'+records.map((r,i)=>'<article class="ql-cache-tile"><button type="button" class="ql-cache-image" data-ql-detail="'+i+'" aria-label="查看图片详情"><img loading="lazy" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></button></article>').join('')+'</div>':'<p class="ql-muted">暂无缓存图片。生成的图片会保存在这里。</p>');
  const footer=$('#ql-cache-footer');const clearButton=footer?.querySelector('#ql-clear');if(clearButton)clearButton.onclick=()=>{if(confirm('清空轻绘本地生成记录？不会删除聊天图片。')){cfg().records=[];save();history();status('记录已清空。');}};
  let modal=document.getElementById('ql-image-cache-modal');
  if(!modal){
