@@ -649,8 +649,8 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   const favorite=document.createElement('button');favorite.type='button';favorite.className='menu_button ql-chat-image-favorite';favorite.setAttribute('aria-label','收藏到角色相册');favorite.title='收藏到当前角色的相册';favorite.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>';
   remove.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const current=card._qlCandidates?.[card._qlIndex];if(!current)return;const records=cfg().records||[];let changed=false;for(const item of records){if(item?.taskKey!==taskKey||item.dataUrl!==current.url)continue;if(card.dataset.qlMessageIndex!==''&&Number(item.messageIndex)!==Number(card.dataset.qlMessageIndex))continue;if(card.dataset.qlChatId&&item.chatId&&item.chatId!==card.dataset.qlChatId)continue;item.hiddenInChat=true;changed=true;}if(changed)save();card._qlCandidates=card._qlCandidates.filter(candidate=>candidate.url!==current.url);if(!card._qlCandidates.length){card.remove();return;}card._qlIndex=Math.min(card._qlIndex,card._qlCandidates.length-1);card._qlRender?.();});
 
-  const albumToggle=document.createElement('button');albumToggle.type='button';albumToggle.className='menu_button ql-chat-image-collapse-toggle';albumToggle.textContent='收起影像';albumToggle.setAttribute('aria-expanded','true');albumToggle.setAttribute('aria-label','收起拾帧相册');
-  albumToggle.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const collapsed=!card.classList.contains('is-collapsed');card.classList.toggle('is-collapsed',collapsed);card.classList.toggle('ql-image-collapsed',collapsed);for(const item of [img,prev,next,controls,editor,...card.querySelectorAll('.ql-chat-image-tag-saved')]){if(item)item.style.setProperty('display',collapsed?'none':'','important');}albumToggle.textContent=collapsed?'展开拾帧相册':'收起影像';albumToggle.setAttribute('aria-expanded',String(!collapsed));albumToggle.setAttribute('aria-label',collapsed?'展开拾帧相册':'收起拾帧相册');});
+  const albumToggle=document.createElement('button');albumToggle.type='button';albumToggle.className='menu_button ql-chat-image-collapse-toggle';albumToggle.innerHTML='<svg class="ql-collapse-chevron" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5.5 14.5 12 8l6.5 6.5"/></svg><span>收起拾帧相册</span>';albumToggle.setAttribute('aria-expanded','true');albumToggle.setAttribute('aria-label','收起拾帧相册');
+  albumToggle.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const collapsed=!card.classList.contains('is-collapsed');card.classList.toggle('is-collapsed',collapsed);card.classList.toggle('ql-image-collapsed',collapsed);for(const item of [img,prev,next,controls,editor,...card.querySelectorAll('.ql-chat-image-tag-saved')]){if(item)item.style.setProperty('display',collapsed?'none':'','important');}albumToggle.querySelector('span').textContent=collapsed?'展开拾帧相册':'收起拾帧相册';albumToggle.setAttribute('aria-expanded',String(!collapsed));albumToggle.setAttribute('aria-label',collapsed?'展开拾帧相册':'收起拾帧相册');});
   const editor=document.createElement('div');editor.className='ql-chat-image-editor';editor.hidden=true;
   const tempConfig=document.createElement('div');tempConfig.className='ql-chat-image-temp-config';
   const tempPresetLabel=document.createElement('label');tempPresetLabel.textContent='本次组合';const tempPreset=document.createElement('select');tempPreset.className='ql-chat-image-temp-preset';tempPresetLabel.append(tempPreset);
@@ -937,13 +937,15 @@ function statusbarTaskKey(target,prompt,doc){
  return 'statusbar:'+String(getContext()?.chatId||'chat')+':'+messageId+':'+ordinal+':'+(hash>>>0).toString(36);
 }
 function revealStatusbarFrame(frame){
- if(!frame)return;
- frame.classList.remove('scanning');
- if(getComputedStyle(frame).position==='static')frame.style.position='relative';
- const screen=frame.closest('.screen');
- if(screen)screen.classList.add('has-image');
- else frame.style.display='block';
-}
+  if(!frame)return;
+  frame.classList.remove('scanning');
+  if(getComputedStyle(frame).position==='static')frame.style.position='relative';
+  // 状态栏正则可能使用 .screen 或 .dy-screen；两种布局都要切换到已显示图片状态。
+  const screen=frame.closest('.screen, .dy-screen');
+  if(screen)screen.classList.add('has-image');
+  frame.style.display='block';
+  frame.style.visibility='visible';
+ }
 function renderStatusbarCard(frame,prompt,url,taskKey){
  revealStatusbarFrame(frame);
  let card=frame.querySelector('.ql-statusbar-card');
