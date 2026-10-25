@@ -64,7 +64,7 @@ function hideMarkersInTextNode(root,entries=[]){
   while((match=re.exec(value))!==null){
    fragment.append(document.createTextNode(value.slice(last,match.index)));
    const entry=entries[entryCursor++],prompt=match[1].trim();
-   if(!prompt){last=re.lastIndex;continue;}
+   if(!prompt||(entry&&triggerRegistry.get(entry.taskKey)?.status==='succeeded')){last=re.lastIndex;continue;}
    const button=document.createElement('button');
    button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='轻绘生图';button.title='点击将提示词提交给 NovelAI，并把图片插入当前消息';
    button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;
@@ -709,6 +709,7 @@ async function processLatestAssistantMessage(){
  const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');if(!host)return;
  hideMarkersInTextNode(host,entries);
  for(const entry of entries){
+  if(triggerRegistry.get(entry.taskKey)?.status==='succeeded')continue;
   if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
   const button=document.createElement('button');button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='轻绘生图';button.title='点击将提示词提交给 NovelAI，并把图片插入当前消息';button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;
   button.addEventListener('click',()=>runInlineImageTrigger(button,entry));host.append(button);
