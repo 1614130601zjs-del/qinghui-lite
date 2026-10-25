@@ -806,7 +806,7 @@ function walkChatu8(data, pathName='', out={artists:[],prompts:[],vibes:[],warni
  return out;
 }
 function renderMigrationPreview(candidate,source){
- // 只显示尚未导入的画师串数量；不暴露扫描到的存储键，也不迁移词库图片。
+ // 迁移仅导入可用的画师串与 Vibe 编码；不导入其他文本预设或词库图片。
  const existing=cfg().presets||[];
  const seen=new Set(existing.map(item=>String(item.name||'')+'\\u0000'+String(item.positive||'')));
  const artists=[];
@@ -816,12 +816,26 @@ function renderMigrationPreview(candidate,source){
   if(seen.has(key))continue;
   seen.add(key);artists.push(item);
  }
- migrationCandidate={artists,prompts:[],vibes:[],warnings:[]};
+ const validEntries=item=>(Array.isArray(item?.entries)?item.entries:[]).filter(entry=>typeof entry?.image==='string'&&entry.image.length>160&&/^[A-Za-z0-9+/]+={0,2}$/.test(entry.image));
+ const vibeSignature=item=>String(item?.name||'')+'\\u0000'+validEntries(item).map(entry=>String(entry.vibeDataId||'')+':'+entry.image.length+':'+entry.image.slice(0,24)+':'+entry.image.slice(-24)).join('|');
+ const seenVibes=new Set((cfg().vibes||[]).map(vibeSignature));
+ const vibes=[];
+ for(const item of Array.isArray(candidate.vibes)?candidate.vibes:[]){
+  const entries=validEntries(item);
+  if(!entries.length)continue;
+  const normalized={...item,entries,hasPayload:true};
+  const key=vibeSignature(normalized);
+  if(seenVibes.has(key))continue;
+  seenVibes.add(key);vibes.push(normalized);
+ }
+ migrationCandidate={artists,prompts:[],vibes,warnings:Array.isArray(candidate.warnings)?candidate.warnings:[]};
  const host=$('#ql-migrate-preview');if(!host)return;
- host.textContent=artists.length?'检测到 '+artists.length+' 条尚未导入的画师串。':'没有检测到尚未导入的画师串。';
+ const entryCount=vibes.reduce((sum,item)=>sum+item.entries.length,0);
+ host.textContent=(artists.length?'检测到 '+artists.length+' 条尚未导入的画师串':'没有新的画师串')+'；'+(vibes.length?'检测到 '+vibes.length+' 组可迁移 Vibe（'+entryCount+' 条编码）':'没有新的可用 Vibe 编码')+'。';
  const button=$('#ql-migrate-import');
- button.disabled=!artists.length;
- button.textContent=artists.length?'导入 '+artists.length+' 条画师串':'确认导入';
+ const total=artists.length+vibes.length;
+ button.disabled=!total;
+ button.textContent=total?'导入 '+artists.length+' 条画师串 / '+vibes.length+' 组 Vibe':'没有可导入的新内容';
 }
 function scanChatu8Settings(){
  const found=[];
@@ -843,7 +857,7 @@ function scanChatu8Settings(){
  const merged={artists:[],prompts:[],vibes:[],warnings:[]};
  const seenKeys=new Set();
  for(const item of found){if(seenKeys.has(item.key))continue;seenKeys.add(item.key);try{walkChatu8(item.value,item.key,merged);}catch(e){merged.warnings.push(item.key+'：读取失败');}}
- merged.prompts=[];merged.vibes=[];
+ merged.prompts=[];
  renderMigrationPreview(merged);
 }
 function safeMigrationStringify(value){try{return JSON.stringify(value);}catch{return '';}}
@@ -853,21 +867,31 @@ async function readMigrationFile(file){
   let data;
   try{data=JSON.parse(text);}catch{throw new Error('文件不是有效 JSON。请从智绘姬导出设置/预设文件后再选择。');}
   const candidate=walkChatu8(data,file.name);
-  candidate.prompts=[];candidate.vibes=[];
+  candidate.prompts=[];
   renderMigrationPreview(candidate);
  }catch(e){$('#ql-migrate-preview').textContent='读取失败：'+(e?.message||String(e));$('#ql-migrate-import').disabled=true;}
 }
 function importChatu8Candidate(){
  const candidate=migrationCandidate;if(!candidate)return;
- const s=cfg();let artists=0;
+ const s=cfg();let artists=0,vibeGroups=0,vibeEntries=0;
  for(const item of candidate.artists||[]){
   if(!item.positive)continue;
   if(s.presets.some(x=>x.name===item.name&&x.positive===item.positive))continue;
   s.presets.unshift({name:item.name,positive:item.positive,negative:item.negative||'',source:'st-chatu8',sourcePath:item.sourcePath,updatedAt:Date.now()});artists++;
  }
  s.presets=s.presets.slice(0,500);
- save();renderLibrary();
- status('画师串迁移完成：新增 '+artists+' 条。未迁移 Vibe 或其他文本预设。');
+ const validEntries=item=>(Array.isArray(item?.entries)?item.entries:[]).filter(entry=>typeof entry?.image==='string'&&entry.image.length>160&&/^[A-Za-z0-9+/]+={0,2}$/.test(entry.image));
+ const signature=item=>String(item?.name||'')+'\\u0000'+validEntries(item).map(entry=>String(entry.vibeDataId||'')+':'+entry.image.length+':'+entry.image.slice(0,24)+':'+entry.image.slice(-24)).join('|');
+ const known=new Set((s.vibes||[]).map(signature));
+ for(const item of candidate.vibes||[]){
+  const entries=validEntries(item);if(!entries.length)continue;
+  const vibe={...item,name:String(item.name||'智绘姬 Vibe'),entries,hasPayload:true,source:item.source||'st-chatu8',importedAt:Date.now()};
+  const key=signature(vibe);if(known.has(key))continue;
+  known.add(key);s.vibes.push(vibe);vibeGroups++;vibeEntries+=entries.length;
+ }
+ s.vibes=s.vibes.slice(0,500);
+ save();renderLibrary();renderActiveVibes();
+ status('智绘姬迁移完成：新增 '+artists+' 条画师串、'+vibeGroups+' 组 Vibe（'+vibeEntries+' 条编码）。未迁移其他文本预设或词库图片。');
  $('#ql-migrate-import').disabled=true;
  $('#ql-migrate-import').textContent='已完成导入';
 }
