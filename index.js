@@ -979,3 +979,38 @@ jQuery(()=>{
  if(event_types.CHARACTER_SELECTED)eventSource.on(event_types.CHARACTER_SELECTED,()=>{renderBindings();applyCurrentBinding();});
  applyCurrentBinding();
 });
+
+
+// 独立入口兜底：无论轻绘面板是否已存在，都确保魔法棒入口注册成功。
+jQuery(()=>{
+ const ensureQinghuiLauncher=()=>{
+  const menu=document.querySelector('#extensionsMenu');
+  if(!menu)return;
+  let launch=document.querySelector('#ql-chat-launch');
+  if(!launch){
+   launch=document.createElement('div');
+   launch.id='ql-chat-launch';
+   launch.className='list-group-item flex-container flexGap5';
+   launch.setAttribute('role','button');
+   launch.setAttribute('tabindex','0');
+   launch.title='打开轻绘 Lite 生图工作区';
+   launch.innerHTML='<i class="fa-solid fa-palette"></i><span>轻绘 Lite</span>';
+   launch.addEventListener('click',()=>{
+    const overlay=document.querySelector('#ql-overlay');
+    if(!overlay){console.warn('[轻绘 Lite] 找不到工作区面板，请检查扩展是否完整加载');return;}
+    overlay.hidden=false;
+    document.body.classList.add('ql-modal-open');
+   });
+   launch.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();launch.click();}
+   });
+  }
+  if(launch.parentElement!==menu)menu.append(launch);
+ };
+ ensureQinghuiLauncher();
+ if(!document.documentElement.dataset.qlLauncherObserver){
+  document.documentElement.dataset.qlLauncherObserver='1';
+  const observer=new MutationObserver(()=>ensureQinghuiLauncher());
+  observer.observe(document.documentElement,{childList:true,subtree:true});
+ }
+});
