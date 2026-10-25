@@ -909,3 +909,16 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="4"] .ql-cache-actions button,
  #qinghui-lite-panel #ql-history .ql-cache-grid[data-columns="5"] .ql-cache-actions button{min-height:21px!important;font-size:9px!important}
 }
+
+/* Multi-select toolbar: actions stay hidden until selection mode is opened. */
+#qinghui-lite-panel #ql-cache-footer [hidden]{display:none!important}
+#qinghui-lite-panel #ql-cache-footer .ql-cache-select-all[hidden],
+#qinghui-lite-panel #ql-cache-footer [data-ql-selected-count][hidden],
+#qinghui-lite-panel #ql-cache-footer [data-ql-bulk-download][hidden],
+#qinghui-lite-panel #ql-cache-footer [data-ql-bulk-delete][hidden]{display:none!important}
+#qinghui-lite-panel #ql-cache-footer [data-ql-bulk-download],
+#qinghui-lite-panel #ql-cache-footer [data-ql-bulk-delete]{min-width:0;white-space:nowrap}
+#qinghui-lite-panel #ql-history.ql-cache-selection-mode .ql-cache-tile.is-selected .ql-cache-image{
+ outline:2px solid #91a9a0;
+ outline-offset:-2px;
+}
