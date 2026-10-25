@@ -1040,3 +1040,31 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #chat .ql-chat-image.ql-image-collapsed{padding:8px!important;}
 #chat .ql-chat-image.ql-image-collapsed .ql-chat-image-collapse{margin:0!important;}
 
+
+
+/* 2026-10-25: theme-aware glass buttons, centered marker action, and separate NAI status line. */
+#chat .mes_text .ql-inline-image-trigger{
+ display:flex!important;box-sizing:border-box!important;width:min(100%,280px)!important;min-width:190px!important;
+ min-height:48px!important;margin:12px auto!important;padding:11px 24px!important;
+ border:1px solid color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8b8b8b)) 62%,var(--SmartThemeBorderColor,rgba(128,128,128,.45)))!important;
+ border-radius:15px!important;background:var(--SmartThemeBlurTintColor,rgba(150,160,175,.16))!important;
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,rgba(150,160,175,.24))) 17%,transparent)!important;
+ color:var(--SmartThemeBodyColor,var(--ql-text,#333))!important;text-align:center!important;font-weight:700!important;letter-spacing:.02em!important;
+ box-shadow:0 5px 16px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.28)!important;
+ backdrop-filter:blur(14px) saturate(1.35)!important;-webkit-backdrop-filter:blur(14px) saturate(1.35)!important;
+ transition:transform .16s ease,box-shadow .16s ease,background .16s ease!important;
+}
+#chat .mes_text .ql-inline-image-trigger:active:not(:disabled){transform:scale(.98)!important;box-shadow:0 2px 8px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.24)!important;}
+#chat .mes_text .ql-inline-image-trigger:disabled{opacity:.72!important;}
+#chat .mes_text .ql-chat-image-status{
+ display:block!important;box-sizing:border-box!important;width:100%!important;margin:-2px auto 12px!important;padding:4px 10px!important;
+ text-align:center!important;font-size:12px!important;line-height:1.5!important;color:var(--SmartThemeEmColor,var(--SmartThemeBodyColor,#666))!important;opacity:.82!important;
+}
+#chat .ql-chat-image-controls button{
+ background:var(--SmartThemeBlurTintColor,rgba(150,160,175,.16))!important;
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,rgba(150,160,175,.22))) 18%,transparent)!important;
+ border-color:color-mix(in srgb,var(--ql-accent,var(--SmartThemeBorderColor,#888)) 55%,transparent)!important;
+ box-shadow:0 4px 12px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.24)!important;
+ backdrop-filter:blur(12px) saturate(1.3)!important;-webkit-backdrop-filter:blur(12px) saturate(1.3)!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-reroll{background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,rgba(150,160,175,.28))) 28%,transparent)!important;}
