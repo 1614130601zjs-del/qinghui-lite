@@ -1542,3 +1542,29 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #qinghui-lite-panel .ql-album-page-arrow[data-album-step="-1"]{left:5px!important;}
  #qinghui-lite-panel .ql-album-page-arrow[data-album-step="1"]{right:5px!important;}
 }
+
+
+/* 0.5.28: 状态栏图片收藏/删除，词库预览占位可点击，翻页箭头移到照片外侧。 */
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action{
+ position:absolute!important;top:8px!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;padding:0!important;
+ border:1px solid rgba(255,255,255,.58)!important;border-radius:50%!important;
+ background:rgba(20,16,22,.48)!important;color:#fff!important;font-size:22px!important;line-height:1!important;
+ box-shadow:0 1px 5px rgba(0,0,0,.16)!important;pointer-events:auto!important;touch-action:manipulation!important;
+}
+.ql-statusbar-card .ql-statusbar-favorite{right:50px!important;}
+.ql-statusbar-card .ql-statusbar-favorite.is-favorite{color:#ffe18a!important;}
+.ql-statusbar-card .ql-statusbar-delete{right:8px!important;font-size:26px!important;}
+.ql-statusbar-card .ql-statusbar-action:disabled{opacity:.35!important;}
+#qinghui-lite-panel .ql-library-image-preview{cursor:pointer;outline-offset:3px;}
+#qinghui-lite-panel .ql-library-image-preview:focus-visible{outline:2px solid var(--ql-accent,#c58fa9);}
+#qinghui-lite-panel .ql-library-image-preview:has(> .ql-muted):hover{background:rgba(127,127,127,.12);}
+#qinghui-lite-panel .ql-album-paper{overflow:visible!important;}
+#qinghui-lite-panel .ql-album-flip-book{position:relative!important;margin:0 22px!important;overflow:visible!important;}
+#qinghui-lite-panel .ql-album-page-arrow[data-album-step="-1"]{left:-19px!important;right:auto!important;}
+#qinghui-lite-panel .ql-album-page-arrow[data-album-step="1"]{right:-19px!important;left:auto!important;}
+@media(max-width:360px){
+ #qinghui-lite-panel .ql-album-flip-book{margin:0 18px!important;}
+ #qinghui-lite-panel .ql-album-page-arrow[data-album-step="-1"]{left:-16px!important;}
+ #qinghui-lite-panel .ql-album-page-arrow[data-album-step="1"]{right:-16px!important;}
+}
