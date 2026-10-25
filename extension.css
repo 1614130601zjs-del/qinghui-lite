@@ -1396,3 +1396,21 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #chat .ql-chat-image-controls .ql-chat-image-remove,
  #chat .ql-chat-image-controls .ql-chat-image-favorite{width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important;padding:6px!important;}
 }
+
+
+/* Compact note icon for tag editing; no text label. */
+#chat .ql-chat-image-controls .ql-chat-image-edit{
+ width:38px!important;min-width:38px!important;max-width:38px!important;
+ height:36px!important;padding:7px!important;font-size:0!important;line-height:0!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-edit svg{
+ display:block!important;width:20px!important;height:20px!important;
+ fill:none!important;stroke:currentColor!important;stroke-width:1.7!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+@media(max-width:360px){
+ #chat .ql-chat-image-controls .ql-chat-image-edit{
+  width:34px!important;min-width:34px!important;max-width:34px!important;
+  height:34px!important;padding:6px!important;
+ }
+}
