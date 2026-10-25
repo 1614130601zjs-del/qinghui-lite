@@ -674,18 +674,15 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   reroll.addEventListener('click',async()=>{
    if(card.dataset.qlBusy==='1')return;
    const currentPrompt=String(card.dataset.qlPrompt||'').trim();if(!currentPrompt)return;
-   const currentTask=triggerRegistry.get(taskKey);
-   let candidate;
-   if(currentTask?.status==='succeeded')candidate=triggerRegistry.beginCandidate(taskKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});
-   else if(currentTask?.status==='failed')candidate=triggerRegistry.retry(taskKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});
-   else if(!currentTask)candidate=triggerRegistry.begin(taskKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});
-   else candidate={accepted:false};
+   // 使用独立的重 Roll 任务键，避免原 marker 已成功的去重状态拦截再次生成。
+   const rerollKey=taskKey+':reroll:'+Date.now();
+   const candidate=triggerRegistry.begin(rerollKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});
    if(!candidate?.accepted)return;
-   triggerRegistry.markRunning(taskKey);card.dataset.qlBusy='1';reroll.disabled=true;
+   triggerRegistry.markRunning(rerollKey);card.dataset.qlBusy='1';reroll.disabled=true;
    try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([75,45,75]);}catch{}
    const old=reroll.innerHTML;reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l-2.12 2.12"/></svg>';
-   try{const fresh=await requestWithActiveSettings(currentPrompt);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();storeChatRecord(fresh,currentPrompt,taskKey,recordMeta);triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}
-   catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}
+   try{const fresh=await requestWithActiveSettings(currentPrompt);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();storeChatRecord(fresh,currentPrompt,taskKey,recordMeta);triggerRegistry.markSucceeded(rerollKey,rerollKey+':candidate:'+Date.now());}
+   catch(e){triggerRegistry.markFailed(rerollKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}
    finally{card.dataset.qlBusy='0';reroll.disabled=false;reroll.innerHTML=old;}
   });
   card._qlRender=render;
@@ -831,9 +828,10 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   const img=document.createElement('img');img.alt='轻绘状态栏画面';img.loading='eager';img.style.cssText='display:block;width:100%;height:100%;object-fit:contain;';
   card._qlPrompt=prompt;card._qlCandidates=[];card._qlIndex=0;
   const controls=document.createElement('div');controls.className='ql-statusbar-controls';
-  const prev=document.createElement('button');prev.type='button';prev.className='ql-statusbar-arrow';prev.setAttribute('aria-label','上一张');prev.title='上一张';prev.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
-  const count=document.createElement('span');count.className='ql-statusbar-count';count.textContent='1 / 1';
-  const next=document.createElement('button');next.type='button';next.className='ql-statusbar-arrow';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+  controls.style.cssText='position:absolute!important;left:50%!important;bottom:8px!important;transform:translateX(-50%)!important;z-index:2147483000!important;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;align-items:center;justify-content:center;gap:8px;padding:3px 7px;border:1px solid rgba(255,255,255,.45);border-radius:999px;background:rgba(20,16,22,.72);color:#fff;max-width:calc(100% - 12px);box-sizing:border-box;touch-action:manipulation;';
+  const prev=document.createElement('button');prev.type='button';prev.className='ql-statusbar-arrow';prev.style.cssText='display:flex!important;align-items:center;justify-content:center;min-width:36px;min-height:32px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.25);color:#fff;pointer-events:auto;touch-action:manipulation;';prev.setAttribute('aria-label','上一张');prev.title='上一张';prev.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
+  const count=document.createElement('span');count.className='ql-statusbar-count';count.style.cssText='display:inline-flex!important;align-items:center;justify-content:center;min-width:40px;color:#fff;font-size:12px;line-height:1;font-variant-numeric:tabular-nums;';count.textContent='1 / 1';
+  const next=document.createElement('button');next.type='button';next.className='ql-statusbar-arrow';next.style.cssText='display:flex!important;align-items:center;justify-content:center;min-width:36px;min-height:32px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.25);color:#fff;pointer-events:auto;touch-action:manipulation;';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
   const updateControls=()=>{const total=card._qlCandidates.length;count.textContent=total?String(card._qlIndex+1)+' / '+total:'0 / 0';prev.disabled=total<2;next.disabled=total<2;};
   card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;updateControls();};
   card._qlAddCandidate=url=>{if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});}card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
