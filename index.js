@@ -426,42 +426,21 @@ function renderLibrary(){
  if(vibes)vibes.innerHTML=(s.vibes||[]).map((v,i)=>{
   const entries=Array.isArray(v.entries)?v.entries:[];
   const usable=entries.filter(entry=>typeof entry.image==='string'&&entry.image.length>160).length;
+  const active=Number(s.activeVibeIndex)===i;
   const entryRows=entries.map((entry,j)=>{
    const ready=typeof entry.image==='string'&&entry.image.length>160;
-   return '<div class="ql-vibe-entry"><strong>参考 '+(j+1)+'</strong><p class="ql-muted">'+(ready?'已保存预编码 Vibe（可用于生成）':'没有可用编码；预览图不会作为生图输入')+'</p><div class="ql-row"><div><label>参考强度</label><input type="number" min="0" max="1" step="0.05" data-vibe-entry-strength="'+i+'-'+j+'" value="'+Math.max(0,Math.min(1,Number(entry.strength??0.6)))+'"></div><div><label>Information Extracted</label><input type="number" min="0" max="1" step="0.05" disabled title="编码完成后该值固定；修改它需要重新编码原始图片" data-vibe-entry-info="'+i+'-'+j+'" value="'+Math.max(0,Math.min(1,Number(entry.informationExtracted??1)))+'"></div></div><button type="button" class="menu_button" data-vibe-entry-delete="'+i+'-'+j+'">移除此参考</button></div>';
+   return '<div class="ql-vibe-entry"><div class="ql-vibe-entry-head"><strong>参考 '+(j+1)+'</strong><span class="ql-vibe-state '+(ready?'is-ready':'is-missing')+'">'+(ready?'编码可用':'缺少编码')+'</span></div><div class="ql-row"><div><label>参考强度</label><input type="number" min="0" max="1" step="0.05" data-vibe-entry-strength="'+i+'-'+j+'" value="'+Math.max(0,Math.min(1,Number(entry.strength??0.6)))+'"></div><div><label>Information Extracted</label><input type="number" min="0" max="1" step="0.05" disabled title="编码完成后该值固定；修改它需要重新编码原始图片" data-vibe-entry-info="'+i+'-'+j+'" value="'+Math.max(0,Math.min(1,Number(entry.informationExtracted??1)))+'"></div></div><button type="button" class="menu_button" data-vibe-entry-delete="'+i+'-'+j+'">移除此参考</button></div>';
   }).join('');
-  return '<div class="ql-record"><strong>'+esc(v.name||'未命名 Vibe')+'</strong><p>'+usable+' / '+entries.length+' 条编码可用于生成'+(v.hasRef?' · 原始数据还含外部引用':'')+'</p><label>Vibe 组名称</label><input data-vibe-name="'+i+'" value="'+esc(v.name||'')+'">'+(entryRows||'<p class="ql-muted">没有可编辑的编码条目。请重新导入包含预编码资源的官网文件或智绘姬组 JSON。</p>')+'<details><summary>查看导入来源</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto">'+esc(JSON.stringify({source:v.source,sourcePath:v.sourcePath,groupName:v.groupName,identifier:entries.map(e=>e.identifier).filter(Boolean),rawPreserved:!!(v.raw||v.rawGroup)},null,2).slice(0,2000))+'</pre></details><button type="button" class="menu_button" data-vibe-save="'+i+'">保存 Vibe 修改</button><button type="button" class="menu_button" data-vibe-delete="'+i+'">删除整组</button></div>';
- }).join('')||'<p class="ql-muted">暂无 Vibe。可导入官网预编码文件或智绘姬导出的 Vibe 组 JSON。</p>';
- vibes?.querySelectorAll('[data-vibe-save]').forEach(b=>b.onclick=()=>{
-  const i=+b.dataset.vibeSave,v=s.vibes[i];if(!v)return;
-  v.name=vibes.querySelector('[data-vibe-name="'+i+'"]').value.trim()||v.name||'未命名 Vibe';
-  for(let j=0;j<(v.entries||[]).length;j++){
-   const strengthInput=vibes.querySelector('[data-vibe-entry-strength="'+i+'-'+j+'"]');
-   const infoInput=vibes.querySelector('[data-vibe-entry-info="'+i+'-'+j+'"]');
-   if(!strengthInput||!infoInput)continue;
-   const strength=Number(strengthInput.value),info=Number(infoInput.value),entry=v.entries[j];
-   entry.strength=Number.isFinite(strength)?Math.max(0,Math.min(1,strength)):0.6;
-   entry.informationExtracted=Number.isFinite(info)?Math.max(0,Math.min(1,info)):1;
-  }
-  save();renderLibrary();status('Vibe 组已保存：'+v.name);
+  return '<div class="ql-record ql-vibe-group '+(active?'is-active':'')+'"><div class="ql-vibe-group-top"><div class="ql-vibe-group-info"><strong>'+esc(v.name||'未命名 Vibe')+'</strong><p>'+usable+' / '+entries.length+' 条参考可用'+(active?' · 当前使用中':'')+'</p></div><button type="button" class="menu_button" data-vibe-use="'+i+'">'+(active?'当前使用中':'整组使用')+'</button></div><label>组名称</label><input data-vibe-name="'+i+'" value="'+esc(v.name||'')+'"><details class="ql-vibe-details"><summary>编辑组内参考（'+entries.length+'）</summary>'+(entryRows||'<p class="ql-muted">没有可编辑的编码条目。请导入包含预编码资源的官网文件或智绘姬 Vibe 组 JSON。</p>')+'<details><summary>查看导入来源</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto">'+esc(JSON.stringify({source:v.source,sourcePath:v.sourcePath,groupName:v.groupName,identifier:entries.map(e=>e.identifier).filter(Boolean),rawPreserved:!!(v.raw||v.rawGroup)},null,2).slice(0,2000))+'</pre></details></details><div class="ql-vibe-group-actions"><button type="button" class="menu_button" data-vibe-save="'+i+'">保存修改</button><button type="button" class="menu_button" data-vibe-delete="'+i+'">删除整组</button></div></div>';
+ }).join('')||'<p class="ql-muted">暂无 Vibe。导入官网预编码文件或智绘姬导出的 Vibe 组 JSON 后，可整组选择使用。</p>';
+ vibes?.querySelectorAll('[data-vibe-use]').forEach(b=>b.onclick=()=>{
+  const i=Number(b.dataset.vibeUse),v=s.vibes[i];if(!v)return;
+  const entries=Array.isArray(v.entries)?v.entries:[];
+  const usable=entries.filter(entry=>typeof entry.image==='string'&&entry.image.length>160||extractUsableVibe(entry.raw||entry)?.image).length;
+  if(!usable){status('这组暂时没有可用的预编码 Vibe；请展开组内参考检查导入内容。');return;}
+  s.activeVibeIndex=i;save();renderLibrary();status('已整组启用 Vibe：'+(v.name||'未命名 Vibe')+'（'+usable+' 条参考）');
  });
- vibes?.querySelectorAll('[data-vibe-entry-delete]').forEach(b=>b.onclick=()=>{
-  const [i,j]=b.dataset.vibeEntryDelete.split('-').map(Number),v=s.vibes[i];if(!v||!Array.isArray(v.entries))return;
-  v.entries.splice(j,1);v.hasPayload=v.entries.some(entry=>typeof entry.image==='string'&&entry.image.length>160);
-  save();renderLibrary();status('已移除该组中的一条 Vibe 参考。');
- });
- vibes?.querySelectorAll('[data-vibe-delete]').forEach(b=>b.onclick=()=>{
-  if(!confirm('删除整组 Vibe 记录？'))return;
-  const i=+b.dataset.vibeDelete;
-  s.vibes.splice(i,1);
-  if(Number(s.activeVibeIndex)===i)s.activeVibeIndex=-1;
-  else if(Number(s.activeVibeIndex)>i)s.activeVibeIndex=Number(s.activeVibeIndex)-1;
-  for(const binding of s.bindings||[]){
-   if(Number(binding.vibeIndex)===i)binding.vibeIndex=-1;
-   else if(Number(binding.vibeIndex)>i)binding.vibeIndex=Number(binding.vibeIndex)-1;
-  }
-  save();renderLibrary();status('Vibe 组已删除，其他角色绑定已同步调整。');
- }); renderActiveVibes();renderActivePresets();renderBindings();
+ renderActiveVibes();renderActivePresets();renderBindings();
  prompts?.querySelectorAll('[data-prompt-load]').forEach(b=>b.onclick=()=>{const p=s.prompts[+b.dataset.promptLoad];$('#ql-prompt').value=p.prompt;$('#ql-negative').value=p.negative||'';read();status('已载入提示词：'+p.name);});
  prompts?.querySelectorAll('[data-prompt-edit]').forEach(b=>b.onclick=()=>{const p=s.prompts[+b.dataset.promptEdit];$('#ql-prompt-name').value=p.name||'';$('#ql-prompt-category').value=p.category||'';$('#ql-library-prompt').value=p.prompt||'';$('#ql-library-negative').value=p.negative||'';$('#ql-prompt-save').dataset.edit=String(+b.dataset.promptEdit);$('#ql-prompt-save').textContent='保存修改';});
   prompts?.querySelectorAll('[data-prompt-delete]').forEach(b=>b.onclick=()=>{s.prompts.splice(+b.dataset.promptDelete,1);save();renderLibrary();});
