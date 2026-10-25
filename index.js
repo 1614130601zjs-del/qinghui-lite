@@ -68,7 +68,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
   };
   if(vibeItem){
    const vibes=Array.isArray(vibeItem.entries)&&vibeItem.entries.length
-    ?vibeItem.entries.filter(item=>typeof item.image==='string'&&item.image.trim()).map(item=>({image:item.image.trim().replace(/^data:(?:application\\/octet-stream|image\\/[^;]+);base64,/i,''),strength:Number(item.strength??0.6),informationExtracted:Number(item.informationExtracted??1)}))
+    ?vibeItem.entries.filter(item=>typeof item.image==='string'&&item.image.trim()).map(item=>({image:item.image.trim().replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,''),strength:Number(item.strength??0.6),informationExtracted:Number(item.informationExtracted??1)}))
     :(()=>{const one=extractUsableVibe(vibeItem.raw||vibeItem);return one?[one]:[];})();
    if(!vibes.length)throw new Error('这个 Vibe 组没有可用的预编码资源。请重新导入官网 Vibe 编码文件。');
    payload.reference_image_multiple=vibes.map(v=>v.image);
@@ -82,7 +82,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
   try{data=JSON.parse(raw);}catch{}
   let value=data?.images?.[0]??data?.image??raw.trim();
   if(typeof value!=='string'||!value)throw new Error('NovelAI 响应中没有可识别的图片');
-  return /^(data:|https?:)/.test(value)?value:'data:image/png;base64,'+value.replace(/^data:image\\/[^;]+;base64,/,'');
+  return /^(data:|https?:)/.test(value)?value:'data:image/png;base64,'+value.replace(/^data:image\/[^;]+;base64,/,'');
  }
  if(c.provider==='novelai-thirdparty'){
   const naiModel=c.naiModel||'nai-diffusion-4-5-full';
