@@ -956,7 +956,8 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 }
 #chat .ql-chat-image-controls .ql-chat-image-reroll svg{width:17px!important;height:17px!important;}
 #chat .ql-chat-image img,.ql-statusbar-card>img{cursor:zoom-in;}
-.ql-statusbar-controls .ql-statusbar-count{display:none!important;}
+/* Keep statusbar image counter visible for candidate navigation. */
+.ql-statusbar-controls .ql-statusbar-count{display:inline-flex!important;}
 
 
 /* 2026-10-25: visible centered controls, image collapse toggle, and touch-friendly statusbar reroll. */
@@ -1254,3 +1255,9 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-statusbar-card>img{pointer-events:auto;position:relative;z-index:1;}
 .ql-statusbar-card>.ql-statusbar-controls{pointer-events:auto!important;z-index:20!important;bottom:max(6px,env(safe-area-inset-bottom,0px))!important;}
 .ql-statusbar-card .ql-statusbar-arrow{pointer-events:auto!important;position:relative;z-index:21;min-width:30px;min-height:28px;}
+
+
+/* 0.5.16: statusbar controls must remain visible above template layers */
+.ql-statusbar-card .ql-statusbar-controls{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:2147483000!important}
+.ql-statusbar-card .ql-statusbar-controls button{display:flex!important;visibility:visible!important;pointer-events:auto!important;min-width:36px!important;min-height:32px!important;color:#fff!important;background:rgba(0,0,0,.3)!important}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-count{display:inline-flex!important;color:#fff!important}
