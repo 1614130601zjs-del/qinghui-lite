@@ -1655,3 +1655,86 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #qinghui-lite-panel .ql-album-page-arrow svg{width:18px!important;height:18px!important;}
  .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;padding:7px!important;}
 }
+
+
+/* 0.5.35: 翻页相册复用正文影像左右键；按钮半压在照片边缘，保留实体相册纸框。 */
+#qinghui-lite-panel .ql-album-paper.is-flip{
+  overflow:visible!important;
+  padding:12px!important;
+  border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.28))!important;
+  border-radius:4px!important;
+  background:linear-gradient(145deg,var(--SmartThemeBlurTintColor,rgba(255,255,255,.94)),var(--SmartThemeBodyColor,rgba(245,240,244,.9)))!important;
+  box-shadow:0 3px 10px rgba(0,0,0,.12),inset 0 0 0 4px rgba(255,255,255,.16)!important;
+}
+#qinghui-lite-panel .ql-album-flip-book{
+  position:relative!important;display:block!important;margin:0!important;padding:0!important;overflow:visible!important;
+}
+#qinghui-lite-panel .ql-album-single-page{
+  position:relative!important;display:block!important;width:100%!important;min-width:0!important;
+  margin:0!important;padding:12px 12px 38px!important;
+  border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.28))!important;
+  border-radius:2px!important;
+  background:var(--SmartThemeBlurTintColor,rgba(255,255,255,.96))!important;
+  box-shadow:0 2px 7px rgba(0,0,0,.09),inset 4px 0 0 rgba(127,127,127,.05)!important;
+  transform:none!important;box-sizing:border-box!important;
+}
+#qinghui-lite-panel .ql-album-single-photo{
+  display:block!important;width:100%!important;min-height:0!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:3px!important;overflow:hidden!important;
+  background:transparent!important;box-shadow:none!important;
+}
+#qinghui-lite-panel .ql-album-single-photo img{
+  display:block!important;width:100%!important;height:auto!important;max-height:78vh!important;
+  object-fit:contain!important;border-radius:3px!important;background:transparent!important;
+}
+/* 与正文 .ql-chat-image-arrow 使用相同的尺寸、线条、半透明底和图标。 */
+#qinghui-lite-panel .ql-album-flip-book>.ql-album-page-arrow{
+  position:absolute!important;top:50%!important;z-index:12!important;display:flex!important;
+  align-items:center!important;justify-content:center!important;transform:translateY(-50%)!important;
+  width:38px!important;height:42px!important;min-width:38px!important;min-height:42px!important;
+  padding:0!important;margin:0!important;border:1px solid rgba(255,255,255,.58)!important;
+  border-radius:999px!important;color:var(--SmartThemeBodyColor,#fff)!important;
+  background:var(--SmartThemeQuoteColor,rgba(24,20,28,.32))!important;
+  box-shadow:0 1px 6px rgba(0,0,0,.15)!important;backdrop-filter:blur(5px)!important;
+  -webkit-backdrop-filter:blur(5px)!important;
+}
+#qinghui-lite-panel .ql-album-flip-book>.ql-album-page-arrow svg{
+  display:block!important;width:22px!important;height:22px!important;fill:none!important;
+  stroke:currentColor!important;stroke-width:2.2!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#qinghui-lite-panel .ql-album-flip-book>.ql-album-page-arrow[data-album-step="-1"]{left:-7px!important;right:auto!important;}
+#qinghui-lite-panel .ql-album-flip-book>.ql-album-page-arrow[data-album-step="1"]{right:-7px!important;left:auto!important;}
+#qinghui-lite-panel .ql-album-flip-book>.ql-album-page-arrow:disabled{opacity:.28!important;pointer-events:none!important;}
+#qinghui-lite-panel .ql-album-page-number{
+  position:absolute!important;right:12px!important;bottom:9px!important;z-index:11!important;
+  min-width:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  background:transparent!important;color:var(--SmartThemeBodyColor,var(--ql-text,#51434b))!important;
+  text-align:right!important;font-size:12px!important;font-variant-numeric:tabular-nums!important;
+  backdrop-filter:none!important;
+}
+@media(max-width:360px){
+  #qinghui-lite-panel .ql-album-paper.is-flip{padding:8px!important;}
+  #qinghui-lite-panel .ql-album-single-page{padding:8px 8px 32px!important;}
+  #qinghui-lite-panel .ql-album-flip-book>.ql-album-page-arrow{width:38px!important;height:42px!important;min-width:38px!important;min-height:42px!important;}
+  #qinghui-lite-panel .ql-album-flip-book>.ql-album-page-arrow[data-album-step="-1"]{left:-7px!important;}
+  #qinghui-lite-panel .ql-album-flip-book>.ql-album-page-arrow[data-album-step="1"]{right:-7px!important;}
+  #qinghui-lite-panel .ql-album-page-number{right:8px!important;bottom:8px!important;}
+}
+/* 状态栏收藏/删除缩小并移至右上角，避开底部的图片序号。 */
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar{
+  position:absolute!important;top:7px!important;right:7px!important;left:auto!important;bottom:auto!important;
+  transform:none!important;display:flex!important;gap:5px!important;pointer-events:auto!important;z-index:2147483647!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-action{
+  position:static!important;top:auto!important;right:auto!important;left:auto!important;bottom:auto!important;
+  width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important;
+  padding:5px!important;border-radius:8px!important;flex:0 0 27px!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-action svg{
+  width:14px!important;height:14px!important;
+}
+@media(max-width:360px){
+  .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-action{
+    width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;flex-basis:25px!important;padding:4px!important;
+  }
+}
