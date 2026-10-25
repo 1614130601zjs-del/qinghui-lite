@@ -806,6 +806,9 @@ async function processLatestAssistantMessage(){
   if(!found.length)continue;
   const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
   if(!host)continue;
+  // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
+  const messageElement=host.closest('.mes');
+  if(messageElement?.querySelector('textarea, [contenteditable="true"]'))continue;
   const entries=found.map((marker,markerOrdinal)=>{
    const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
@@ -1597,7 +1600,11 @@ jQuery(()=>{
  }
  observeStatusbarFrames();
  // 扩展启用时先扫描现有聊天；再观察酒馆正文重绘，避免事件时序导致 marker 一直以原文显示。
- const scheduleInlineScan=()=>setTimeout(()=>processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 正文标记扫描失败',e)),80);
+ let inlineScanTimers=[];
+ const scheduleInlineScan=()=>{
+  inlineScanTimers.forEach(timer=>clearTimeout(timer));
+  inlineScanTimers=[80,250,600,1200].map(delay=>setTimeout(()=>processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 正文标记扫描失败',e)),delay));
+ };
  scheduleInlineScan();
  const chatObserver=new MutationObserver(records=>{
   // 酒馆点击“编辑消息”时可能只切换 .mes 的 class/编辑区状态，不一定增删 .mes_text；
