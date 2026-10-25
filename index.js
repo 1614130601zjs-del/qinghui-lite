@@ -1123,8 +1123,7 @@ function history(){
    const spreadArea=albums.querySelector('.ql-album-spread-grid');let spreadStartX=0;
    spreadArea?.addEventListener('touchstart',event=>{spreadStartX=event.changedTouches[0].clientX;},{passive:true});
    spreadArea?.addEventListener('touchend',event=>{const dx=event.changedTouches[0].clientX-spreadStartX;if(Math.abs(dx)>40){spreadPage=Math.max(0,Math.min(Math.max(0,Math.ceil(items.length/6)-1),spreadPage+(dx<0?1:-1)));paintSpread();}},{passive:true});
-   albums.querySelectorAll('[data-album-photo]').forEach(button=>button.addEventListener('click',()=>openDetail(Number(button.dataset.albumPhoto))));
-   albums.querySelectorAll('[data-ql-unfavorite]').forEach(button=>button.addEventListener('click',()=>{const record=settings.records[Number(button.dataset.qlUnfavorite)];if(record){delete record.albumCharacterName;delete record.albumCharacterKey;save();history();status('已从相册移除，缓存图片仍保留。');}}));
+   if(flipButton)flipButton.addEventListener('click',()=>openDetail(Number(flipButton.dataset.albumPhoto)));
    let startX=0;const flipArea=albums.querySelector('.ql-album-single-page');flipArea?.addEventListener('touchstart',event=>{startX=event.changedTouches[0].clientX;},{passive:true});flipArea?.addEventListener('touchend',event=>{const dx=event.changedTouches[0].clientX-startX;if(Math.abs(dx)>40){pageIndex=Math.max(0,Math.min(items.length-1,pageIndex+(dx<0?1:-1)));paintFlip();}},{passive:true});
    paintFlip();paintSpread();return;
   }
