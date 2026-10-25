@@ -1425,3 +1425,15 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel .ql-character-album{margin-top:16px!important;}
 #qinghui-lite-panel .ql-character-album h4{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 #qinghui-lite-panel #ql-character-albums .ql-cache-favorite{min-width:28px;min-height:28px;font-size:16px;}
+
+
+/* 影像集：导航单行、操作图标小而分散、正文临时配置。 */
+#qinghui-lite-panel .ql-tabs,#qinghui-lite-panel .ql-subtabs{display:flex!important;flex-flow:row nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;white-space:nowrap!important;scrollbar-width:none!important;gap:5px!important;}
+#qinghui-lite-panel .ql-tabs::-webkit-scrollbar,#qinghui-lite-panel .ql-subtabs::-webkit-scrollbar{display:none!important;}
+#qinghui-lite-panel .ql-tabs .ql-tab,#qinghui-lite-panel .ql-subtabs .ql-subtab{flex:0 0 auto!important;white-space:nowrap!important;}
+#chat .ql-chat-image-controls{justify-content:space-evenly!important;gap:clamp(18px,5vw,32px)!important;padding:8px clamp(12px,5vw,24px) 4px!important;}
+#chat .ql-chat-image-controls .ql-chat-image-edit,#chat .ql-chat-image-controls .ql-chat-image-reroll,#chat .ql-chat-image-controls .ql-chat-image-remove,#chat .ql-chat-image-controls .ql-chat-image-favorite{width:28px!important;min-width:28px!important;max-width:28px!important;height:28px!important;min-height:28px!important;padding:5px!important;flex:0 0 28px!important;}
+#chat .ql-chat-image-controls .ql-chat-image-edit svg,#chat .ql-chat-image-controls .ql-chat-image-reroll svg,#chat .ql-chat-image-controls .ql-chat-image-remove svg,#chat .ql-chat-image-controls .ql-chat-image-favorite svg{width:15px!important;height:15px!important;}
+#chat .ql-chat-image-editor .ql-chat-image-temp-config{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;}
+#chat .ql-chat-image-editor .ql-chat-image-temp-config label{display:flex;flex-direction:column;gap:4px;font-size:12px;}
+#chat .ql-chat-image-editor .ql-chat-image-temp-config select{width:100%;min-width:0;}
