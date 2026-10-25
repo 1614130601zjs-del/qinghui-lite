@@ -340,7 +340,7 @@ function observeStatusbarFrames(){
 }
 
 function save(){ saveSettingsDebounced(); }
-function html(){return `<section id="qinghui-lite-panel">
+function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-panel">
 <div class="ql-card"><h3>轻绘 Lite · 测试版</h3><p class="ql-muted">独立工作区支持 GPT / OpenAI 兼容接口和酒馆已配置的 NovelAI 连接。状态栏画面框注入已接入，尚需实际酒馆验证。</p>
 <label>生图后端</label><select id="ql-provider"><option value="openai">GPT / OpenAI 兼容接口</option><option value="novelai">NovelAI（使用酒馆已配置的连接）</option></select>
 <div id="ql-openai-settings"><label>API 地址</label><input id="ql-endpoint" placeholder="https://api.openai.com/v1">
@@ -352,7 +352,7 @@ function html(){return `<section id="qinghui-lite-panel">
 <div class="ql-card"><h3>最近生成（本地记录）</h3><div id="ql-history"></div><button id="ql-clear" class="menu_button">清空记录</button></div>
 <div class="ql-card"><h3>提示词库</h3><div class="ql-row"><input id="ql-prompt-name" placeholder="名称"><input id="ql-prompt-category" placeholder="分类"></div><label>完整正向提示词</label><textarea id="ql-library-prompt" placeholder="保存完整提示词"></textarea><label>负向提示词</label><textarea id="ql-library-negative"></textarea><button id="ql-prompt-save" class="menu_button">保存提示词</button><div id="ql-prompts-list"></div></div>
 <div class="ql-card"><h3>角色库</h3><input id="ql-character-name" placeholder="角色名称"><label>固定外貌词</label><textarea id="ql-character-appearance"></textarea><button id="ql-character-save" class="menu_button">保存角色</button><div id="ql-characters-list"></div></div>
-<div class="ql-card"><h3>画风预设</h3><input id="ql-preset-name" placeholder="预设名称"><label>正向画风串</label><textarea id="ql-preset-positive"></textarea><label>负向提示词</label><textarea id="ql-preset-negative"></textarea><button id="ql-preset-save" class="menu_button">保存预设</button><div id="ql-presets-list"></div></div><div class="ql-card"><h3>智绘姬一键迁移</h3><p class="ql-muted">先扫描当前酒馆可访问的智绘姬设置；也可以选择智绘姬导出的 JSON 文件。迁移前会预览，已有数据不会被覆盖。</p><div class="ql-row"><button id="ql-migrate-scan" class="menu_button">扫描当前酒馆</button><button id="ql-migrate-file-btn" class="menu_button">选择导出文件</button><input id="ql-migrate-file" type="file" accept=".json,.json5,.txt,application/json" hidden></div><div id="ql-migrate-preview" class="ql-muted" role="status">尚未扫描。</div><button id="ql-migrate-import" class="menu_button" disabled>确认导入</button><p class="ql-muted">画师串与文本预设可迁移；Vibe 项目会先保留名称和原始数据供核对。只有确认参考图与编码字段后，才会接入实际生图调用。</p><div id="ql-vibes-list"></div></div></section>`;}
+<div class="ql-card"><h3>画风预设</h3><input id="ql-preset-name" placeholder="预设名称"><label>正向画风串</label><textarea id="ql-preset-positive"></textarea><label>负向提示词</label><textarea id="ql-preset-negative"></textarea><button id="ql-preset-save" class="menu_button">保存预设</button><div id="ql-presets-list"></div></div><div class="ql-card"><h3>智绘姬一键迁移</h3><p class="ql-muted">先扫描当前酒馆可访问的智绘姬设置；也可以选择智绘姬导出的 JSON 文件。迁移前会预览，已有数据不会被覆盖。</p><div class="ql-row"><button id="ql-migrate-scan" class="menu_button">扫描当前酒馆</button><button id="ql-migrate-file-btn" class="menu_button">选择导出文件</button><input id="ql-migrate-file" type="file" accept=".json,.json5,.txt,application/json" hidden></div><div id="ql-migrate-preview" class="ql-muted" role="status">尚未扫描。</div><button id="ql-migrate-import" class="menu_button" disabled>确认导入</button><p class="ql-muted">画师串与文本预设可迁移；Vibe 项目会先保留名称和原始数据供核对。只有确认参考图与编码字段后，才会接入实际生图调用。</p><div id="ql-vibes-list"></div></div></section></div>`;}
 function read(){const s=cfg();s.provider=$('#ql-provider').value;s.endpoint=$('#ql-endpoint').value.trim().replace(/\/$/,'');s.apiKey=$('#ql-key').value.trim();s.model=$('#ql-model').value.trim()||'gpt-image-1';s.size=$('#ql-size').value;s.quality=$('#ql-quality').value;s.naiModel=$('#ql-nai-model').value.trim()||'nai-diffusion-4-5-full';s.naiSteps=Number($('#ql-nai-steps').value)||28;s.naiScale=Number($('#ql-nai-scale').value)||5;s.naiWidth=Number($('#ql-nai-width').value)||832;s.naiHeight=Number($('#ql-nai-height').value)||1216;s.naiSampler=$('#ql-nai-sampler').value;s.naiScheduler=$('#ql-nai-scheduler').value;s.prompt=$('#ql-prompt').value;s.negative=$('#ql-negative').value;save();}
 function status(t){$('#ql-status').textContent=t;}
 function history(){
@@ -511,8 +511,39 @@ $('#ql-preset-save').onclick=()=>{const name=$('#ql-preset-name').value.trim(),p
 $('#ql-clear').onclick=()=>{if(confirm('清空轻绘本地生成记录？不会删除聊天图片。')){cfg().records=[];save();history();status('记录已清空。');}};
 }
 jQuery(()=>{
- const mount=$('#extensions_settings2')||$('#extensions_settings');
- if(mount&&!$('#qinghui-lite-panel')){mount.insertAdjacentHTML('beforeend',html());init();}
+ if(!$('#ql-overlay')){
+  document.body.insertAdjacentHTML('beforeend',html());
+  const overlay=$('#ql-overlay');
+  const panel=$('#qinghui-lite-panel');
+  panel.setAttribute('role','dialog');
+  panel.setAttribute('aria-modal','true');
+  panel.setAttribute('aria-label','轻绘 Lite');
+  const close=document.createElement('button');
+  close.type='button';close.id='ql-close';close.className='menu_button';close.textContent='关闭轻绘';
+  const heading=panel.querySelector('.ql-card h3');
+  if(heading)heading.parentElement.insertBefore(close,heading.nextSibling);
+  const open=()=>{
+   overlay.hidden=false;
+   document.body.classList.add('ql-modal-open');
+   const first=panel.querySelector('textarea,input,select,button');
+   first?.focus({preventScroll:true});
+  };
+  const shut=()=>{overlay.hidden=true;document.body.classList.remove('ql-modal-open');};
+  close.addEventListener('click',shut);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)shut();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)shut();});
+  let launch=$('#ql-chat-launch');
+  if(!launch){
+   launch=document.createElement('button');
+   launch.id='ql-chat-launch';launch.type='button';launch.className='menu_button';
+   launch.textContent='轻绘 Lite';launch.title='打开轻绘 Lite 生图工作区';
+   launch.addEventListener('click',open);
+   const toolbar=$('#send_form .right_menu_button')?.parentElement||$('#send_form')||$('#chat_input');
+   if(toolbar)toolbar.append(launch);
+   else document.body.append(launch);
+  }
+  init();
+ }
  observeStatusbarFrames();
  if(!eventSource||!event_types)return;
  let scanTimer=null;
