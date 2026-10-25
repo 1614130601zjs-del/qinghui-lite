@@ -1,9 +1,10 @@
 import { extension_settings, getContext } from '/scripts/extensions.js';
-import { saveSettingsDebounced, eventSource, event_types, getRequestHeaders } from '/script.js';
+import { saveSettingsDebounced, eventSource, event_types, getRequestHeaders, generateQuietPrompt } from '/script.js';
+import { initFloorImageFeature } from './floor-image.js';
 import { parseImageMarkers, makeTriggerId, TriggerRegistry } from './trigger-core.js';
 
 const EXT = 'qinghui_lite';
-const defaults = { activeConfigMode:'combo', downloadFormat:'png', historyColumns:3, chatAlbumStyle:'classic', vibes:[], combinations:[], activeComboIndex:-1, activeVibeIndex:-1, activePresetIndex:-1, bindings:[], provider:'novelai', endpoint:'', apiKey:'', naiApiKey:'', naiThirdEndpoint:'', naiThirdKey:'', model:'gpt-image-1', size:'auto', quality:'medium', naiModel:'nai-diffusion-4-5-full', naiSteps:28, naiScale:5, naiWidth:832, naiHeight:1216, naiSampler:'k_euler_ancestral', naiScheduler:'karras', naiNormalizeVibeStrengths:true, prompt:'', negative:'', records:[], presets:[], characters:[], prompts:[] };
+const defaults = { floorImageCount:1, floorIncludeWorldInfo:true, floorLlmPrompt:'生成适用于 NovelAI 的英文视觉 Tag。只输出 JSON：{"positive":"comma-separated tags","negative":"comma-separated tags"}。保留角色外貌、服装、动作、表情、镜头和环境，不续写剧情，不输出解释。不要重复轻绘自动追加的画师串。', floorJobs:[], activeConfigMode:'combo', downloadFormat:'png', historyColumns:3, chatAlbumStyle:'classic', vibes:[], combinations:[], activeComboIndex:-1, activeVibeIndex:-1, activePresetIndex:-1, bindings:[], provider:'novelai', endpoint:'', apiKey:'', naiApiKey:'', naiThirdEndpoint:'', naiThirdKey:'', model:'gpt-image-1', size:'auto', quality:'medium', naiModel:'nai-diffusion-4-5-full', naiSteps:28, naiScale:5, naiWidth:832, naiHeight:1216, naiSampler:'k_euler_ancestral', naiScheduler:'karras', naiNormalizeVibeStrengths:true, prompt:'', negative:'', records:[], presets:[], characters:[], prompts:[] };
 const $ = (s, root=document) => root.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let busy=false;
@@ -19,7 +20,7 @@ function cfg(){
  if(!['combo','separate'].includes(s.activeConfigMode))s.activeConfigMode='combo';
  if(typeof s.naiNormalizeVibeStrengths!=='boolean')s.naiNormalizeVibeStrengths=true;
  if(s.model==='gpt-image-2.5-sunburst'){s.model='gpt-image-1';saveSettingsDebounced();}
- for(const key of ['records','presets','characters','prompts','vibes','bindings','combinations'])if(!Array.isArray(s[key]))s[key]=[];
+ for(const key of ['records','presets','characters','prompts','vibes','bindings','combinations','floorJobs'])if(!Array.isArray(s[key]))s[key]=[];
  // 组合配置升级只补充新字段，不清空用户已有的 Vibe 或角色绑定。
  if(!s.comboMigrationV1){
   const comboFor=(artistIndex,vibeIndex)=>{let i=s.combinations.findIndex(c=>Number(c.artistIndex??-1)===Number(artistIndex??-1)&&Number(c.vibeIndex??-1)===Number(vibeIndex??-1));if(i<0){s.combinations.push({name:[s.presets[artistIndex]?.name,s.vibes[vibeIndex]?.name].filter(Boolean).join(' + ')||'旧配置组合',artistIndex:Number(artistIndex??-1),vibeIndex:Number(vibeIndex??-1),migrated:true});i=s.combinations.length-1;}return i;};
@@ -1555,6 +1556,7 @@ jQuery(()=>{
     if(page)page.scrollTop=0;
    },true);
   init();
+  initFloorImageFeature({getContext,generateQuietPrompt,cfg,save:saveSettingsDebounced,resolveActiveGeneration,requestWithActiveSettings,storeChatRecord,addMessageImage,defaults,eventSource,event_types});
  }
  observeStatusbarFrames();
  // 扩展启用时先扫描现有聊天；再观察酒馆正文重绘，避免事件时序导致 marker 一直以原文显示。
