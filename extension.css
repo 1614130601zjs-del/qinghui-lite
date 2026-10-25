@@ -1261,3 +1261,23 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-statusbar-card .ql-statusbar-controls{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:2147483000!important}
 .ql-statusbar-card .ql-statusbar-controls button{display:flex!important;visibility:visible!important;pointer-events:auto!important;min-width:36px!important;min-height:32px!important;color:#fff!important;background:rgba(0,0,0,.3)!important}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-count{display:inline-flex!important;color:#fff!important}
+
+
+/* 相册收录按钮与当前相册皮肤同步，覆盖酒馆 .menu_button 的默认红色按钮色。 */
+#chat .mes_text .ql-inline-image-trigger.ql-album-classic{
+ background:linear-gradient(145deg,rgba(255,255,255,.20),rgba(130,130,130,.10))!important;
+ border:1px solid rgba(150,150,150,.55)!important;border-radius:12px!important;
+ color:var(--SmartThemeBodyColor,#333)!important;box-shadow:0 3px 8px rgba(0,0,0,.12),inset 0 0 0 2px rgba(255,255,255,.12)!important;
+}
+#chat .mes_text .ql-inline-image-trigger.ql-album-film{
+ background:linear-gradient(135deg,#303036,#17171b)!important;border:2px solid #444!important;border-radius:9px!important;
+ color:#f5f5f5!important;box-shadow:0 4px 10px rgba(0,0,0,.28)!important;
+}
+#chat .mes_text .ql-inline-image-trigger.ql-album-soft{
+ background:linear-gradient(135deg,rgba(246,230,239,.94),rgba(226,231,245,.94))!important;
+ border:1px solid rgba(180,155,170,.72)!important;border-radius:18px!important;
+ color:#554754!important;box-shadow:0 4px 12px rgba(140,110,140,.18)!important;
+}
+#chat .mes_text .ql-inline-image-trigger.ql-album-classic:hover,
+#chat .mes_text .ql-inline-image-trigger.ql-album-film:hover,
+#chat .mes_text .ql-inline-image-trigger.ql-album-soft:hover{filter:brightness(1.04)!important;}
