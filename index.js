@@ -182,6 +182,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
    throw new Error('无法解包 NovelAI 返回的图片 ZIP：'+(error?.message||String(error)));
   }
   if(!value)throw new Error('NovelAI 响应的 ZIP 中未找到 PNG/JPG/WebP 图片文件。');
+  return value;
  }
  if(!c.endpoint||!c.apiKey)throw new Error('请先在轻绘设置中填写 OpenAI 兼容 API 地址和 Key');
  const model=String(c.model||'').toLowerCase();
