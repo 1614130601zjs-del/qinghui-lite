@@ -289,48 +289,54 @@ function vibeModelKey(model){
  return 'v4-5full';
 }
 function extractUsableVibe(raw,model='nai-diffusion-4-5-full'){
- const seen=new WeakSet();let found='';
- const clean=value=>String(value||'').trim().replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,'').replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
- const key=vibeModelKey(model);
+ const seen=new WeakSet();let found='',foundGroup=null;
+ const clean=value=>String(value||'').trim().replace(/^data:(?:application\\/octet-stream|image\\/[^;]+);base64,/i,'').replace(/\\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
+ const key=vibeModelKey(model),normalizeKey=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const isPayload=value=>{const v=clean(value);return v.length>160&&/^[A-Za-z0-9+/]+={0,2}$/.test(v);};
  const walk=(value,keyName='',canonical=false)=>{
   if(found||value==null)return;
   if(typeof value==='string'){
    const v=clean(value);
-   if((canonical||/^(?:encoding|encoded|encodedVibe|encoded_vibe|vibeEncoding|vibe_encoding|vibeData|vibe_data|payload|base64|imageBase64|image_base64|referenceImage|reference_image)$/i.test(keyName))&&/^[A-Za-z0-9+/]+={0,2}$/.test(v)&&v.length>160){found=v;return;}
+   if((canonical||/^(?:encoding|encoded|encodedVibe|encoded_vibe|vibeEncoding|vibe_encoding|vibeData|vibe_data|payload|base64|imageBase64|image_base64|referenceImage|reference_image)$/i.test(keyName))&&isPayload(v)){found=v;return;}
    return;
   }
   if(typeof value!=='object'||seen.has(value))return;
   seen.add(value);
   if(Array.isArray(value)){for(const item of value)walk(item,keyName,canonical);return;}
-  const isCanonical=value.identifier==='novelai-vibe-transfer'&&(value.type==null||value.type==='image');
-  if(isCanonical&&key==='v3'&&typeof value.image==='string'&&value.image.trim()){
-   const original=clean(value.image);
-   if(/^[A-Za-z0-9+/]+={0,2}$/.test(original)&&original.length>160){found=original;return;}
-  }
+  const isCanonical=value.identifier==='novelai-vibe-transfer';
+  if(isCanonical&&key==='v3'&&typeof value.image==='string'&&isPayload(value.image)){found=clean(value.image);return;}
   if(value.encodings&&typeof value.encodings==='object'){
-   const group=value.encodings[key];
-   if(group){
-    let enc=group;
-    if(typeof group==='object'&&!Array.isArray(group)&&!('encoding' in group)&&!('encoded' in group)&&!('data' in group)){
-     enc=Object.values(group).find(v=>v&&typeof v==='object'&&('encoding' in v||'encoded' in v||'data' in v))||group;
-    }
-    const payload=typeof enc==='string'?enc:enc.encoding||enc.encoded||enc.data;
-    if(typeof payload==='string'&&clean(payload).length>160){found=clean(payload);return;}
+   const encodings=value.encodings;
+   const matchingKey=Object.keys(encodings).find(k=>normalizeKey(k)===normalizeKey(key)||normalizeKey(k).replace(/^v/,'')===normalizeKey(key).replace(/^v/,''));
+   let group=matchingKey?encodings[matchingKey]:null;
+   const unwrap=entry=>{
+    if(typeof entry==='string')return isPayload(entry)?{payload:clean(entry),group:entry}:null;
+    if(!entry||typeof entry!=='object')return null;
+    const direct=entry.encoding??entry.encoded??entry.data??entry.payload??entry.base64;
+    if(typeof direct==='string'&&isPayload(direct))return {payload:clean(direct),group:entry};
+    for(const child of Object.values(entry)){const result=child&&typeof child==='object'?unwrap(child):null;if(result)return result;}
+    return null;
+   };
+   let result=group?unwrap(group):null;
+   if(!result){
+    // Some .naiv4vibe exports spell model keys differently or nest the encoding under another level.
+    for(const candidate of Object.values(encodings)){result=unwrap(candidate);if(result)break;}
    }
-   return;
+   if(result){found=result.payload;foundGroup=result.group;return;}
+   // Do not stop here: some bundle variants keep a usable payload beside the encodings map.
   }
-  if(isCanonical&&typeof value.image==='string')walk(value.image,'image',true);
+  if(isCanonical&&typeof value.image==='string'&&isPayload(value.image)){found=clean(value.image);return;}
   for(const [k,v] of Object.entries(value)){if(k==='encodings'||(isCanonical&&k==='image'))continue;walk(v,k,false);}
  };
  walk(raw);
  if(!found)return null;
  const serialized=safeMigrationStringify(raw)||'';
  const readNumber=(re,fallback)=>{const m=serialized.match(re);return m?Number(m[1]):fallback;};
- const strength=Number.isFinite(Number(raw?.importInfo?.strength))?Number(raw.importInfo.strength):readNumber(/"(?:reference_strength|referenceStrength|strength)"\s*:\s*([0-9.]+)/i,0.6);
- let informationExtracted=readNumber(/"(?:reference_information_extracted|referenceInformationExtracted|information_extracted|informationExtracted|info_extracted|infoExtracted)"\s*:\s*([0-9.]+)/i,1);
- const group=raw?.encodings?.[key];
+ const strength=Number.isFinite(Number(raw?.importInfo?.strength))?Number(raw.importInfo.strength):readNumber(/"(?:reference_strength|referenceStrength|strength)"\\s*:\\s*([0-9.]+)/i,0.6);
+ let informationExtracted=readNumber(/"(?:reference_information_extracted|referenceInformationExtracted|information_extracted|informationExtracted|info_extracted|infoExtracted)"\\s*:\\s*([0-9.]+)/i,1);
+ const group=foundGroup&&typeof foundGroup==='object'?foundGroup:raw?.encodings?.[key];
  if(group&&typeof group==='object'){
-  const enc=('encoding' in group||'encoded' in group||'data' in group)?group:Object.values(group).find(v=>v&&typeof v==='object'&&('encoding' in v||'encoded' in v||'data' in v));
+  const enc=('encoding' in group||'encoded' in group||'data' in group||'payload' in group)?group:Object.values(group).find(v=>v&&typeof v==='object'&&('encoding' in v||'encoded' in v||'data' in v||'payload' in v));
   const info=enc?.params?.information_extracted??enc?.params?.informationExtracted??enc?.infoExtracted;
   if(Number.isFinite(Number(info)))informationExtracted=Number(info);
  }
@@ -1222,7 +1228,7 @@ function collectVibeItems(data,fileName='Vibe 导入',out=[],seen=new WeakSet())
  seen.add(data);
  if(Array.isArray(data)){for(const item of data)collectVibeItems(item,fileName,out,seen);return out;}
  const name=String(data.name||data.title||data.label||data.filename||fileName||'导入的 Vibe').trim();
- const canonical=data.identifier==='novelai-vibe-transfer'&&(data.type==null||data.type==='image');
+ const canonical=data.identifier==='novelai-vibe-transfer';
  if(canonical){
   out.push({name,raw:data,source:'novelai-vibe-transfer'});
   return out;
