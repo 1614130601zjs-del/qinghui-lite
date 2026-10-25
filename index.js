@@ -671,7 +671,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
    const currentChar=currentCharacter();
    const storedCharacter=typeof record.character==='string'?record.character:'';
    let name=String(record.characterName||storedCharacter||currentChar.name||'').trim();
-   if(!name)name=String(prompt('请输入这张图片所属的角色卡名称','')||'').trim();
+   if(!name)name=String(window.prompt('请输入这张图片所属的角色卡名称','')||'').trim();
    if(!name){status('未收藏：没有指定角色名称。');return;}
    for(const item of records){item.albumCharacterName=name;item.albumCharacterKey=currentChar.id||'';}
    save();render();history();status('已收藏到「'+name+'」角色相册。');
