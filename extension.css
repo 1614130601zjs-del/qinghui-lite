@@ -939,3 +939,21 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #chat .ql-chat-image-tag-input{box-sizing:border-box;width:100%;min-height:76px;resize:vertical;padding:8px;border:1px solid var(--SmartThemeBorderColor);border-radius:8px;background:var(--SmartThemeBlurTintColor);color:var(--SmartThemeBodyColor)}
 #chat .ql-chat-image-editor-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:6px}
 #chat .ql-chat-image-tag-saved{display:block;text-align:center;font-size:11px;opacity:.7;margin-top:4px}
+
+
+/* 2026-10-25: compact image actions and horizontal tag editing controls. */
+#chat .ql-chat-image-controls{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:flex-start!important;flex-wrap:wrap!important;gap:6px!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-edit{
+ flex:0 0 auto!important;width:auto!important;min-width:0!important;
+ min-height:32px!important;padding:6px 11px!important;white-space:nowrap!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-reroll{
+ width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;
+ padding:6px!important;border-radius:9px!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-reroll svg{width:17px!important;height:17px!important;}
+#chat .ql-chat-image img,.ql-statusbar-card>img{cursor:zoom-in;}
+.ql-statusbar-controls .ql-statusbar-count{display:none!important;}
