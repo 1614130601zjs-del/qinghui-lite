@@ -1437,3 +1437,10 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #chat .ql-chat-image-editor .ql-chat-image-temp-config{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0;}
 #chat .ql-chat-image-editor .ql-chat-image-temp-config label{display:flex;flex-direction:column;gap:4px;font-size:12px;}
 #chat .ql-chat-image-editor .ql-chat-image-temp-config select{width:100%;min-width:0;}
+
+
+/* 配置子标签拉开间距；正文 tag 编辑按钮横向并排。 */
+#qinghui-lite-panel .ql-subtabs{gap:14px!important;justify-content:flex-start!important;padding-inline:8px!important;}
+#qinghui-lite-panel .ql-subtabs .ql-subtab{margin:0!important;padding-inline:14px!important;flex-shrink:0!important;}
+#chat .ql-chat-image-editor .ql-chat-image-editor-actions{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:center!important;gap:12px!important;width:100%!important;margin-top:10px!important;}
+#chat .ql-chat-image-editor .ql-chat-image-editor-actions .ql-chat-image-tag-save,#chat .ql-chat-image-editor .ql-chat-image-editor-actions .ql-chat-image-tag-cancel{display:inline-flex!important;flex:1 1 0!important;min-width:0!important;max-width:180px!important;justify-content:center!important;align-items:center!important;margin:0!important;}
