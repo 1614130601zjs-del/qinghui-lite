@@ -367,12 +367,37 @@ async function preparePngDownloadBlob(blob){
    if(!context)throw new Error('无法创建 Canvas 画布，未执行重绘清洗');
    context.clearRect(0,0,width,height);
    context.drawImage(drawSource,0,0,width,height);
-   const cleaned=await new Promise((resolve,reject)=>{
+   const canvasBlob=await new Promise((resolve,reject)=>{
     canvas.toBlob(result=>result?resolve(result):reject(new Error('浏览器重新编码 PNG 失败，未执行重绘清洗')),'image/png');
    });
-   if(!cleaned||cleaned.type!=='image/png')throw new Error('浏览器未能导出 PNG，未执行重绘清洗');
-   lastPngCleanReport='已清除元数据：Canvas 重绘并重新编码为 PNG（原尺寸 '+width+'×'+height+'）。';
-   return cleaned;
+   if(!canvasBlob||canvasBlob.type!=='image/png')throw new Error('浏览器未能导出 PNG，未执行重绘清洗');
+
+   // Canvas 重绘后再检查 PNG 数据块，明确移除文本、EXIF、时间及未知附加块。
+   // 这样不只依赖浏览器是否会在 toBlob() 时自动丢弃元数据。
+   const outputBytes=new Uint8Array(await canvasBlob.arrayBuffer());
+   const outputSignature=[137,80,78,71,13,10,26,10];
+   if(outputBytes.length<8||!outputSignature.every((v,i)=>outputBytes[i]===v))throw new Error('Canvas 导出的文件不是有效 PNG');
+   const keepAfterRedraw=new Set(['IHDR','PLTE','IDAT','IEND','tRNS','sRGB','gAMA','cHRM','iCCP','sBIT','bKGD','hIST','pHYs']);
+   const outputChunks=[outputBytes.slice(0,8)];
+   const removedAfterRedraw=[];
+   let outputOffset=8,hasIend=false;
+   while(outputOffset+12<=outputBytes.length){
+    const chunkLength=((outputBytes[outputOffset]<<24)|(outputBytes[outputOffset+1]<<16)|(outputBytes[outputOffset+2]<<8)|outputBytes[outputOffset+3])>>>0;
+    const chunkEnd=outputOffset+12+chunkLength;
+    if(chunkEnd>outputBytes.length)throw new Error('Canvas 输出 PNG 数据块长度异常');
+    const chunkType=String.fromCharCode(outputBytes[outputOffset+4],outputBytes[outputOffset+5],outputBytes[outputOffset+6],outputBytes[outputOffset+7]);
+    const isCritical=chunkType.charCodeAt(0)>=65&&chunkType.charCodeAt(0)<=90;
+    if(isCritical||keepAfterRedraw.has(chunkType))outputChunks.push(outputBytes.slice(outputOffset,chunkEnd));
+    else removedAfterRedraw.push(chunkType);
+    outputOffset=chunkEnd;
+    if(chunkType==='IEND'){hasIend=true;break;}
+   }
+   if(!hasIend)throw new Error('Canvas 输出 PNG 缺少 IEND 结束块');
+   const resultBlob=new Blob(outputChunks,{type:'image/png'});
+   if(!resultBlob.size)throw new Error('PNG 元数据二次清理失败');
+   const uniqueRemoved=[...new Set(removedAfterRedraw)];
+   lastPngCleanReport='已执行 Canvas 重绘并二次清理 PNG 数据块（原尺寸 '+width+'×'+height+'）。'+(removedAfterRedraw.length?'额外移除 '+removedAfterRedraw.length+' 个附加块：'+uniqueRemoved.join('、')+'。':'已检查重绘后的 PNG，未发现额外文本/EXIF/时间或未知附加块。');
+   return resultBlob;
   }catch(error){
    console.error('[轻绘 Lite] Canvas PNG 重绘失败',error);
    throw new Error('PNG 重绘清洗失败，未下载原始文件：'+(error?.message||String(error)));
