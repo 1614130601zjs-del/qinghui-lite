@@ -1570,7 +1570,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 }
 
 /* 0.5.31: statusbar actions stay visible/clickable; album flip controls match chat image arrows. */
-.ql-statusbar-card .ql-statusbar-controls{pointer-events:auto!important;}
+.ql-statusbar-card .ql-statusbar-controls{pointer-events:none!important;}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-arrow{z-index:2!important;cursor:pointer!important;}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-count{z-index:2!important;}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action{
