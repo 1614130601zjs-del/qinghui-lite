@@ -18,14 +18,12 @@ function cfg(){
  if(typeof s.naiNormalizeVibeStrengths!=='boolean')s.naiNormalizeVibeStrengths=true;
  if(s.model==='gpt-image-2.5-sunburst'){s.model='gpt-image-1';saveSettingsDebounced();}
  for(const key of ['records','presets','characters','prompts','vibes','bindings','combinations'])if(!Array.isArray(s[key]))s[key]=[];
- // 升级到本版时统一清空旧版导入的 Vibe 与角色绑定，确保迁移只保留画师串；此清理只执行一次。
- if(!s.vibeImportCleanupV2){
-  s.vibes=[];
-  s.activeVibeIndex=-1;
-  for(const binding of s.bindings)binding.vibeIndex=-1;
-  s.vibeMigrationCleared20261025=true;
-  s.vibeImportCleanupV2=true;
-  saveSettingsDebounced();
+ // 组合配置升级只补充新字段，不清空用户已有的 Vibe 或角色绑定。
+ if(!s.comboMigrationV1){
+  const comboFor=(artistIndex,vibeIndex)=>{let i=s.combinations.findIndex(c=>Number(c.artistIndex??-1)===Number(artistIndex??-1)&&Number(c.vibeIndex??-1)===Number(vibeIndex??-1));if(i<0){s.combinations.push({name:[s.presets[artistIndex]?.name,s.vibes[vibeIndex]?.name].filter(Boolean).join(' + ')||'旧配置组合',artistIndex:Number(artistIndex??-1),vibeIndex:Number(vibeIndex??-1),migrated:true});i=s.combinations.length-1;}return i;};
+  for(const binding of s.bindings){if(!Number.isInteger(binding.combinationIndex)&&(Number(binding.presetIndex??-1)>=0||Number(binding.vibeIndex??-1)>=0))binding.combinationIndex=comboFor(binding.presetIndex,binding.vibeIndex);}
+  if(Number(s.activePresetIndex??-1)>=0||Number(s.activeVibeIndex??-1)>=0)s.activeComboIndex=comboFor(s.activePresetIndex,s.activeVibeIndex);
+  s.comboMigrationV1=true;saveSettingsDebounced();
  }
  let migrated=false;
  for(const vibe of s.vibes){
