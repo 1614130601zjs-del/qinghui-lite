@@ -885,7 +885,8 @@ async function processLatestAssistantMessage(){
 }
 let statusbarObserver=null;
 const statusbarObservedDocs=new WeakSet();
-function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);return match?.[1]?.trim()||'';}
+function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\\s\\S]*?)###/);return match?.[1]?.trim()||'';}
+function plainStatusbarTag(text){return String(text||'').replace(/^image###\\s*/i,'').replace(/\\s*###$/,'').trim();}
 function statusbarPromptForTarget(target){
  const direct=[
   target?.textContent,
@@ -893,24 +894,32 @@ function statusbarPromptForTarget(target){
   ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
- // 已处理过的状态栏会移除 scanning 类，但保留 data-ql-prompt；刷新后必须仍能被重新扫描。
+ // 已处理过的状态栏会移除 scanning 类；正则通常把纯提示词放在外层 data-tag，而非 image### 标记里。
  const savedPrompt=String(target?.getAttribute?.('data-ql-prompt')||target?.dataset?.qlPrompt||'').trim();
  if(savedPrompt)return savedPrompt;
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
-  const prompt=parseStatusbarMarker(ancestor.getAttribute?.('data-tag'));
-  if(prompt)return prompt;
+  const raw=ancestor.getAttribute?.('data-tag');
+  const marked=parseStatusbarMarker(raw);
+  if(marked)return marked;
+  // 只有包含状态栏图片框架的包装节点才把普通 data-tag 当作提示词，避免误识别其他标签。
+  if(raw&&ancestor.querySelector?.('.shot-frame, [id="frame"], [id$="-frame"]')){
+   const plain=plainStatusbarTag(raw);
+   if(plain)return plain;
+  }
   ancestor=ancestor.parentElement;
  }
  return '';
 }
 function statusbarTargetsForDoc(doc){
  const candidates=new Set(Array.from(doc.querySelectorAll('[class~="scanning"], [data-ql-prompt]')));
- // 状态栏正则把提示词放在外层 data-tag，真正显示图片的 .shot-frame 默认没有 scanning 类。
+ // 正则将提示词放在外层 data-tag；即使刷新后没有 scanning 类，也按结构定位真正的图片框架。
  for(const tagged of Array.from(doc.querySelectorAll('[data-tag]'))){
-  if(!parseStatusbarMarker(tagged.getAttribute('data-tag')))continue;
   const frame=tagged.querySelector('.shot-frame, [id="frame"], [id$="-frame"]');
-  candidates.add(frame||tagged);
+  if(!frame)continue;
+  const raw=tagged.getAttribute('data-tag');
+  if(!parseStatusbarMarker(raw)&&!plainStatusbarTag(raw))continue;
+  candidates.add(frame);
  }
  const all=Array.from(candidates).filter(el=>statusbarPromptForTarget(el)||el.dataset.qlPrompt);
  return all.filter(el=>!all.some(child=>child!==el&&el.contains(child)&&statusbarPromptForTarget(child)===statusbarPromptForTarget(el)));
