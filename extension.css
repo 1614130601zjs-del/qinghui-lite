@@ -139,3 +139,21 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel .ql-library-image-preview{display:flex;align-items:center;justify-content:center;min-height:110px;max-height:280px;overflow:auto;border-radius:8px;background:rgba(127,127,127,.06)}
 #qinghui-lite-panel .ql-library-image-preview img{display:block;max-width:100%;max-height:260px;object-fit:contain;border-radius:8px}
 #qinghui-lite-panel .ql-library-image-preview>.ql-muted{padding:24px;text-align:center}
+
+
+/* 提示词库：默认紧凑的图片流网格，不再铺开大图。 */
+#qinghui-lite-panel #ql-prompt-editor[hidden]{display:none!important}
+#qinghui-lite-panel #ql-prompts-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:start;margin-top:10px}
+#qinghui-lite-panel .ql-prompt-tile{min-width:0;overflow:hidden;border:1px solid var(--ql-border);border-radius:10px;padding:6px;background:var(--ql-card)}
+#qinghui-lite-panel .ql-prompt-thumb{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:1/1;overflow:hidden;margin:0 0 6px;padding:0;border:0;border-radius:7px;background:rgba(127,127,127,.1);cursor:pointer}
+#qinghui-lite-panel .ql-prompt-thumb img{display:block;width:100%;height:100%;max-width:none;max-height:none;margin:0;object-fit:cover;border-radius:0}
+#qinghui-lite-panel .ql-prompt-thumb span{font-size:11px;opacity:.6}
+#qinghui-lite-panel .ql-prompt-tile>strong{display:block;font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+#qinghui-lite-panel .ql-prompt-tile>small{display:block;margin-top:3px;font-size:10px;opacity:.65}
+#qinghui-lite-panel .ql-prompt-tile-actions{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+#qinghui-lite-panel .ql-prompt-tile-actions button{flex:1 1 auto;min-width:0;margin:0;padding:4px 3px;font-size:10px;line-height:1.2}
+#qinghui-lite-panel #ql-prompt-editor{margin:10px 0;padding:10px;border:1px solid var(--ql-border);border-radius:10px}
+#qinghui-lite-panel #ql-prompt-editor[hidden]{display:none!important}
+#qinghui-lite-panel #ql-prompt-add[hidden]{display:none!important}
+#qinghui-lite-panel [data-subpage-panel^="conn-"][hidden]{display:none!important}
+@media(max-width:380px){#qinghui-lite-panel #ql-prompts-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}#qinghui-lite-panel .ql-prompt-tile{padding:5px}}
