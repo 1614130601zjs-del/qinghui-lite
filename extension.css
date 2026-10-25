@@ -1257,9 +1257,11 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-statusbar-card .ql-statusbar-arrow{pointer-events:auto!important;position:relative;z-index:21;min-width:30px;min-height:28px;}
 
 
-/* 0.5.17: statusbar image controls stay hidden until the image is tapped. */
-.ql-statusbar-card .ql-statusbar-controls{display:flex!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;z-index:2147483000!important;left:50%!important;top:50%!important;bottom:auto!important;transform:translate(-50%,-50%)!important}
-.ql-statusbar-card .ql-statusbar-controls button{display:flex!important;visibility:visible!important;pointer-events:auto!important;min-width:36px!important;min-height:32px!important;color:#fff!important;background:rgba(0,0,0,.3)!important}
+/* 0.5.18: separated translucent white arrows on the left/right of the statusbar center. */
+.ql-statusbar-card .ql-statusbar-controls{display:block!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;z-index:2147483000!important;inset:0!important;width:100%!important;height:100%!important;left:0!important;top:0!important;bottom:auto!important;transform:none!important;background:transparent!important;border:0!important;padding:0!important}
+.ql-statusbar-card .ql-statusbar-controls button{display:flex!important;visibility:visible!important;pointer-events:auto!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;color:#fff!important;background:rgba(255,255,255,.34)!important;border:1px solid rgba(255,255,255,.52)!important;box-shadow:0 1px 5px rgba(0,0,0,.10)!important}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-arrow:first-child{left:30%!important;right:auto!important;top:50%!important;transform:translate(-50%,-50%)!important}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-arrow:last-child{left:auto!important;right:30%!important;top:50%!important;transform:translate(50%,-50%)!important}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-count{display:none!important;color:#fff!important}
 
 
