@@ -1281,3 +1281,6 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #chat .mes_text .ql-inline-image-trigger.ql-album-classic:hover,
 #chat .mes_text .ql-inline-image-trigger.ql-album-film:hover,
 #chat .mes_text .ql-inline-image-trigger.ql-album-soft:hover{filter:brightness(1.04)!important;}
+
+/* 状态栏内隐藏图片序号，避免 1/2 等文字挤压原始构图；左右切换按钮仍保留。 */
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-count{display:none!important;width:0!important;min-width:0!important;margin:0!important;padding:0!important;overflow:hidden!important;}
