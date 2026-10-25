@@ -671,7 +671,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
    const currentPrompt=String(card.dataset.qlPrompt||'').trim();if(!currentPrompt)return;
    const candidate=triggerRegistry.beginCandidate(taskKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});if(!candidate.accepted)return;
    triggerRegistry.markRunning(taskKey);card.dataset.qlBusy='1';reroll.disabled=true;
-   try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([28,42,28]);}catch{}
+   try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([75,45,75]);}catch{}
    const old=reroll.innerHTML;reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l-2.12 2.12"/></svg>';
    try{const fresh=await requestWithActiveSettings(currentPrompt);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();storeChatRecord(fresh,currentPrompt,taskKey,recordMeta);triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}
    catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}
@@ -819,14 +819,27 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   card.style.cssText='position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#000;z-index:6;';
   const img=document.createElement('img');img.alt='轻绘状态栏画面';img.loading='eager';img.style.cssText='display:block;width:100%;height:100%;object-fit:contain;';
   card._qlPrompt=prompt;card._qlCandidates=[];card._qlIndex=0;
-  card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;};
-  card._qlAddCandidate=url=>{card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
+  const controls=document.createElement('div');controls.className='ql-statusbar-controls';
+  const prev=document.createElement('button');prev.type='button';prev.className='ql-statusbar-arrow';prev.setAttribute('aria-label','上一张');prev.title='上一张';prev.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
+  const count=document.createElement('span');count.className='ql-statusbar-count';count.textContent='1 / 1';
+  const next=document.createElement('button');next.type='button';next.className='ql-statusbar-arrow';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+  const updateControls=()=>{const total=card._qlCandidates.length;count.textContent=total?String(card._qlIndex+1)+' / '+total:'0 / 0';prev.disabled=total<2;next.disabled=total<2;};
+  card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;updateControls();};
+  card._qlAddCandidate=url=>{if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});}card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
+  const moveCandidate=delta=>{const total=card._qlCandidates.length;if(total<2)return;card._qlIndex=(card._qlIndex+delta+total)%total;card._qlRender();};
+  prev.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();moveCandidate(-1);});
+  next.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();moveCandidate(1);});
+  for(const control of [prev,next]){control.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});control.addEventListener('touchend',e=>e.stopPropagation(),{passive:true});}
+  controls.append(prev,count,next);
+  controls.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();});
+  controls.addEventListener('click',e=>e.stopPropagation());
   const reroll=async()=>{if(card.dataset.busy==='1'||(Date.now()-(Number(card.dataset.lastRerollAt)||0))<900)return;card.dataset.lastRerollAt=Date.now();try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([28,42,28]);}catch{}const manualKey=taskKey+':manual:'+Date.now();const candidate=triggerRegistry.begin(manualKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(manualKey);card.dataset.busy='1';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlAddCandidate(fresh);storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(manualKey,manualKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(manualKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}finally{card.dataset.busy='0';}};
   img.style.touchAction='manipulation';
   // 手机浏览器的 pointerup 与 touchend 可能在同一次点击中都触发，混用会把单击误判成双击。
   // 触屏只使用 touchend；鼠标/触控笔使用 dblclick。监听放在覆盖层 card 上，避免图片元素被酒馆重绘替换后失效。
   let lastTouchTap=0;
   card.addEventListener('touchend',e=>{
+   if(e.target?.closest?.('.ql-statusbar-controls'))return;
    if(e.changedTouches?.length!==1)return;
    const now=Date.now();
    if(now-lastTouchTap>0&&now-lastTouchTap<650){
@@ -835,7 +848,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   },{passive:false});
   card.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll();});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
-  card.append(img);frame.append(card);
+  card.append(img,controls);frame.append(card);
 
  }
  if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;}
