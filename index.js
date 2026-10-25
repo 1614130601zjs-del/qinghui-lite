@@ -1110,13 +1110,14 @@ jQuery(()=>{
 });
 
 
-// 独立入口兜底：无论轻绘面板是否已存在，都确保魔法棒入口注册成功。
+// 独立入口兜底：菜单会被酒馆重建，因此统一监听 DOM 变化并把入口放回原生魔法棒菜单。
 jQuery(()=>{
  const ensureQinghuiLauncher=()=>{
   const menu=document.querySelector('#extensionsMenu');
-  if(!menu)return;
-  let launch=document.querySelector('#ql-chat-launch');
+  if(!menu)return false;
+  let launch=menu.querySelector('#ql-chat-launch');
   if(!launch){
+   // 只复用菜单内节点；避免误拿到已脱离菜单的旧节点。
    launch=document.createElement('div');
    launch.id='ql-chat-launch';
    launch.className='list-group-item flex-container flexGap5';
@@ -1135,11 +1136,15 @@ jQuery(()=>{
    });
   }
   if(launch.parentElement!==menu)menu.append(launch);
+  return true;
  };
  ensureQinghuiLauncher();
+ // 观察整个页面，菜单被清空、替换或重新创建时都会重新挂载入口。
  if(!document.documentElement.dataset.qlLauncherObserver){
   document.documentElement.dataset.qlLauncherObserver='1';
   const observer=new MutationObserver(()=>ensureQinghuiLauncher());
   observer.observe(document.documentElement,{childList:true,subtree:true});
  }
+ // 菜单可能在扩展初始化之后才打开；点击页面时再做一次幂等检查作为兜底。
+ document.addEventListener('click',()=>{ensureQinghuiLauncher();},true);
 });
