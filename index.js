@@ -341,18 +341,38 @@ function observeStatusbarFrames(){
 
 function save(){ saveSettingsDebounced(); }
 function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-panel">
-<div class="ql-card"><h3>轻绘 Lite · 测试版</h3><p class="ql-muted">独立工作区支持 GPT / OpenAI 兼容接口和酒馆已配置的 NovelAI 连接。状态栏画面框注入已接入，尚需实际酒馆验证。</p>
-<label>生图后端</label><select id="ql-provider"><option value="openai">GPT / OpenAI 兼容接口</option><option value="novelai">NovelAI（使用酒馆已配置的连接）</option></select>
-<div id="ql-openai-settings"><label>API 地址</label><input id="ql-endpoint" placeholder="https://api.openai.com/v1">
-<label>API Key</label><input id="ql-key" type="password" autocomplete="off" placeholder="不会写入 GitHub">
-<label>模型</label><input id="ql-model" placeholder="gpt-image-1">
-<div class="ql-row"><div><label>尺寸</label><select id="ql-size"><option>1024x1024</option><option>1536x1024</option><option>1024x1536</option></select></div><div><label>质量</label><select id="ql-quality"><option>low</option><option selected>medium</option><option>high</option></select></div></div>
-</div><div id="ql-nai-settings" hidden><label>NovelAI 模型</label><input id="ql-nai-model" value="nai-diffusion-4-5-full"><div class="ql-row"><div><label>步数</label><input id="ql-nai-steps" type="number" min="1" max="50"></div><div><label>CFG Scale</label><input id="ql-nai-scale" type="number" min="1" max="20" step="0.5"></div></div><div class="ql-row"><div><label>宽度</label><select id="ql-nai-width"><option>512</option><option>640</option><option>768</option><option selected>832</option><option>1024</option></select></div><div><label>高度</label><select id="ql-nai-height"><option>512</option><option>640</option><option>768</option><option selected>1216</option><option>1024</option><option>1536</option></select></div></div><label>采样器</label><select id="ql-nai-sampler"><option value="k_euler_ancestral">Euler Ancestral</option><option value="k_euler">Euler</option><option value="k_dpmpp_2m">DPM++ 2M</option><option value="k_dpmpp_2s_ancestral">DPM++ 2S Ancestral</option></select><label>调度器</label><select id="ql-nai-scheduler"><option value="karras">Karras</option><option value="native">Native</option></select></div><button id="ql-save" class="menu_button">保存后端设置</button></div>
-<div class="ql-card"><h3>独立生图工作区</h3><label for="ql-active-vibe">Vibe 参考（仅 NovelAI，需导入含图片编码的资源）</label><select id="ql-active-vibe"><option value="-1">不使用 Vibe</option></select><p class="ql-muted">导入的 Vibe 会显示在这里；如果只有名称或缓存引用，不能直接用于生成，需要先从智绘姬导出包含参考图数据的设置。</p><label>完整正向提示词</label><textarea id="ql-prompt" placeholder="输入完整提示词"></textarea><label>负向提示词</label><textarea id="ql-negative" placeholder="可选"></textarea><button id="ql-generate" class="menu_button">生成一张</button><p id="ql-status" class="ql-muted" role="status"></p><div id="ql-result"></div></div>
-<div class="ql-card"><h3>最近生成（本地记录）</h3><div id="ql-history"></div><button id="ql-clear" class="menu_button">清空记录</button></div>
-<div class="ql-card"><h3>提示词库</h3><div class="ql-row"><input id="ql-prompt-name" placeholder="名称"><input id="ql-prompt-category" placeholder="分类"></div><label>完整正向提示词</label><textarea id="ql-library-prompt" placeholder="保存完整提示词"></textarea><label>负向提示词</label><textarea id="ql-library-negative"></textarea><button id="ql-prompt-save" class="menu_button">保存提示词</button><div id="ql-prompts-list"></div></div>
-<div class="ql-card"><h3>角色库</h3><input id="ql-character-name" placeholder="角色名称"><label>固定外貌词</label><textarea id="ql-character-appearance"></textarea><button id="ql-character-save" class="menu_button">保存角色</button><div id="ql-characters-list"></div></div>
-<div class="ql-card"><h3>画风预设</h3><input id="ql-preset-name" placeholder="预设名称"><label>正向画风串</label><textarea id="ql-preset-positive"></textarea><label>负向提示词</label><textarea id="ql-preset-negative"></textarea><button id="ql-preset-save" class="menu_button">保存预设</button><div id="ql-presets-list"></div></div><div class="ql-card"><h3>智绘姬一键迁移</h3><p class="ql-muted">先扫描当前酒馆可访问的智绘姬设置；也可以选择智绘姬导出的 JSON 文件。迁移前会预览，已有数据不会被覆盖。</p><div class="ql-row"><button id="ql-migrate-scan" class="menu_button">扫描当前酒馆</button><button id="ql-migrate-file-btn" class="menu_button">选择导出文件</button><input id="ql-migrate-file" type="file" accept=".json,.json5,.txt,application/json" hidden></div><div id="ql-migrate-preview" class="ql-muted" role="status">尚未扫描。</div><button id="ql-migrate-import" class="menu_button" disabled>确认导入</button><p class="ql-muted">画师串与文本预设可迁移；Vibe 项目会先保留名称和原始数据供核对。只有确认参考图与编码字段后，才会接入实际生图调用。</p><div id="ql-vibes-list"></div></div></section></div>`;}
+<header class="ql-header"><div class="ql-brand"><strong>轻绘 Lite</strong><span>独立生图工作区</span></div><button id="ql-close" class="menu_button" type="button">关闭</button></header>
+<nav class="ql-tabs" aria-label="轻绘功能导航" role="tablist">
+<button type="button" class="ql-tab active" data-page="generate" role="tab" aria-selected="true">生图</button>
+<button type="button" class="ql-tab" data-page="library" role="tab" aria-selected="false">素材库</button>
+<button type="button" class="ql-tab" data-page="history" role="tab" aria-selected="false">历史</button>
+<button type="button" class="ql-tab" data-page="settings" role="tab" aria-selected="false">设置</button>
+<button type="button" class="ql-tab" data-page="migration" role="tab" aria-selected="false">迁移</button>
+</nav>
+<div class="ql-page active" data-page-panel="generate" role="tabpanel">
+<div class="ql-card"><h3>开始创作</h3>
+<label for="ql-active-vibe">Vibe 参考（仅 NovelAI）</label><select id="ql-active-vibe"><option value="-1">不使用 Vibe</option></select><p class="ql-muted">仅包含完整参考图编码的 Vibe 可用于生成。</p>
+<label for="ql-prompt">正向提示词</label><textarea id="ql-prompt" placeholder="输入完整提示词"></textarea>
+<label for="ql-negative">负向提示词</label><textarea id="ql-negative" placeholder="可选"></textarea>
+<button id="ql-generate" class="menu_button ql-primary">生成一张</button><p id="ql-status" class="ql-muted" role="status"></p><div id="ql-result"></div>
+</div>
+</div>
+<div class="ql-page" data-page-panel="library" role="tabpanel" hidden>
+<div class="ql-card"><h3>提示词库</h3><div class="ql-row"><input id="ql-prompt-name" placeholder="名称"><input id="ql-prompt-category" placeholder="分类"></div><label>完整正向提示词</label><textarea id="ql-library-prompt" placeholder="保存完整提示词"></textarea><label>负向提示词</label><textarea id="ql-library-negative" placeholder="可选"></textarea><button id="ql-prompt-save" class="menu_button">保存提示词</button><div id="ql-prompts-list"></div></div>
+<div class="ql-card"><h3>角色库</h3><input id="ql-character-name" placeholder="角色名称"><label>固定外貌词</label><textarea id="ql-character-appearance" placeholder="角色固定外貌特征"></textarea><button id="ql-character-save" class="menu_button">保存角色</button><div id="ql-characters-list"></div></div>
+<div class="ql-card"><h3>画风预设</h3><input id="ql-preset-name" placeholder="预设名称"><label>正向画风串</label><textarea id="ql-preset-positive" placeholder="正向画风提示词"></textarea><label>负向提示词</label><textarea id="ql-preset-negative" placeholder="可选"></textarea><button id="ql-preset-save" class="menu_button">保存预设</button><div id="ql-presets-list"></div></div>
+</div>
+<div class="ql-page" data-page-panel="history" role="tabpanel" hidden><div class="ql-card"><h3>最近生成</h3><p class="ql-muted">本地保存的最近生成记录。</p><div id="ql-history"></div><button id="ql-clear" class="menu_button">清空记录</button></div></div>
+<div class="ql-page" data-page-panel="settings" role="tabpanel" hidden>
+<div class="ql-card"><h3>生图后端</h3><label>生图后端</label><select id="ql-provider"><option value="openai">GPT / OpenAI 兼容接口</option><option value="novelai">NovelAI（使用酒馆已配置的连接）</option></select>
+<div id="ql-openai-settings"><label>API 地址</label><input id="ql-endpoint" placeholder="https://api.openai.com/v1"><label>API Key</label><input id="ql-key" type="password" autocomplete="off" placeholder="不会写入 GitHub"><label>模型</label><input id="ql-model" placeholder="gpt-image-1"><div class="ql-row"><div><label>尺寸</label><select id="ql-size"><option>1024x1024</option><option>1536x1024</option><option>1024x1536</option></select></div><div><label>质量</label><select id="ql-quality"><option>low</option><option selected>medium</option><option>high</option></select></div></div></div>
+<div id="ql-nai-settings" hidden><label>NovelAI 模型</label><input id="ql-nai-model" value="nai-diffusion-4-5-full"><div class="ql-row"><div><label>步数</label><input id="ql-nai-steps" type="number" min="1" max="50"></div><div><label>CFG Scale</label><input id="ql-nai-scale" type="number" min="1" max="20" step="0.5"></div></div><div class="ql-row"><div><label>宽度</label><select id="ql-nai-width"><option>512</option><option>640</option><option>768</option><option selected>832</option><option>1024</option></select></div><div><label>高度</label><select id="ql-nai-height"><option>512</option><option>640</option><option>768</option><option selected>1216</option><option>1024</option><option>1536</option></select></div></div><label>采样器</label><select id="ql-nai-sampler"><option value="k_euler_ancestral">Euler Ancestral</option><option value="k_euler">Euler</option><option value="k_dpmpp_2m">DPM++ 2M</option><option value="k_dpmpp_2s_ancestral">DPM++ 2S Ancestral</option></select><label>调度器</label><select id="ql-nai-scheduler"><option value="karras">Karras</option><option value="native">Native</option></select></div>
+<button id="ql-save" class="menu_button ql-primary">保存后端设置</button>
+</div>
+</div>
+<div class="ql-page" data-page-panel="migration" role="tabpanel" hidden><div class="ql-card"><h3>智绘姬数据迁移</h3><p class="ql-muted">先扫描当前酒馆可访问的智绘姬设置，也可以选择智绘姬导出的 JSON 文件。迁移前会预览，已有数据不会被覆盖。</p><div class="ql-row ql-migrate-actions"><button id="ql-migrate-scan" class="menu_button">扫描当前酒馆</button><button id="ql-migrate-file-btn" class="menu_button">选择导出文件</button><input id="ql-migrate-file" type="file" accept=".json,.json5,.txt,application/json" hidden></div><div id="ql-migrate-preview" class="ql-muted" role="status">尚未扫描。</div><button id="ql-migrate-import" class="menu_button" disabled>确认导入</button><p class="ql-muted">画师串与文本预设可迁移；Vibe 项目会先保留原始数据供核对，确认资源格式后再接入生图。</p><div id="ql-vibes-list"></div></div></div>
+</section></div>`;}
+
 function read(){const s=cfg();s.provider=$('#ql-provider').value;s.endpoint=$('#ql-endpoint').value.trim().replace(/\/$/,'');s.apiKey=$('#ql-key').value.trim();s.model=$('#ql-model').value.trim()||'gpt-image-1';s.size=$('#ql-size').value;s.quality=$('#ql-quality').value;s.naiModel=$('#ql-nai-model').value.trim()||'nai-diffusion-4-5-full';s.naiSteps=Number($('#ql-nai-steps').value)||28;s.naiScale=Number($('#ql-nai-scale').value)||5;s.naiWidth=Number($('#ql-nai-width').value)||832;s.naiHeight=Number($('#ql-nai-height').value)||1216;s.naiSampler=$('#ql-nai-sampler').value;s.naiScheduler=$('#ql-nai-scheduler').value;s.prompt=$('#ql-prompt').value;s.negative=$('#ql-negative').value;save();}
 function status(t){$('#ql-status').textContent=t;}
 function history(){
@@ -518,10 +538,7 @@ jQuery(()=>{
   panel.setAttribute('role','dialog');
   panel.setAttribute('aria-modal','true');
   panel.setAttribute('aria-label','轻绘 Lite');
-  const close=document.createElement('button');
-  close.type='button';close.id='ql-close';close.className='menu_button';close.textContent='关闭轻绘';
-  const heading=panel.querySelector('.ql-card h3');
-  if(heading)heading.parentElement.insertBefore(close,heading.nextSibling);
+  const close=$('#ql-close',panel);
   const open=()=>{
    overlay.hidden=false;
    document.body.classList.add('ql-modal-open');
@@ -558,6 +575,13 @@ jQuery(()=>{
    });
    observer.observe(document.body,{childList:true,subtree:true});
   }
+  panel.querySelectorAll('.ql-tab').forEach(tab=>tab.addEventListener('click',()=>{
+   const target=tab.dataset.page;
+   panel.querySelectorAll('.ql-tab').forEach(item=>{const active=item===tab;item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
+   panel.querySelectorAll('[data-page-panel]').forEach(page=>{const active=page.dataset.pagePanel===target;page.hidden=!active;page.classList.toggle('active',active);});
+   const activePage=panel.querySelector('[data-page-panel="'+target+'"]');
+   if(activePage)activePage.scrollTop=0;
+  }));
   init();
  }
  observeStatusbarFrames();
