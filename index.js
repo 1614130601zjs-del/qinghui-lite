@@ -734,7 +734,7 @@ async function runInlineImageTrigger(button,entry){
 }
 async function processLatestAssistantMessage(){
  // 清理旧版本遗留在正文图片下方的失败提示；当前失败统一用弹窗，不在图片卡片内留错。
- document.querySelectorAll('.ql-chat-image-status').forEach(node=>{if(/生成失败|HTTP\\s*429|Concurrent generation is locked/i.test(node.textContent||''))node.remove();});
+ document.querySelectorAll('.ql-chat-image-status').forEach(node=>{if(/生成失败|HTTP\s*429|Concurrent generation is locked/i.test(node.textContent||''))node.remove();});
  const context=getContext();
  const chat=context?.chat;
  if(!Array.isArray(chat)||!chat.length)return;
