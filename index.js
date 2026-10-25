@@ -763,31 +763,33 @@ function storeChatRecord(url,prompt,taskKey,meta={}){
 async function runInlineImageTrigger(button,entry){
  if(!button||button.dataset.qlBusy==='1'||button.dataset.qlDone==='1')return;
  const prompt=String(entry?.prompt||button.dataset.qlPrompt||'').trim();
- let taskKey=String(entry?.taskKey||button.dataset.qlTrigger||'');
- if(!prompt||!taskKey)return;
- // 编辑消息会让酒馆重建正文 DOM。若该 marker 曾经成功生图，重新出现的按钮应可再次使用，而不是被旧成功状态永久锁住。
- if(triggerRegistry.get(taskKey)?.status==='succeeded')taskKey=taskKey+':edited:'+Date.now();
- const accepted=triggerRegistry.begin(taskKey,{prompt,source:'chat-button',messageIndex:entry.messageIndex,markerOrdinal:entry.markerOrdinal});
- if(!accepted.accepted)return;
- triggerRegistry.markRunning(taskKey);
+ const recordTaskKey=String(entry?.taskKey||button.dataset.qlTrigger||'');
+ if(!prompt){alert('没有读取到 image### 标记中的提示词，请检查正文标记是否完整。');return;}
+ if(!recordTaskKey){alert('没有取得这条影像的任务标识，请刷新聊天后重试。');return;}
+ // 每次用户主动点击都创建独立请求任务，避免旧的 running/pending 状态把按钮静默拦截。
+ const requestTaskKey=recordTaskKey+':manual:'+Date.now()+':'+Math.random().toString(36).slice(2,8);
+ const accepted=triggerRegistry.begin(requestTaskKey,{prompt,source:'chat-button',messageIndex:entry?.messageIndex,markerOrdinal:entry?.markerOrdinal});
+ if(!accepted.accepted){alert('这次生图任务未能启动，请再点一次。');return;}
+ triggerRegistry.markRunning(requestTaskKey);
  button.dataset.qlBusy='1';button.disabled=true;button.textContent='生成中…';
- const statusNode=document.createElement('span');statusNode.className='ql-chat-image-status';statusNode.textContent='正在提交给 NAI 生图…';button.after(statusNode);
+ const statusNode=document.createElement('span');statusNode.className='ql-chat-image-status';statusNode.textContent='正在提交生图请求…';button.after(statusNode);
  try{
   const context=getContext();
-  const meta={messageIndex:entry.messageIndex,character:context?.name||null,chatId:context?.chatId||null};
+  const meta={messageIndex:entry?.messageIndex,character:context?.name||null,chatId:context?.chatId||null};
   const url=await requestWithActiveSettings(prompt);
-  const host=button.closest('.mes_text')||document.querySelector('.mes[mesid="'+entry.messageIndex+'"] .mes_text');
+  const host=button.closest('.mes_text')||(Number.isInteger(Number(entry?.messageIndex))?document.querySelector('.mes[mesid="'+entry.messageIndex+'"] .mes_text'):null);
   if(!host)throw new Error('找不到原消息正文，图片已生成但无法插入原消息。');
-  const card=addMessageImage(host,url,prompt,taskKey,meta);
+  const card=addMessageImage(host,url,prompt,recordTaskKey,meta);
   if(card)button.after(card);
   button.remove();statusNode.remove();
-  storeChatRecord(url,prompt,taskKey,meta);
-  triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());
+  storeChatRecord(url,prompt,recordTaskKey,meta);
+  triggerRegistry.markSucceeded(requestTaskKey,requestTaskKey+':candidate:'+Date.now());
  }catch(error){
-  triggerRegistry.markFailed(taskKey,error?.message||String(error));
+  try{triggerRegistry.markFailed(requestTaskKey,error?.message||String(error));}catch{}
   button.dataset.qlBusy='0';button.disabled=false;button.textContent='重试生图';
   statusNode.remove();
-  alert('轻绘生成失败：'+(error?.message||String(error)));
+  console.error('[拾帧] 定格此刻提交失败',error);
+  alert('拾帧生图失败：'+(error?.message||String(error)));
  }finally{if(button.isConnected)button.dataset.qlBusy='0';}
 }
 async function processLatestAssistantMessage(){
