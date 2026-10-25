@@ -891,6 +891,8 @@ function statusbarPromptForTarget(target){
  const direct=[
   target?.textContent,
   target?.getAttribute?.('data-tag'),
+  target?.getAttribute?.('data-ql-prompt'),
+  target?.dataset?.qlPrompt,
   ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
