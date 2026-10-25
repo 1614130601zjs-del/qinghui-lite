@@ -641,8 +641,8 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   const tempPresetLabel=document.createElement('label');tempPresetLabel.textContent='本次组合';const tempPreset=document.createElement('select');tempPreset.className='ql-chat-image-temp-preset';tempPresetLabel.append(tempPreset);
   const tempSizeLabel=document.createElement('label');tempSizeLabel.textContent='本次尺寸';const tempSize=document.createElement('select');tempSize.className='ql-chat-image-temp-size';tempSizeLabel.append(tempSize);tempConfig.append(tempPresetLabel,tempSizeLabel);
   const textarea=document.createElement('textarea');textarea.className='ql-chat-image-tag-input';textarea.rows=3;textarea.value=String(prompt||'');textarea.setAttribute('aria-label','画面提示词');
-  const saveTag=document.createElement('button');saveTag.type='button';saveTag.className='menu_button';saveTag.textContent='保存 tag';
-  const cancelTag=document.createElement('button');cancelTag.type='button';cancelTag.className='menu_button';cancelTag.textContent='取消';
+  const saveTag=document.createElement('button');saveTag.type='button';saveTag.className='menu_button ql-chat-image-tag-save';saveTag.textContent='保存';
+  const cancelTag=document.createElement('button');cancelTag.type='button';cancelTag.className='menu_button ql-chat-image-tag-cancel';cancelTag.textContent='取消';
   const editorActions=document.createElement('div');editorActions.className='ql-chat-image-editor-actions';editorActions.append(saveTag,cancelTag);editor.append(tempConfig,textarea,editorActions);
   const fillTempConfig=()=>{const c=cfg();tempPreset.innerHTML='<option value="">跟随默认组合</option>'+c.combinations.map((x,i)=>'<option value="'+i+'">'+esc(x.name||('组合 '+(i+1)))+'</option>').join('');tempSize.innerHTML='<option value="">使用默认尺寸</option><option value="832x1216">竖版 · 832 × 1216</option><option value="768x1344">长竖版 · 768 × 1344</option><option value="1024x1024">正方形 · 1024 × 1024</option><option value="1216x832">横版 · 1216 × 832</option><option value="1344x768">宽横版 · 1344 × 768</option>';tempPreset.value=card.dataset.qlTempCombo??'';tempSize.value=card.dataset.qlTempSize??'';};fillTempConfig();
   controls.append(edit,reroll,remove,favorite);card.append(img,prev,next,controls,editor);if(anchor?.parentNode)anchor.parentNode.insertBefore(card,anchor);else host.append(card);
@@ -657,7 +657,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
    if(matchingRecords.length){save();history();}
    editor.hidden=true;
    const note=card.querySelector('.ql-chat-image-tag-saved');if(note)note.remove();
-   const saved=document.createElement('span');saved.className='ql-chat-image-tag-saved';saved.textContent='tag 已保存';editor.after(saved);setTimeout(()=>saved.remove(),1600);
+   const saved=document.createElement('span');saved.className='ql-chat-image-tag-saved';saved.textContent='已保存';editor.after(saved);setTimeout(()=>saved.remove(),1600);
   });
   card._qlCandidates=[];card._qlIndex=0;
   const render=()=>{const list=card._qlCandidates;const i=card._qlIndex;if(!list.length)return;img.src=list[i].url;prev.disabled=i<=0;next.disabled=i>=list.length-1;const saved=(cfg().records||[]).some(item=>item.taskKey===taskKey&&item.dataUrl===list[i].url&&item.albumCharacterName);favorite.classList.toggle('is-favorite',saved);favorite.setAttribute('aria-label',saved?'取消角色相册收藏':'收藏到角色相册');favorite.title=saved?'已收藏到角色相册':'收藏到当前角色的相册';};
@@ -672,9 +672,8 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
    if(record.albumCharacterName){for(const item of records)delete item.albumCharacterName;save();render();history();status('已取消收藏；图片仍保留在缓存中。');return;}
    const currentChar=currentCharacter();
    const storedCharacter=typeof record.character==='string'?record.character:'';
-   let name=String(record.characterName||storedCharacter||currentChar.name||'').trim();
-   if(!name)name=String(window.prompt('请输入这张图片所属的角色卡名称','')||'').trim();
-   if(!name){status('未收藏：没有指定角色名称。');return;}
+   const ctx=getContext()||{};
+   const name=String(record.characterName||storedCharacter||currentChar.name||recordMeta.characterName||recordMeta.character||ctx.name2||'当前角色').trim();
    for(const item of records){item.albumCharacterName=name;item.albumCharacterKey=currentChar.id||'';}
    save();render();history();status('已收藏到「'+name+'」角色相册。');
   });
