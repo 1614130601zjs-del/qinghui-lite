@@ -550,3 +550,35 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  touch-action:manipulation;
  cursor:pointer;
 }
+
+
+/* Cache actions: explicit click targets and multi-select deletion controls. */
+#qinghui-lite-panel #ql-history .ql-cache-bulk-tools{
+ display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding:9px;
+ border:1px solid var(--ql-glass-line,var(--SmartThemeBorderColor));
+ background:color-mix(in srgb,var(--SmartThemeBlurTintColor,rgba(255,255,255,.04)) 65%,transparent);
+}
+#qinghui-lite-panel #ql-history .ql-cache-bulk-tools label,
+#qinghui-lite-panel #ql-history .ql-cache-select-one{
+ display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;
+}
+#qinghui-lite-panel #ql-history .ql-cache-selected-count{font-size:12px;opacity:.75;margin-right:auto}
+#qinghui-lite-panel #ql-history .ql-cache-grid{
+ display:grid;grid-template-columns:repeat(var(--ql-history-columns,3),minmax(0,1fr));gap:10px;
+}
+#qinghui-lite-panel #ql-history .ql-cache-tile{position:relative;min-width:0;isolation:isolate}
+#qinghui-lite-panel #ql-history .ql-cache-select-one{margin:0 0 5px}
+#qinghui-lite-panel #ql-history .ql-cache-select-one input,
+#qinghui-lite-panel #ql-history .ql-cache-select-all input{flex:0 0 auto;width:16px;height:16px;margin:0;pointer-events:auto;accent-color:var(--ql-accent)}
+#qinghui-lite-panel #ql-history .ql-cache-image,
+#qinghui-lite-panel #ql-history .ql-cache-actions,
+#qinghui-lite-panel #ql-history .ql-cache-actions button{position:relative;z-index:2;pointer-events:auto!important;touch-action:manipulation}
+#qinghui-lite-panel #ql-history .ql-cache-image{display:block;width:100%;cursor:pointer}
+#qinghui-lite-panel #ql-history .ql-cache-actions{display:flex;gap:4px;flex-wrap:wrap}
+#qinghui-lite-panel #ql-history .ql-cache-actions button{flex:1 1 auto;min-height:40px;cursor:pointer}
+#qinghui-lite-panel #ql-history [data-ql-bulk-delete]:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:520px){
+ #qinghui-lite-panel #ql-history .ql-cache-grid{grid-template-columns:repeat(min(var(--ql-history-columns,2),2),minmax(0,1fr))}
+ #qinghui-lite-panel #ql-history .ql-cache-actions{gap:3px}
+ #qinghui-lite-panel #ql-history .ql-cache-actions button{padding:6px 4px;font-size:11px}
+}
