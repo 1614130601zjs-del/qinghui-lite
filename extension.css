@@ -922,3 +922,8 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  outline:2px solid #91a9a0;
  outline-offset:-2px;
 }
+
+/* Inline image marker action inside the original assistant message. */
+#chat .mes_text .ql-inline-image-trigger{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:4px 6px;padding:7px 12px;border:1px solid var(--SmartThemeBorderColor);border-radius:999px;background:var(--SmartThemeQuoteColor,rgba(160,170,180,.16));color:var(--SmartThemeBodyColor);font-size:.9em;line-height:1.35;white-space:nowrap;cursor:pointer;}
+#chat .mes_text .ql-inline-image-trigger:disabled{opacity:.65;cursor:wait;}
+#chat .mes_text .ql-inline-image-trigger:hover{filter:brightness(1.06);}
