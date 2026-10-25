@@ -624,7 +624,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
   const prev=document.createElement('button');prev.type='button';prev.className='menu_button ql-chat-image-arrow';prev.setAttribute('aria-label','上一张');prev.title='上一张';prev.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
   const count=document.createElement('span');count.className='ql-chat-image-count';count.textContent='1 / 1';
   const next=document.createElement('button');next.type='button';next.className='menu_button ql-chat-image-arrow';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
-  const reroll=document.createElement('button');reroll.type='button';reroll.className='menu_button ql-chat-image-reroll';reroll.setAttribute('aria-label','重新生成');reroll.title='重新生成';reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M4.8 9A7.5 7.5 0 0 1 17.5 6L20 12"/><path d="M4 17v-5h5"/><path d="M19.2 15A7.5 7.5 0 0 1 6.5 18L4 12"/></svg>';
+  const reroll=document.createElement('button');reroll.type='button';reroll.className='menu_button ql-chat-image-reroll';reroll.setAttribute('aria-label','重新生成');reroll.title='重新生成';reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14 5l2-2"/><path d="M20 20v-4h-4"/></svg>';
   const editor=document.createElement('div');editor.className='ql-chat-image-editor';editor.hidden=true;
   const textarea=document.createElement('textarea');textarea.className='ql-chat-image-tag-input';textarea.rows=3;textarea.value=String(prompt||'');textarea.setAttribute('aria-label','画面提示词');
   const saveTag=document.createElement('button');saveTag.type='button';saveTag.className='menu_button';saveTag.textContent='保存 tag';
@@ -650,6 +650,8 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
   img.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY;},{passive:true});
   img.addEventListener('touchend',e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25)step(dx<0?1:-1);},{passive:true});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
+  img.addEventListener('dblclick',e=>{e.preventDefault();reroll.click();});
+  img.addEventListener('dblclick',e=>{e.preventDefault();reroll.click();});
   reroll.addEventListener('click',async()=>{
    if(card.dataset.qlBusy==='1')return;
    const currentPrompt=String(card.dataset.qlPrompt||'').trim();if(!currentPrompt)return;
@@ -791,12 +793,12 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   const img=document.createElement('img');img.alt='轻绘状态栏画面';img.loading='eager';img.style.cssText='display:block;width:100%;height:100%;object-fit:contain;';
   const controls=document.createElement('div');controls.className='ql-statusbar-controls';controls.style.cssText='position:absolute;left:0;right:0;bottom:4px;z-index:8;display:flex;align-items:center;justify-content:center;gap:4px;opacity:.92;';
   const prev=document.createElement('button');prev.type='button';prev.className='menu_button';prev.textContent='‹';
-  const count=document.createElement('span');count.className='ql-statusbar-count';count.textContent='1 / 1';count.style.cssText='color:#fff;font-size:11px;text-shadow:0 1px 3px #000;padding:0 4px;';
+  
   const next=document.createElement('button');next.type='button';next.className='menu_button';next.textContent='›';
   const reroll=document.createElement('button');reroll.type='button';reroll.className='menu_button';reroll.textContent='再画一张';
-  controls.append(prev,count,next,reroll);card.append(img,controls);frame.append(card);
+  controls.append(prev,next,reroll);card.append(img,controls);frame.append(card);
   card._qlCandidates=[];card._qlIndex=0;card._qlPrompt=prompt;
-  const render=()=>{const list=card._qlCandidates;if(!list.length)return;img.src=list[card._qlIndex].url;count.textContent=(card._qlIndex+1)+' / '+list.length;prev.disabled=card._qlIndex<=0;next.disabled=card._qlIndex>=list.length-1;};
+  const render=()=>{const list=card._qlCandidates;if(!list.length)return;img.src=list[card._qlIndex].url;prev.disabled=card._qlIndex<=0;next.disabled=card._qlIndex>=list.length-1;};
   card._qlAddCandidate=url=>{card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();};
   const step=delta=>{const nextIndex=card._qlIndex+delta;if(nextIndex>=0&&nextIndex<card._qlCandidates.length){card._qlIndex=nextIndex;render();}};
   prev.onclick=()=>step(-1);next.onclick=()=>step(1);
