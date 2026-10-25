@@ -809,11 +809,17 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   card._qlAddCandidate=url=>{card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
   const reroll=async()=>{if(card.dataset.busy==='1')return;const manualKey=taskKey+':manual:'+Date.now();const candidate=triggerRegistry.begin(manualKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(manualKey);card.dataset.busy='1';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlAddCandidate(fresh);storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(manualKey,manualKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(manualKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}finally{card.dataset.busy='0';}};
   img.style.touchAction='manipulation';
-  img.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll();});
-  let lastPointerTap=0;
-  const detectStatusbarDoubleTap=e=>{if(e.pointerType&&e.pointerType!=='touch')return;const now=Date.now();if(now-lastPointerTap<650){e.preventDefault?.();e.stopPropagation?.();lastPointerTap=0;reroll();}else lastPointerTap=now;};
-  img.addEventListener('pointerup',detectStatusbarDoubleTap,{passive:false});
-  img.addEventListener('touchend',e=>{const now=Date.now();if(now-lastPointerTap<650){e.preventDefault();e.stopPropagation();lastPointerTap=0;reroll();}else lastPointerTap=now;},{passive:false});
+  // 手机浏览器的 pointerup 与 touchend 可能在同一次点击中都触发，混用会把单击误判成双击。
+  // 触屏只使用 touchend；鼠标/触控笔使用 dblclick。监听放在覆盖层 card 上，避免图片元素被酒馆重绘替换后失效。
+  let lastTouchTap=0;
+  card.addEventListener('touchend',e=>{
+   if(e.changedTouches?.length!==1)return;
+   const now=Date.now();
+   if(now-lastTouchTap>0&&now-lastTouchTap<650){
+    e.preventDefault();e.stopPropagation();lastTouchTap=0;reroll();
+   }else lastTouchTap=now;
+  },{passive:false});
+  card.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll();});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
   card.append(img);frame.append(card);
 
