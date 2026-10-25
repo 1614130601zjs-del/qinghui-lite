@@ -647,7 +647,9 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
    const updated=textarea.value.trim();if(!updated){textarea.focus();return;}
    card.dataset.qlPrompt=updated;
    const record=(cfg().records||[]).find(item=>item.taskKey===taskKey);
-   if(record){record.basePrompt=updated;record.prompt=resolveActiveGeneration(updated).prompt;record.negative=resolveActiveGeneration(updated).negative||record.negative;record.updatedAt=Date.now();save();history();}
+   const matchingRecords=(cfg().records||[]).filter(item=>item.taskKey===taskKey);
+   for(const record of matchingRecords){record.basePrompt=updated;record.prompt=resolveActiveGeneration(updated).prompt;record.negative=resolveActiveGeneration(updated).negative||record.negative;record.updatedAt=Date.now();}
+   if(matchingRecords.length){save();history();}
    editor.hidden=true;
    const note=card.querySelector('.ql-chat-image-tag-saved');if(note)note.remove();
    const saved=document.createElement('span');saved.className='ql-chat-image-tag-saved';saved.textContent='tag 已保存';editor.after(saved);setTimeout(()=>saved.remove(),1600);
@@ -668,6 +670,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
    const currentPrompt=String(card.dataset.qlPrompt||'').trim();if(!currentPrompt)return;
    const candidate=triggerRegistry.beginCandidate(taskKey,{prompt:currentPrompt,source:'chat-reroll',...recordMeta});if(!candidate.accepted)return;
    triggerRegistry.markRunning(taskKey);card.dataset.qlBusy='1';reroll.disabled=true;
+   try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([28,42,28]);}catch{}
    const old=reroll.innerHTML;reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l-2.12 2.12"/></svg>';
    try{const fresh=await requestWithActiveSettings(currentPrompt);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();storeChatRecord(fresh,currentPrompt,taskKey,recordMeta);triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}
    catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}
@@ -718,7 +721,7 @@ async function runInlineImageTrigger(button,entry){
  if(!accepted.accepted)return;
  triggerRegistry.markRunning(taskKey);
  button.dataset.qlBusy='1';button.disabled=true;button.textContent='生成中…';
- const statusNode=document.createElement('span');statusNode.className='ql-chat-image-status';statusNode.textContent=' 正在提交给 NovelAI…';button.after(statusNode);
+ const statusNode=document.createElement('span');statusNode.className='ql-chat-image-status';statusNode.textContent='正在提交给 NAI 生图…';button.after(statusNode);
  try{
   const context=getContext();
   const meta={messageIndex:entry.messageIndex,character:context?.name||null,chatId:context?.chatId||null};
@@ -755,11 +758,17 @@ async function processLatestAssistantMessage(){
    const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
   });
-  // 先尝试原位替换文本节点；如果酒馆 Markdown 把 marker 拆成多个节点，则至少在同一消息正文内提供按钮。
+  // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
   hideMarkersInTextNode(host,entries);
   for(const entry of entries){
+   const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+   if(savedRecords.length){
+    const latest=savedRecords[savedRecords.length-1];
+    for(const record of savedRecords)addMessageImage(host,record.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null});
+    host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]').forEach(button=>button.remove());
+    continue;
+   }
    if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
-   // 防止重复扫描时把已经被按钮替换的标记再次追加。
    if([...host.querySelectorAll('[data-ql-prompt]')].some(button=>button.dataset.qlPrompt===entry.prompt&&button.dataset.qlTrigger===entry.taskKey))continue;
    const button=document.createElement('button');
    button.type='button';button.className='menu_button ql-inline-image-trigger';
@@ -810,7 +819,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   card._qlPrompt=prompt;card._qlCandidates=[];card._qlIndex=0;
   card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;};
   card._qlAddCandidate=url=>{card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
-  const reroll=async()=>{if(card.dataset.busy==='1')return;const manualKey=taskKey+':manual:'+Date.now();const candidate=triggerRegistry.begin(manualKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(manualKey);card.dataset.busy='1';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlAddCandidate(fresh);storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(manualKey,manualKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(manualKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}finally{card.dataset.busy='0';}};
+  const reroll=async()=>{if(card.dataset.busy==='1')return;try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([28,42,28]);}catch{}const manualKey=taskKey+':manual:'+Date.now();const candidate=triggerRegistry.begin(manualKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(manualKey);card.dataset.busy='1';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlAddCandidate(fresh);storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(manualKey,manualKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(manualKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}finally{card.dataset.busy='0';}};
   img.style.touchAction='manipulation';
   // 手机浏览器的 pointerup 与 touchend 可能在同一次点击中都触发，混用会把单击误判成双击。
   // 触屏只使用 touchend；鼠标/触控笔使用 dblclick。监听放在覆盖层 card 上，避免图片元素被酒馆重绘替换后失效。
