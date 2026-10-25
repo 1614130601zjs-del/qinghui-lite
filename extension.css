@@ -927,3 +927,15 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #chat .mes_text .ql-inline-image-trigger{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:4px 6px;padding:7px 12px;border:1px solid var(--SmartThemeBorderColor);border-radius:999px;background:var(--SmartThemeQuoteColor,rgba(160,170,180,.16));color:var(--SmartThemeBodyColor);font-size:.9em;line-height:1.35;white-space:nowrap;cursor:pointer;}
 #chat .mes_text .ql-inline-image-trigger:disabled{opacity:.65;cursor:wait;}
 #chat .mes_text .ql-inline-image-trigger:hover{filter:brightness(1.06);}
+
+
+#chat .ql-chat-image-controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px;margin-top:7px}
+#chat .ql-chat-image-controls button{display:inline-flex;align-items:center;justify-content:center;margin:0;min-height:34px}
+#chat .ql-chat-image-controls .ql-chat-image-edit{font-size:12px;padding:5px 9px;min-height:30px}
+#chat .ql-chat-image-controls .ql-chat-image-arrow,#chat .ql-chat-image-controls .ql-chat-image-reroll{width:36px;height:36px;padding:7px;border-radius:50%}
+#chat .ql-chat-image-controls .ql-chat-image-arrow svg,#chat .ql-chat-image-controls .ql-chat-image-reroll svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#chat .ql-chat-image-controls button:disabled{opacity:.35}
+#chat .ql-chat-image-editor{margin-top:8px}
+#chat .ql-chat-image-tag-input{box-sizing:border-box;width:100%;min-height:76px;resize:vertical;padding:8px;border:1px solid var(--SmartThemeBorderColor);border-radius:8px;background:var(--SmartThemeBlurTintColor);color:var(--SmartThemeBodyColor)}
+#chat .ql-chat-image-editor-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:6px}
+#chat .ql-chat-image-tag-saved{display:block;text-align:center;font-size:11px;opacity:.7;margin-top:4px}
