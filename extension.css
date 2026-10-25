@@ -1229,3 +1229,21 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #chat .ql-chat-image-controls .ql-chat-image-count{
  color:var(--ql-text,var(--SmartThemeBodyColor,#555))!important;
 }
+
+
+/* 0.5.14: state-bar candidate navigation, visible but unobtrusive */
+.ql-statusbar-card .ql-statusbar-controls{
+ position:absolute;left:50%;bottom:6px;transform:translateX(-50%);
+ z-index:8;display:flex;align-items:center;justify-content:center;gap:8px;
+ padding:3px 7px;border:1px solid rgba(255,255,255,.32);border-radius:999px;
+ background:rgba(20,16,22,.48);color:#fff;backdrop-filter:blur(8px);
+ -webkit-backdrop-filter:blur(8px);touch-action:manipulation;
+}
+.ql-statusbar-card .ql-statusbar-arrow{
+ display:flex;align-items:center;justify-content:center;width:30px;height:28px;
+ padding:0;border:0;border-radius:50%;background:transparent;color:inherit;
+ cursor:pointer;touch-action:manipulation;
+}
+.ql-statusbar-card .ql-statusbar-arrow svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ql-statusbar-card .ql-statusbar-arrow:disabled{opacity:.3;cursor:default}
+.ql-statusbar-card .ql-statusbar-count{min-width:38px;text-align:center;font-size:12px;line-height:1;font-variant-numeric:tabular-nums;color:inherit}
