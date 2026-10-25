@@ -554,7 +554,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 
 /* Cache actions: explicit click targets and multi-select deletion controls. */
 #qinghui-lite-panel #ql-history .ql-cache-bulk-tools{
- display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding:9px;
+ display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 0;padding:9px;
  border:1px solid var(--ql-glass-line,var(--SmartThemeBorderColor));
  background:color-mix(in srgb,var(--SmartThemeBlurTintColor,rgba(255,255,255,.04)) 65%,transparent);
 }
@@ -567,7 +567,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  display:grid;grid-template-columns:repeat(var(--ql-history-columns,3),minmax(0,1fr));gap:10px;
 }
 #qinghui-lite-panel #ql-history .ql-cache-tile{position:relative;min-width:0;isolation:isolate}
-#qinghui-lite-panel #ql-history .ql-cache-select-one{margin:0 0 5px}
+#qinghui-lite-panel #ql-history .ql-cache-select-one{margin:5px 0 0}
 #qinghui-lite-panel #ql-history .ql-cache-select-one input,
 #qinghui-lite-panel #ql-history .ql-cache-select-all input{flex:0 0 auto;width:16px;height:16px;margin:0;pointer-events:auto;accent-color:var(--ql-accent)}
 #qinghui-lite-panel #ql-history .ql-cache-image,
@@ -582,3 +582,8 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #qinghui-lite-panel #ql-history .ql-cache-actions{gap:3px}
  #qinghui-lite-panel #ql-history .ql-cache-actions button{padding:6px 4px;font-size:11px}
 }
+
+/* Preserve the original cache-image grid; bulk selection controls sit below the entire gallery. */
+#qinghui-lite-panel #ql-history .ql-cache-grid{order:1}
+#qinghui-lite-panel #ql-history .ql-cache-bulk-tools{order:2}
+#qinghui-lite-panel #ql-history .ql-cache-select-one{padding:2px 0}
