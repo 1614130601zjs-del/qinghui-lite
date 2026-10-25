@@ -1607,3 +1607,26 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite{right:54px!important;top:10px!important;}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-delete{right:10px!important;top:10px!important;}
 @media(max-width:360px){#qinghui-lite-panel .ql-album-page-arrow{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;}#qinghui-lite-panel .ql-album-page-arrow svg{width:17px!important;height:17px!important;}}
+
+/* 0.5.33: 状态栏收藏/删除使用正文同款图标按钮，明确置顶；状态栏保留左右滑动切图。 */
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action{
+ z-index:20!important;pointer-events:auto!important;visibility:visible!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;
+ padding:7px!important;border:1px solid rgba(255,255,255,.7)!important;border-radius:9px!important;
+ background:rgba(20,16,22,.68)!important;color:#fff!important;box-shadow:0 1px 5px rgba(0,0,0,.22)!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action svg{
+ display:block!important;width:18px!important;height:18px!important;fill:none!important;stroke:currentColor!important;
+ stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite{top:10px!important;right:52px!important;}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite{color:#ffe18a!important;}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-delete{top:10px!important;right:10px!important;}
+#qinghui-lite-panel .ql-album-page-arrow{top:50%!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;border-radius:50%!important;}
+#qinghui-lite-panel .ql-album-page-arrow[data-album-step="-1"]{left:8px!important;right:auto!important;}
+#qinghui-lite-panel .ql-album-page-arrow[data-album-step="1"]{right:8px!important;left:auto!important;}
+@media(max-width:360px){
+ .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;padding:6px!important;}
+ #qinghui-lite-panel .ql-album-page-arrow{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;}
+}
