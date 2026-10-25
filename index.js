@@ -646,6 +646,8 @@ function history(){
   const r=records[index];if(!r)return;
   const preset=r.preset||null,vibe=r.vibe||null,meta=r.config||{};
   const content=modal.querySelector('.ql-cache-modal-content');
+  const themePanel=document.querySelector('#qinghui-lite-panel');
+  if(themePanel){const theme=getComputedStyle(themePanel);for(const name of ['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-border','--ql-muted']){const value=theme.getPropertyValue(name).trim();if(value)modal.style.setProperty(name,value);}}
   const createdAt=new Date(r.at||Date.now());
   const promptText=String(r.prompt||'');
   const promptWords=promptText.split(/[,，\\n]+/).map(x=>x.trim()).filter(Boolean).length;
