@@ -87,6 +87,29 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
  if(typeof url!=='string'||!url)throw new Error('响应中没有可识别的图片');
  return url;
 }
+
+/**
+ * 统一所有入口的有效提示词：手动生图、聊天标记、状态栏和重绘都应使用同一组已启用预设。
+ * 手动生图会自行组装参数；其他入口走此包装函数，避免自动触发漏掉画师串/Vibe。
+ */
+function resolveActiveGeneration(prompt, negativeOverride){
+ const s=cfg();
+ const presetIndex=Number(s.activePresetIndex??-1);
+ const preset=presetIndex>=0?s.presets[presetIndex]:null;
+ const vibeIndex=Number(s.activeVibeIndex??-1);
+ const vibe=vibeIndex>=0?s.vibes[vibeIndex]:null;
+ const finalPrompt=[String(prompt??'').trim(),preset?.positive].filter(Boolean).join(', ');
+ const baseNegative=String(negativeOverride??s.negative??'').trim();
+ const finalNegative=negativeOverride==null
+  ?[baseNegative,preset?.negative].filter(Boolean).join(', ')
+  :baseNegative;
+ return {prompt:finalPrompt,negative:finalNegative,vibe};
+}
+async function requestWithActiveSettings(prompt, negativeOverride){
+ const resolved=resolveActiveGeneration(prompt,negativeOverride);
+ return requestImage(resolved.prompt,resolved.negative,resolved.vibe);
+}
+
 function extractUsableVibe(raw){
  const encodedKeys=/^(?:referenceImage|reference_image|referenceImageData|reference_image_data|base64|imageBase64|image_base64|encoded|encodedVibe|encoded_vibe|vibeEncoding|vibe_encoding|vibeData|vibe_data|payload)$/i;
  const seen=new WeakSet();let found='';
@@ -156,7 +179,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
   img.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY;},{passive:true});
   img.addEventListener('touchend',e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25)step(dx<0?1:-1);},{passive:true});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
-  reroll.addEventListener('click',async()=>{if(card.dataset.qlBusy==='1')return;const candidate=triggerRegistry.beginCandidate(taskKey,{prompt,source:'chat-reroll',...recordMeta});if(!candidate.accepted)return;triggerRegistry.markRunning(taskKey);card.dataset.qlBusy='1';reroll.disabled=true;const old=reroll.textContent;reroll.textContent='生成中…';try{const fresh=await requestImage(prompt);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();storeChatRecord(fresh,prompt,taskKey,recordMeta);triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));const note=document.createElement('p');note.className='ql-chat-image-status';note.textContent='轻绘生成失败：'+(e?.message||String(e));card.append(note);}finally{card.dataset.qlBusy='0';reroll.disabled=false;reroll.textContent=old;}});
+  reroll.addEventListener('click',async()=>{if(card.dataset.qlBusy==='1')return;const candidate=triggerRegistry.beginCandidate(taskKey,{prompt,source:'chat-reroll',...recordMeta});if(!candidate.accepted)return;triggerRegistry.markRunning(taskKey);card.dataset.qlBusy='1';reroll.disabled=true;const old=reroll.textContent;reroll.textContent='生成中…';try{const fresh=await requestWithActiveSettings(prompt);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();storeChatRecord(fresh,prompt,taskKey,recordMeta);triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));const note=document.createElement('p');note.className='ql-chat-image-status';note.textContent='轻绘生成失败：'+(e?.message||String(e));card.append(note);}finally{card.dataset.qlBusy='0';reroll.disabled=false;reroll.textContent=old;}});
   card._qlRender=render;
  }
  if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;}
@@ -213,7 +236,7 @@ async function processLatestAssistantMessage(){
   triggerRegistry.markRunning(taskKey);
   const pending=document.createElement('p');pending.className='ql-chat-image-status';pending.textContent='轻绘：正在生成图片…';host.append(pending);
   try{
-   const url=await requestImage(marker.prompt);
+   const url=await requestWithActiveSettings(marker.prompt);
    pending.remove();
    addMessageImage(host,url,marker.prompt,taskKey,{messageIndex});
    storeChatRecord(url,marker.prompt,taskKey,{messageIndex});
@@ -287,7 +310,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   img.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY;},{passive:true});
   img.addEventListener('touchend',e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25)step(dx<0?1:-1);},{passive:true});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
-  reroll.onclick=async()=>{if(card.dataset.busy==='1')return;const candidate=triggerRegistry.beginCandidate(taskKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(taskKey);card.dataset.busy='1';reroll.disabled=true;const old=reroll.textContent;reroll.textContent='生成中';try{const fresh=await requestImage(card._qlPrompt);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));statusbarError(frame,card._qlPrompt,taskKey,e);}finally{card.dataset.busy='0';reroll.disabled=false;reroll.textContent=old;}};
+  reroll.onclick=async()=>{if(card.dataset.busy==='1')return;const candidate=triggerRegistry.beginCandidate(taskKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(taskKey);card.dataset.busy='1';reroll.disabled=true;const old=reroll.textContent;reroll.textContent='生成中';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));statusbarError(frame,card._qlPrompt,taskKey,e);}finally{card.dataset.busy='0';reroll.disabled=false;reroll.textContent=old;}};
   card._qlRender=render;
  }
  if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;}
@@ -305,7 +328,7 @@ function statusbarError(frame,prompt,taskKey,error){
   if(!accepted.accepted)return;
   triggerRegistry.markRunning(taskKey);retry.disabled=true;retry.textContent='生成中…';
   try{
-   const url=await requestImage(prompt);
+   const url=await requestWithActiveSettings(prompt);
    note.remove();
    const card=frame.querySelector('.ql-statusbar-card');
    if(card&&typeof card._qlAddCandidate==='function')card._qlAddCandidate(url);
@@ -349,7 +372,7 @@ async function processStatusbarFrames(){
   if(getComputedStyle(frame).position==='static')frame.style.position='relative';
   frame.append(loading);
   try{
-   const url=await requestImage(prompt);
+   const url=await requestWithActiveSettings(prompt);
    loading.remove();
    renderStatusbarCard(frame,prompt,url,taskKey);
    storeChatRecord(url,prompt,taskKey,{source:'statusbar'});
