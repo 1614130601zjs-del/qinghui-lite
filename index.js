@@ -885,6 +885,7 @@ async function processLatestAssistantMessage(){
 }
 let statusbarObserver=null;
 const statusbarObservedDocs=new WeakSet();
+const statusbarLoadBoundFrames=new WeakSet();
 function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);return match?.[1]?.trim()||'';}
 function statusbarPromptForTarget(target){
  const direct=[
@@ -1104,12 +1105,23 @@ function observeStatusbarFrames(){
  };
  const attachFrames=()=>{
   attach(document);
-  document.querySelectorAll('iframe').forEach(frame=>{try{attach(frame.contentDocument);}catch{}});
+  document.querySelectorAll('iframe').forEach(frame=>{
+   // iframe 的 srcdoc 导航可能替换 contentDocument。不能只观察插入时拿到的旧文档，
+   // 必须在 load 后重新读取 contentDocument 并为新文档安装观察器。
+   if(!statusbarLoadBoundFrames.has(frame)){
+    statusbarLoadBoundFrames.add(frame);
+    frame.addEventListener('load',()=>{
+     try{attach(frame.contentDocument);}catch{}
+     attachFrames();
+     processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
+    });
+   }
+   try{attach(frame.contentDocument);}catch{}
+  });
  };
  attachFrames();
  processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
 }
-
 const themePalettes={mist:{accent:'#7f98ad',panel:'rgba(239,244,248,.98)',card:'rgba(250,252,254,.98)',text:'#344653',muted:'#657784',border:'rgba(127,152,173,.30)',field:'rgba(255,255,255,.98)'},sage:{accent:'#849b8c',panel:'rgba(239,246,239,.98)',card:'rgba(251,253,249,.98)',text:'#3c5044',muted:'#687a6d',border:'rgba(132,155,140,.30)',field:'rgba(255,255,252,.98)'},lavender:{accent:'#9a91b0',panel:'rgba(246,242,250,.98)',card:'rgba(253,251,255,.98)',text:'#4c465b',muted:'#777083',border:'rgba(154,145,176,.30)',field:'rgba(255,255,255,.98)'},oat:{accent:'#b09c82',panel:'rgba(249,245,237,.98)',card:'rgba(255,252,246,.98)',text:'#554b3e',muted:'#817565',border:'rgba(176,156,130,.32)',field:'rgba(255,255,252,.98)'}};
 function applyTheme(preset,customColor){const panel=$('#qinghui-lite-panel');if(!panel)return;panel.querySelectorAll('#ql-custom-theme-style').forEach(x=>x.remove());if(preset==='auto'){for(const key of ['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-muted','--ql-border','--ql-field'])panel.style.removeProperty(key);panel.style.removeProperty('color');panel.style.removeProperty('background');return;}let p=themePalettes[preset];if(preset==='custom'){const accent=/^#[0-9a-f]{6}$/i.test(String(customColor||''))?customColor:'#9aaec2';p={accent,panel:'rgba(242,246,249,.98)',card:'rgba(252,253,254,.98)',text:'#35434d',muted:'#687680',border:'color-mix(in srgb, '+accent+' 32%, transparent)',field:'rgba(255,255,255,.98)'};}if(!p)return;panel.style.setProperty('--ql-accent',p.accent);panel.style.setProperty('--ql-panel',p.panel);panel.style.setProperty('--ql-card',p.card);panel.style.setProperty('--ql-text',p.text);panel.style.setProperty('--ql-muted',p.muted);panel.style.setProperty('--ql-border',p.border);panel.style.setProperty('--ql-field',p.field);panel.style.color='var(--ql-text)';panel.style.background='var(--ql-panel)';}
 function save(){ saveSettingsDebounced(); }
