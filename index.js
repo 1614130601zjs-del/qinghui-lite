@@ -342,7 +342,9 @@ async function saveCleanImage(src,filename){
    }else{
     blob=new Blob([decodeURIComponent(raw)],{type:(header.match(/^data:([^;]+)/i)||[])[1]||'image/png'});
    }
-   objectUrl=URL.createObjectURL(blob);
+   fileBlob=blob;objectUrl=URL.createObjectURL(blob);
+  }else if(/^https?:/i.test(src)){
+   try{const response=await fetch(src);if(response.ok)fileBlob=await response.blob();}catch{}
   }
   const a=document.createElement('a');
   a.href=objectUrl;a.download=name;a.rel='noopener';
