@@ -2049,3 +2049,14 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #chat .ql-chat-image.ql-image-collapsed>.ql-chat-image-editor,
 #chat .ql-chat-image.ql-image-collapsed>.ql-chat-image-tag-saved{display:none!important;}
 #chat .ql-chat-image.is-collapsed{padding:7px 8px!important;margin:8px 0!important;}
+
+
+/* Fix: center the inline image action in its own full-width block, independent of chat text alignment. */
+#chat .mes_text .ql-inline-image-trigger-wrap{
+ display:block!important;box-sizing:border-box!important;width:100%!important;max-width:100%!important;
+ margin:12px 0!important;padding:0!important;text-align:center!important;clear:both!important;
+}
+#chat .mes_text .ql-inline-image-trigger-wrap>.ql-inline-image-trigger{
+ display:flex!important;position:relative!important;left:auto!important;right:auto!important;float:none!important;
+ width:min(100%,280px)!important;min-width:0!important;margin:0 auto!important;
+}
