@@ -67,7 +67,7 @@ function hideMarkersInTextNode(root,entries=[]){
    if(!prompt){last=re.lastIndex;continue;}
    const button=document.createElement('button');
    button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='相册收录';button.title='点击生成图片并收录到当前消息';
-   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatTheme(button);
+   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
    fragment.append(button);ordinal++;last=re.lastIndex;
   }
@@ -620,8 +620,9 @@ async function saveCleanImage(src,filename,forceClean=false){
  }
 }
 function applyChatAlbumStyle(card,style){if(!card)return;card.classList.remove('ql-album-classic','ql-album-film','ql-album-soft');const valid=['classic','film','soft'].includes(style)?style:'classic';card.classList.add('ql-album-'+valid);}
+function applyChatAlbumButtonStyle(button,style){if(!button)return;button.classList.remove('ql-album-classic','ql-album-film','ql-album-soft');const valid=['classic','film','soft'].includes(style)?style:'classic';button.classList.add('ql-album-'+valid);}
 function applyChatTheme(element){if(!element)return;const preset=cfg().themePreset||'auto';const palette=themePalettes[preset];for(const key of ['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-muted','--ql-border','--ql-field'])element.style.removeProperty(key);if(palette){element.style.setProperty('--ql-accent',palette.accent);element.style.setProperty('--ql-panel',palette.panel);element.style.setProperty('--ql-card',palette.card);element.style.setProperty('--ql-text',palette.text);element.style.setProperty('--ql-muted',palette.muted);element.style.setProperty('--ql-border',palette.border);element.style.setProperty('--ql-field',palette.field);}}
-function applyChatAlbumStyleToAll(style){document.querySelectorAll('.ql-chat-image').forEach(card=>{applyChatAlbumStyle(card,style);applyChatTheme(card);});}
+function applyChatAlbumStyleToAll(style){document.querySelectorAll('.ql-chat-image').forEach(card=>{applyChatAlbumStyle(card,style);applyChatTheme(card);});document.querySelectorAll('#chat .ql-inline-image-trigger').forEach(button=>{applyChatAlbumButtonStyle(button,style);applyChatTheme(button);});}
 function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
  if(!host)return;
  let card=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===taskKey);
@@ -797,7 +798,7 @@ async function processLatestAssistantMessage(){
    button.type='button';button.className='menu_button ql-inline-image-trigger';
    button.textContent='相册收录';
    button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
-   button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;applyChatTheme(button);
+   button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
    host.append(button);
   }
