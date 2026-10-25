@@ -70,13 +70,33 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
    if(/^nai-diffusion-4(?:-|$)/i.test(naiModel))payload.normalize_reference_strength_multiple=c.naiNormalizeVibeStrengths!==false;
   }
   if(naiModel.includes('nai-diffusion-5'))payload.use_new_shared_trial=true;
-  res=await fetch('/api/novelai/generate-image',{method:'POST',headers:getRequestHeaders(window.token),body:JSON.stringify(payload)});
-  raw=await res.text();
-  if(!res.ok)throw new Error('NovelAI 请求失败（HTTP '+res.status+'）：'+raw.slice(0,240));
-  try{data=JSON.parse(raw);}catch{}
-  let value=data?.images?.[0]??data?.image??raw.trim();
-  if(typeof value!=='string'||!value)throw new Error('NovelAI 响应中没有可识别的图片');
-  return /^(data:|https?:)/.test(value)?value:'data:image/png;base64,'+value.replace(/^data:image\/[^;]+;base64,/,'');
+  const third=c.provider==='novelai-thirdparty';
+  const naiKey=third?(c.naiThirdKey||''):(c.naiApiKey||'');
+  if(!naiKey)throw new Error(third?'请先填写 NAI 第三方 API Key。':'请先填写 NovelAI 官网 Key。');
+  const base=third?String(c.naiThirdEndpoint||'').replace(/\/$/,''):'https://image.novelai.net';
+  if(third&&!base)throw new Error('请先填写 NAI 第三方 API 地址。');
+  const endpoint=/\/ai\/generate-image$/i.test(base)?base:base+'/ai/generate-image';
+  res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+naiKey},body:JSON.stringify(payload)});
+  if(!res.ok){raw=await res.text();throw new Error('NovelAI 请求失败（HTTP '+res.status+'）：'+raw.slice(0,240));}
+  const buffer=await res.arrayBuffer();let value='';
+  try{
+   const view=new DataView(buffer);let offset=0;
+   while(offset+30<view.byteLength){
+    if(view.getUint32(offset,true)!==0x04034b50)break;
+    const method=view.getUint16(offset+8,true),compressed=view.getUint32(offset+18,true),nameLen=view.getUint16(offset+26,true),extraLen=view.getUint16(offset+28,true);
+    const name=new TextDecoder().decode(new Uint8Array(buffer,offset+30,nameLen)),start=offset+30+nameLen+extraLen;
+    let bytes=new Uint8Array(buffer,start,compressed);
+    if(method===8)bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    if(/\.(png|jpe?g|webp)$/i.test(name)){
+     const mime=/\.jpe?g$/i.test(name)?'jpeg':/\.webp$/i.test(name)?'webp':'png';let binary='';
+     for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));
+     value='data:image/'+mime+';base64,'+btoa(binary);break;
+    }
+    offset=start+compressed;
+   }
+  }catch(error){throw new Error('无法解包 NovelAI 返回的图片 ZIP：'+(error?.message||String(error)));}
+  if(!value)throw new Error('NovelAI 响应中未找到图片；若浏览器阻止跨域访问，请检查网络或改用第三方兼容接口。');
+  return value;
  }
  if(!c.endpoint||!c.apiKey)throw new Error('请先在轻绘设置中填写 OpenAI 兼容 API 地址和 Key');
  const model=String(c.model||'').toLowerCase();
