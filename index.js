@@ -651,7 +651,8 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
   img.addEventListener('touchend',e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25)step(dx<0?1:-1);},{passive:true});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
   img.addEventListener('dblclick',e=>{e.preventDefault();reroll.click();});
-  img.addEventListener('dblclick',e=>{e.preventDefault();reroll.click();});
+  let lastTap=0;
+  img.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTap<320){e.preventDefault();reroll.click();lastTap=0;}else lastTap=now;},{passive:false});
   reroll.addEventListener('click',async()=>{
    if(card.dataset.qlBusy==='1')return;
    const currentPrompt=String(card.dataset.qlPrompt||'').trim();if(!currentPrompt)return;
@@ -659,7 +660,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
    triggerRegistry.markRunning(taskKey);card.dataset.qlBusy='1';reroll.disabled=true;
    const old=reroll.innerHTML;reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l-2.12 2.12"/></svg>';
    try{const fresh=await requestWithActiveSettings(currentPrompt);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();storeChatRecord(fresh,currentPrompt,taskKey,recordMeta);triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}
-   catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));const note=document.createElement('p');note.className='ql-chat-image-status';note.textContent='轻绘生成失败：'+(e?.message||String(e));card.append(note);}
+   catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}
    finally{card.dataset.qlBusy='0';reroll.disabled=false;reroll.innerHTML=old;}
   });
   card._qlRender=render;
@@ -791,53 +792,24 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   card=document.createElement('div');card.className='ql-statusbar-card';card.dataset.qlTask=taskKey;
   card.style.cssText='position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#000;z-index:6;';
   const img=document.createElement('img');img.alt='轻绘状态栏画面';img.loading='eager';img.style.cssText='display:block;width:100%;height:100%;object-fit:contain;';
-  const controls=document.createElement('div');controls.className='ql-statusbar-controls';controls.style.cssText='position:absolute;left:0;right:0;bottom:4px;z-index:8;display:flex;align-items:center;justify-content:center;gap:4px;opacity:.92;';
-  const prev=document.createElement('button');prev.type='button';prev.className='menu_button';prev.textContent='‹';
-  
-  const next=document.createElement('button');next.type='button';next.className='menu_button';next.textContent='›';
-  const reroll=document.createElement('button');reroll.type='button';reroll.className='menu_button';reroll.textContent='再画一张';
-  controls.append(prev,next,reroll);card.append(img,controls);frame.append(card);
-  card._qlCandidates=[];card._qlIndex=0;card._qlPrompt=prompt;
-  const render=()=>{const list=card._qlCandidates;if(!list.length)return;img.src=list[card._qlIndex].url;prev.disabled=card._qlIndex<=0;next.disabled=card._qlIndex>=list.length-1;};
-  card._qlAddCandidate=url=>{card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();};
-  const step=delta=>{const nextIndex=card._qlIndex+delta;if(nextIndex>=0&&nextIndex<card._qlCandidates.length){card._qlIndex=nextIndex;render();}};
-  prev.onclick=()=>step(-1);next.onclick=()=>step(1);
-  let touchX=0,touchY=0;
-  img.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY;},{passive:true});
-  img.addEventListener('touchend',e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25)step(dx<0?1:-1);},{passive:true});
+  card._qlPrompt=prompt;card._qlCandidates=[];card._qlIndex=0;
+  card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;};
+  card._qlAddCandidate=url=>{card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
+  const reroll=async()=>{if(card.dataset.busy==='1')return;const candidate=triggerRegistry.beginCandidate(taskKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(taskKey);card.dataset.busy='1';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlAddCandidate(fresh);storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));alert('轻绘生成失败：'+(e?.message||String(e)));}finally{card.dataset.busy='0';}};
+  img.addEventListener('dblclick',e=>{e.preventDefault();reroll();});
+  let lastTap=0;
+  img.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTap<320){e.preventDefault();reroll();lastTap=0;}else lastTap=now;},{passive:false});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
-  reroll.onclick=async()=>{if(card.dataset.busy==='1')return;const candidate=triggerRegistry.beginCandidate(taskKey,{prompt:card._qlPrompt,source:'statusbar-reroll'});if(!candidate.accepted)return;triggerRegistry.markRunning(taskKey);card.dataset.busy='1';reroll.disabled=true;const old=reroll.textContent;reroll.textContent='生成中';try{const fresh=await requestWithActiveSettings(card._qlPrompt);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();storeChatRecord(fresh,card._qlPrompt,taskKey,{source:'statusbar'});triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());}catch(e){triggerRegistry.markFailed(taskKey,e?.message||String(e));statusbarError(frame,card._qlPrompt,taskKey,e);}finally{card.dataset.busy='0';reroll.disabled=false;reroll.textContent=old;}};
-  card._qlRender=render;
+  card.append(img);frame.append(card);
+
  }
  if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;}
  card._qlRender?.();
  frame.classList.remove('scanning');frame.dataset.qlDone='1';
 }
 function statusbarError(frame,prompt,taskKey,error){
- const existingCard=frame.querySelector('.ql-statusbar-card');
- const note=document.createElement('div');note.className='ql-statusbar-error';
- note.style.cssText='position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(0,0,0,.78);color:#fff;text-align:center;font-size:13px;';
- const text=document.createElement('span');text.textContent='轻绘生成失败：'+(error?.message||String(error));
- const retry=document.createElement('button');retry.type='button';retry.className='menu_button';retry.textContent='点击重试';
- retry.onclick=async()=>{
-  const accepted=triggerRegistry.begin(taskKey,{prompt,source:'statusbar-retry'});
-  if(!accepted.accepted)return;
-  triggerRegistry.markRunning(taskKey);retry.disabled=true;retry.textContent='生成中…';
-  try{
-   const url=await requestWithActiveSettings(prompt);
-   note.remove();
-   const card=frame.querySelector('.ql-statusbar-card');
-   if(card&&typeof card._qlAddCandidate==='function')card._qlAddCandidate(url);
-   else renderStatusbarCard(frame,prompt,url,taskKey);
-   storeChatRecord(url,prompt,taskKey,{source:'statusbar'});
-   triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());
-  }catch(e){
-   triggerRegistry.markFailed(taskKey,e?.message||String(e));
-   text.textContent='轻绘生成失败：'+(e?.message||String(e));
-   retry.disabled=false;retry.textContent='点击重试';
-  }
- };
- note.append(text,retry);frame.append(note);
+ const existing=frame.querySelector('.ql-statusbar-error');if(existing)existing.remove();
+ alert('轻绘生成失败：'+(error?.message||String(error)));
 }
 async function processStatusbarFrames(){
  const docs=[document];
