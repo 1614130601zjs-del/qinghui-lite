@@ -2015,3 +2015,129 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-floor-image-button-label{font-size:.82em;}
 .ql-floor-image-fallback{width:max-content;max-width:100%;margin:4px 0 8px;padding:5px 9px;border:1px solid var(--SmartThemeBorderColor);border-radius:8px;background:var(--SmartThemeBlurTintColor);color:var(--SmartThemeBodyColor);}
 .ql-floor-image-fallback .ql-floor-image-button-label{display:inline;}
+
+
+/* 历史楼层生图弹窗：固定在手机可视区域内，内容在弹窗内部滚动 */
+#ql-floor-image-dialog{
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483647!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100vw!important;
+  height:100vh!important;
+  height:100dvh!important;
+  max-height:100dvh!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  padding:12px!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  background:rgba(0,0,0,.72);
+  -webkit-overflow-scrolling:touch;
+}
+#ql-floor-image-dialog .ql-floor-image-dialog-card{
+  position:relative!important;
+  inset:auto!important;
+  transform:none!important;
+  flex:0 1 560px!important;
+  width:100%!important;
+  max-width:560px!important;
+  max-height:calc(100dvh - 24px)!important;
+  max-height:calc(100vh - 24px)!important;
+  margin:auto!important;
+  padding:14px!important;
+  box-sizing:border-box!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  border:1px solid var(--SmartThemeBorderColor,rgba(255,255,255,.2));
+  border-radius:14px;
+  background:var(--SmartThemeBlurTintColor,var(--SmartThemeBodyColor,#222));
+  color:var(--SmartThemeBodyColor,#fff);
+  box-shadow:0 16px 48px rgba(0,0,0,.42);
+}
+#ql-floor-image-dialog .ql-floor-image-dialog-card header{
+  position:sticky;
+  top:-14px;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:-14px -14px 10px;
+  padding:12px 14px;
+  background:var(--SmartThemeBlurTintColor,var(--SmartThemeBodyColor,#222));
+  border-bottom:1px solid var(--SmartThemeBorderColor,rgba(255,255,255,.15));
+}
+#ql-floor-image-dialog .ql-floor-image-dialog-card label{
+  display:block;
+  margin:10px 0 5px;
+  font-weight:600;
+}
+#ql-floor-image-dialog .ql-floor-image-dialog-card textarea,
+#ql-floor-image-dialog .ql-floor-image-dialog-card select{
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  padding:9px;
+  border:1px solid var(--SmartThemeBorderColor,rgba(255,255,255,.2));
+  border-radius:9px;
+  background:var(--SmartThemeBlurTintColor,rgba(127,127,127,.1));
+  color:var(--SmartThemeBodyColor,inherit);
+  font:inherit;
+}
+#ql-floor-image-dialog .ql-floor-image-dialog-card textarea{
+  resize:vertical;
+  min-height:72px;
+  max-height:28dvh;
+  overflow-y:auto;
+  overflow-wrap:anywhere;
+}
+#ql-floor-image-dialog .ql-floor-dialog-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  justify-content:flex-end;
+  position:sticky;
+  bottom:-14px;
+  margin:12px -14px -14px;
+  padding:10px 14px max(10px,env(safe-area-inset-bottom));
+  background:var(--SmartThemeBlurTintColor,var(--SmartThemeBodyColor,#222));
+  border-top:1px solid var(--SmartThemeBorderColor,rgba(255,255,255,.15));
+}
+#ql-floor-image-dialog .ql-floor-dialog-actions button{
+  max-width:100%;
+  min-height:38px;
+  margin:0;
+  padding:8px 12px;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+#ql-floor-image-dialog [data-close]{
+  flex:0 0 auto;
+  min-width:36px;
+  min-height:36px;
+  margin:0;
+  font-size:22px;
+}
+@media(max-width:600px){
+  #ql-floor-image-dialog{align-items:flex-start!important;padding: max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom))!important;}
+  #ql-floor-image-dialog .ql-floor-image-dialog-card{
+    flex:0 1 auto!important;
+    width:100%!important;
+    max-width:none!important;
+    max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;
+    max-height:calc(100vh - 16px)!important;
+    margin:auto 0!important;
+    padding:12px!important;
+    border-radius:12px;
+  }
+  #ql-floor-image-dialog .ql-floor-image-dialog-card header{top:-12px;margin:-12px -12px 9px;padding:10px 12px;}
+  #ql-floor-image-dialog .ql-floor-dialog-actions{bottom:-12px;margin:10px -12px -12px;padding:9px 12px max(9px,env(safe-area-inset-bottom));}
+  #ql-floor-image-dialog .ql-floor-dialog-actions button{flex:1 1 auto;}
+  #ql-floor-image-dialog .ql-floor-image-dialog-card textarea{max-height:24dvh;}
+}
