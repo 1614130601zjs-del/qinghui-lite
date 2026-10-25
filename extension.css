@@ -973,7 +973,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-statusbar-card>img{touch-action:manipulation!important;}
 
 /* 2026-10-25: make inline album action easy to notice */
-#chat .mes_text .ql-inline-image-trigger:not(:disabled){min-width:150px;padding-left:24px;padding-right:24px;}
+#chat .mes_text .ql-inline-image-trigger:not(:disabled){display:inline-flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;min-width:190px!important;min-height:44px!important;padding:10px 30px!important;border:2px solid var(--SmartThemeBorderColor)!important;border-radius:12px!important;background:var(--SmartThemeQuoteColor,rgba(160,170,180,.16))!important;color:var(--SmartThemeBodyColor)!important;font-size:1em!important;font-weight:700!important;box-shadow:0 2px 5px rgba(0,0,0,.14)!important;}
 
 /* User adjustment: keep image action buttons neutral; the album button is the prominent action. */
 #chat .ql-chat-image-controls button{background:transparent!important;box-shadow:none!important;border-color:var(--SmartThemeBorderColor)!important;color:var(--SmartThemeBodyColor)!important;}
@@ -983,3 +983,35 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #chat .ql-chat-image.ql-image-collapsed .ql-chat-image-collapse{position:static!important;}
 #chat .ql-chat-image.ql-image-collapsed>img{display:none!important;}
 #chat .ql-chat-image-controls{clear:both!important;}
+
+/* Album-style message image frame and persistent expand/collapse control. */
+#chat .ql-chat-image{
+ box-sizing:border-box!important;padding:9px!important;
+ border:1px solid var(--SmartThemeBorderColor)!important;
+ border-radius:18px!important;
+ background:var(--SmartThemeBlurTintColor,rgba(128,128,128,.08))!important;
+ box-shadow:0 3px 12px rgba(0,0,0,.16),inset 0 0 0 3px rgba(128,128,128,.08)!important;
+ overflow:hidden!important;
+}
+#chat .ql-chat-image>img{
+ display:block!important;width:100%!important;height:auto!important;
+ border:1px solid rgba(128,128,128,.22)!important;border-radius:10px!important;
+}
+#chat .ql-chat-image-controls{display:flex!important;align-items:center!important;justify-content:center!important;flex-wrap:wrap!important;gap:8px!important;margin-top:10px!important;width:100%!important;}
+#chat .ql-chat-image-collapse{
+ position:static!important;float:none!important;display:inline-flex!important;
+ align-items:center!important;justify-content:center!important;gap:6px!important;
+ box-sizing:border-box!important;min-width:108px!important;min-height:34px!important;
+ width:auto!important;height:auto!important;padding:6px 12px!important;margin:9px auto 0!important;
+ border:1px solid var(--SmartThemeBorderColor)!important;border-radius:999px!important;
+ background:var(--SmartThemeQuoteColor,rgba(160,170,180,.16))!important;
+ color:var(--SmartThemeBodyColor)!important;box-shadow:none!important;cursor:pointer!important;
+}
+#chat .ql-chat-image-collapse svg{width:18px!important;height:18px!important;flex:none!important;}
+#chat .ql-chat-image-collapse span{font-size:12px!important;font-weight:650!important;white-space:nowrap!important;}
+#chat .ql-chat-image.ql-image-collapsed{padding:8px!important;min-height:0!important;}
+#chat .ql-chat-image.ql-image-collapsed>img,
+#chat .ql-chat-image.ql-image-collapsed .ql-chat-image-controls,
+#chat .ql-chat-image.ql-image-collapsed .ql-chat-image-editor,
+#chat .ql-chat-image.ql-image-collapsed .ql-chat-image-tag-saved{display:none!important;}
+#chat .ql-chat-image.ql-image-collapsed .ql-chat-image-collapse{margin:0 auto!important;}
