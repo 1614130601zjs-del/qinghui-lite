@@ -532,33 +532,31 @@ jQuery(()=>{
   close.addEventListener('click',shut);
   overlay.addEventListener('click',e=>{if(e.target===overlay)shut();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)shut();});
-  let launch=$('#ql-chat-launch');
-  if(!launch){
-   launch=document.createElement('button');
-   launch.id='ql-chat-launch';launch.type='button';launch.className='menu_button';
-   launch.textContent='轻绘 Lite';launch.title='打开轻绘 Lite 生图工作区';
-   launch.addEventListener('click',open);
-   // 放在酒馆原生发送/停止按钮所在的按钮组里，避免落到页面底部或插件设置页。
-   const nativeSend=$('#send_but')||$('#mes_stop')||$('#send_form button[type="submit"]');
-   const toolbar=nativeSend?.parentElement||$('#send_form');
-   if(toolbar){
-    if(nativeSend&&nativeSend.parentElement===toolbar)toolbar.insertBefore(launch,nativeSend);
-    else toolbar.append(launch);
-   }else{
-    // 聊天表单尚未渲染时，稍后重试挂载；不把按钮丢到 body 底部。
-    const mountLauncher=()=>{
-     const send=$('#send_but')||$('#mes_stop')||$('#send_form button[type="submit"]');
-     const form=$('#send_form');
-     if(!send&&!form)return false;
-     const host=send?.parentElement||form;
-     if(send&&send.parentElement===host)host.insertBefore(launch,send);else host.append(launch);
-     return true;
-    };
-    const observer=new MutationObserver(()=>{
-     if(mountLauncher())observer.disconnect();
-    });
-    observer.observe(document.body,{childList:true,subtree:true});
+  const mountLauncher=()=>{
+   const menu=$('#extensionsMenu');
+   if(!menu)return false;
+   let launch=$('#ql-chat-launch');
+   if(!launch){
+    // 将入口注册到酒馆原生魔法棒/扩展菜单，而不是创建发送区新按钮。
+    launch=document.createElement('div');
+    launch.id='ql-chat-launch';
+    launch.className='list-group-item flex-container flexGap5';
+    launch.setAttribute('role','button');
+    launch.setAttribute('tabindex','0');
+    launch.title='打开轻绘 Lite 生图工作区';
+    launch.innerHTML='<i class="fa-solid fa-palette"></i><span>轻绘 Lite</span>';
+    launch.addEventListener('click',open);
+    launch.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
    }
+   if(launch.parentElement!==menu)menu.append(launch);
+   return true;
+  };
+  if(!mountLauncher()){
+   // 等待酒馆原生扩展菜单创建完成，再注册菜单项。
+   const observer=new MutationObserver(()=>{
+    if(mountLauncher())observer.disconnect();
+   });
+   observer.observe(document.body,{childList:true,subtree:true});
   }
   init();
  }
