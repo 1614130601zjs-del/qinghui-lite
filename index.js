@@ -56,28 +56,63 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
  let raw='',data=null,res;
  if(c.provider==='novelai'||c.provider==='novelai-thirdparty'){
   const naiModel=c.naiModel||'nai-diffusion-4-5-full';
-  const payload={prompt,model:naiModel,sampler:c.naiSampler||'k_euler_ancestral',noise_schedule:c.naiScheduler||'karras',steps:Number(c.naiSteps)||28,scale:Number(c.naiScale)||5,width:Number(c.naiWidth)||832,height:Number(c.naiHeight)||1216,negative_prompt:negativeOverride??c.negative??'',decrisper:false,variety_boost:false,sm:false,sm_dyn:false,seed:-1};
+  const negative=String(negativeOverride??c.negative??'');
+  const isV4=/^nai-diffusion-4(?:-|$)/i.test(naiModel);
+  const isV45=/^nai-diffusion-4-5-/i.test(naiModel);
+  const isV3=/^nai-diffusion-3(?:-|$)/i.test(naiModel);
+  const parameters={
+   params_version:isV45?3:(isV4?2:1),
+   width:Number(c.naiWidth)||832,
+   height:Number(c.naiHeight)||1216,
+   scale:Number(c.naiScale)||5,
+   sampler:c.naiSampler||'k_euler_ancestral',
+   noise_schedule:c.naiScheduler||'karras',
+   steps:Number(c.naiSteps)||28,
+   n_samples:1,
+   seed:-1,
+   negative_prompt:negative,
+   sm:false,
+   sm_dyn:false,
+   dynamic_thresholding:false,
+   controlnet_strength:1,
+   legacy:false,
+   add_original_image:true,
+   uncond_scale:1,
+   cfg_rescale:0,
+   deliberate_euler_ancestral_bug:false,
+   prefer_brownian:true
+  };
+  if(isV4){
+   parameters.v4_prompt={caption:{base_caption:prompt,char_captions:[]},use_coords:false,use_order:true};
+   parameters.v4_negative_prompt={caption:{base_caption:negative,char_captions:[]},legacy_uc:false};
+   parameters.ucPreset=4;
+   parameters.skip_cfg_above_sigma=null;
+   parameters.qualityToggle=false;
+  }else{
+   parameters.prompt=prompt;
+   if(isV3)parameters.legacy_v3_extend=true;
+  }
   if(vibeItem){
-   if(!/^nai-diffusion-4(?:-|$)/i.test(naiModel))throw new Error('当前所选 NovelAI 模型不支持导入的 V4 Vibe 编码。请切换到 NovelAI Diffusion V4 / V4.5 模型；编码不能当作普通参考图片跨模型使用。');
+   if(!isV4)throw new Error('当前所选 NovelAI 模型不支持 V4 Vibe 编码，请切换到 NovelAI Diffusion V4 / V4.5 模型。');
    const vibes=Array.isArray(vibeItem.entries)
     ?vibeItem.entries.map(item=>{const extracted=extractUsableVibe(item.raw||item);const image=typeof item.image==='string'&&item.image.trim()?String(item.image).trim().replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,''):extracted?.image||'';return image?{image,strength:Number(item.strength??extracted?.strength??0.6),informationExtracted:Number(item.informationExtracted??extracted?.informationExtracted??1)}:null;}).filter(Boolean)
     :(()=>{const one=extractUsableVibe(vibeItem.raw||vibeItem);return one?[one]:[];})();
    if(!vibes.length)throw new Error('这个 Vibe 组没有可用的预编码资源。请重新导入官网 .naiv4vibe / bundle，或检查智绘姬导出 JSON 是否包含 vibeData 编码；普通预览图不能替代编码。');
    if(vibes.length>16)throw new Error('NovelAI 单次最多使用 16 条 Vibe 参考，请先删除多余条目。');
    if(vibes.some(v=>!Number.isFinite(v.strength)||v.strength<0||v.strength>1||!Number.isFinite(v.informationExtracted)||v.informationExtracted<0||v.informationExtracted>1))throw new Error('Vibe 强度与 Information Extracted 必须在 0 到 1 之间。');
-   payload.reference_image_multiple=vibes.map(v=>v.image);
-   payload.reference_strength_multiple=vibes.map(v=>v.strength);
-   payload.reference_information_extracted_multiple=vibes.map(v=>v.informationExtracted);
-   if(/^nai-diffusion-4(?:-|$)/i.test(naiModel))payload.normalize_reference_strength_multiple=c.naiNormalizeVibeStrengths!==false;
+   parameters.reference_image_multiple=vibes.map(v=>v.image);
+   parameters.reference_strength_multiple=vibes.map(v=>v.strength);
+   parameters.reference_information_extracted_multiple=vibes.map(v=>v.informationExtracted);
+   parameters.normalize_reference_strength_multiple=c.naiNormalizeVibeStrengths!==false;
   }
-  if(naiModel.includes('nai-diffusion-5'))payload.use_new_shared_trial=true;
   const third=c.provider==='novelai-thirdparty';
   const naiKey=third?(c.naiThirdKey||''):(c.naiApiKey||'');
   if(!naiKey)throw new Error(third?'请先填写 NAI 第三方 API Key。':'请先填写 NovelAI 官网 Key。');
   const base=third?String(c.naiThirdEndpoint||'').replace(/\/$/,''):'https://image.novelai.net';
   if(third&&!base)throw new Error('请先填写 NAI 第三方 API 地址。');
   const endpoint=/\/ai\/generate-image$/i.test(base)?base:base+'/ai/generate-image';
-  res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+naiKey},body:JSON.stringify(payload)});
+  const requestBody={input:prompt,model:naiModel,action:'generate',parameters};
+  res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+naiKey},body:JSON.stringify(requestBody)});
   if(!res.ok){raw=await res.text();throw new Error('NovelAI 请求失败（HTTP '+res.status+'）：'+raw.slice(0,240));}
   const buffer=await res.arrayBuffer();let value='';
   try{
