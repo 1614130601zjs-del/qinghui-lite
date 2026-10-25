@@ -175,3 +175,22 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel .ql-primary{background:var(--ql-accent,var(--SmartThemeQuoteColor));border-color:var(--ql-accent,var(--SmartThemeBorderColor));color:#fff}
 #qinghui-lite-panel .ql-image-stage{min-width:0;overflow:hidden}
 @media(max-width:360px){#qinghui-lite-panel .ql-row>button{padding:6px 8px;font-size:12px}#qinghui-lite-panel .ql-subtabs button{flex:1 1 42%;min-width:0}}
+
+/* 图片缓存图库：可配置每行 1–5 张，点击缩略图打开详情弹层。 */
+#qinghui-lite-panel #ql-history{display:grid;grid-template-columns:repeat(var(--ql-history-columns,3),minmax(0,1fr));gap:8px;align-items:start;margin-top:10px}
+#qinghui-lite-panel .ql-cache-tile{min-width:0;overflow:hidden;border:1px solid var(--ql-border);border-radius:10px;padding:5px;background:var(--ql-card)}
+#qinghui-lite-panel .ql-cache-image{display:block;width:100%;aspect-ratio:1/1;overflow:hidden;margin:0;padding:0;border:0;border-radius:7px;background:rgba(127,127,127,.08)}
+#qinghui-lite-panel .ql-cache-image img{display:block;width:100%;height:100%;max-width:none;max-height:none;margin:0;object-fit:cover;border-radius:0}
+#qinghui-lite-panel .ql-cache-caption{margin:5px 1px;font-size:11px;line-height:1.35;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#qinghui-lite-panel .ql-cache-actions{display:flex;gap:3px;flex-wrap:wrap}
+#qinghui-lite-panel .ql-cache-actions button{flex:1 1 auto;min-width:0;margin:0;padding:4px 2px;font-size:10px}
+#ql-image-cache-modal[hidden]{display:none!important}
+#ql-image-cache-modal{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;background:rgba(0,0,0,.82);backdrop-filter:blur(5px)}
+#ql-image-cache-modal .ql-cache-modal-panel{width:min(760px,100%);max-height:92dvh;overflow:auto;overscroll-behavior:contain;padding:12px;border:1px solid var(--SmartThemeBorderColor);border-radius:14px;background:var(--SmartThemeBlurTintColor,var(--SmartThemeBodyColor));color:var(--SmartThemeBodyColor)}
+#ql-image-cache-modal .ql-cache-modal-close{display:block;margin:0 0 8px auto}
+#ql-image-cache-modal .ql-cache-large{display:block;max-width:100%;max-height:48dvh;object-fit:contain;margin:0 auto 12px;border-radius:9px}
+#ql-image-cache-modal pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto;padding:8px;border-radius:8px;background:rgba(127,127,127,.08);font-size:12px}
+#ql-image-cache-modal details{margin:8px 0}
+#ql-image-cache-modal summary{cursor:pointer;font-weight:600}
+#ql-image-cache-modal p{overflow-wrap:anywhere}
+@media(max-width:420px){#qinghui-lite-panel #ql-history{gap:5px}#qinghui-lite-panel .ql-cache-tile{padding:3px}#qinghui-lite-panel .ql-cache-caption{font-size:10px}#qinghui-lite-panel .ql-cache-actions button{font-size:9px}}
