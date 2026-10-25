@@ -4,7 +4,32 @@ export function initFloorImageFeature(api) {
  const clean=v=>String(v==null?'':v).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
  const keyFor=(chatId,index)=>'llm-floor:'+String(chatId||'chat')+':'+Number(index);
  const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- function parseResult(raw){let value=String(raw||'').trim();value=value.replace(/^\s*json\s*/i,'').replace(/\s*$/,'');const start=value.indexOf('{'),end=value.lastIndexOf('}');if(start>=0&&end>start){try{const d=JSON.parse(value.slice(start,end+1));return{positive:String(d.positive||d.prompt||d.tags||'').trim(),negative:String(d.negative||d.negative_prompt||'').trim()};}catch(e){}}return{positive:value.replace(/^(?:正向提示词|positive(?: prompt)?|tags)\s*[:：]\s*/i,'').trim(),negative:''};}
+ function parseResult(raw){
+  // 不同酒馆版本/模型连接器可能返回字符串、OpenAI choices，或带 text/content/response 的对象。
+  const extract=value=>{
+   if(typeof value==='string')return value.trim();
+   if(Array.isArray(value))return value.map(item=>extract(item)).filter(Boolean).join('\n').trim();
+   if(value&&typeof value==='object'){
+    for(const key of ['positive','prompt','tags','text','content','response','output_text','output','result','message']){
+     const candidate=value[key];
+     if(typeof candidate==='string'&&candidate.trim())return candidate.trim();
+     if(candidate&&typeof candidate==='object'){const nested=extract(candidate);if(nested)return nested;}
+    }
+    const choice=value.choices?.[0];
+    if(choice){const nested=extract(choice.message?.content??choice.text??choice);if(nested)return nested;}
+    if(value.data){const nested=extract(value.data);if(nested)return nested;}
+   }
+   return '';
+  };
+  let value=extract(raw);
+  value=value.replace(/^\s*```(?:json)?\s*/i,'').replace(/\s*```\s*$/,'').trim();
+  const start=value.indexOf('{'),end=value.lastIndexOf('}');
+  if(start>=0&&end>start){
+   try{const d=JSON.parse(value.slice(start,end+1));return{positive:String(d.positive||d.prompt||d.tags||d.positive_prompt||'').trim(),negative:String(d.negative||d.negative_prompt||'').trim()};}catch(e){}
+  }
+  const positive=value.replace(/^(?:正向提示词|positive(?: prompt)?|tags|正向 Tag)\s*[:：]\s*/i,'').trim();
+  return{positive,negative:''};
+ }
  function characterContext(context){const id=context.characterId,card=Number.isInteger(id)&&id>=0&&context.characters?context.characters[id]:null;const name=card&&(card.name||card.avatar)||context.name2||'';const linked=(cfg().characters||[]).find(x=>x&&((x.characterKey!=null&&String(x.characterKey)===String(id))||(name&&String(x.characterName||x.name||'').trim()===String(name).trim())));const fields=[['角色卡描述',card&&card.description],['角色性格',card&&card.personality],['角色场景',card&&card.scenario],['轻绘固定外貌',linked&&linked.appearance]].filter(p=>String(p[1]||'').trim()).map(p=>p[0]+'：'+clean(p[1]).slice(0,4000));return{name,text:fields.join('\n')};}
  async function makePrompt(context,message,style){let lore='';if(cfg().floorIncludeWorldInfo!==false&&typeof getWorldInfoPrompt==='function'&&Array.isArray(context.chat)){try{const r=await getWorldInfoPrompt(context.chat,context.maxContext,true);lore=typeof r==='string'?r:[r&&r.worldInfoBefore,r&&r.worldInfoString,r&&r.worldInfoAfter,r&&r.prompt].filter(v=>typeof v==='string').join('\n');}catch(e){console.warn('[轻绘 Lite] 读取世界书上下文失败',e);}}const character=characterContext(context);const prompt=['你是图片提示词生成器。根据一条酒馆历史楼层生成 NovelAI 适用的英文视觉标签。','只输出 JSON：{"positive":"comma-separated English tags","negative":"comma-separated English tags"}。不要解释、Markdown、剧情续写或角色台词。','只描述画面可见内容；尽量保留正文中的动作、表情、镜头、环境和光线，并结合角色卡保持外貌/服装一致。不要编造正文未支持的关键细节。','轻绘当前启用的画师串/风格（生图时会自动追加，避免重复）：'+(style||'无'),'角色：'+(character.name||'未知')+'\n角色设定：\n'+(character.text||'无额外角色设定'),'可用世界书上下文：\n'+(lore||'未取得可用世界书文本；不要自行假定内容'),'目标楼层正文：\n'+clean(message.mes).slice(0,9000),String(cfg().floorLlmPrompt||defaults.floorLlmPrompt||'')].join('\n\n');const raw=await generateQuietPrompt({quietPrompt:prompt}),parsed=parseResult(raw);if(!parsed.positive)throw new Error('LLM 没有返回可用的正向 Tag，请重试。');return{positive:parsed.positive,negative:parsed.negative,character};}
  function dialogShell(index,name){const old=document.getElementById('ql-floor-image-dialog');if(old)old.remove();const overlay=document.createElement('div');overlay.id='ql-floor-image-dialog';overlay.className='ql-floor-image-dialog';overlay.innerHTML='<section class="ql-floor-image-dialog-card" role="dialog" aria-modal="true" aria-label="历史楼层生图"><header><strong>历史楼层生图</strong><button type="button" data-close>×</button></header><p class="ql-muted">楼层 '+(index+1)+' · '+esc(name||'当前角色')+'。不会改写原始正文。</p><label>正向 Tag</label><textarea data-positive rows="5"></textarea><label>负向 Tag</label><textarea data-negative rows="3"></textarea><label>图片数量</label><select data-count><option value="1">1 张</option><option value="2">2 张</option><option value="3">3 张</option><option value="4">4 张</option></select><p data-status class="ql-muted" role="status">正在生成 Tag…</p><div class="ql-floor-dialog-actions"><button type="button" data-tags>重新生成 Tag</button><button type="button" data-cancel>取消</button><button type="button" data-run>确认并生图</button></div></section>';document.body.append(overlay);const close=()=>overlay.remove();overlay.querySelector('[data-close]').onclick=close;overlay.querySelector('[data-cancel]').onclick=close;overlay.addEventListener('click',e=>{if(e.target===overlay)close();});return overlay;}
