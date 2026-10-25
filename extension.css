@@ -924,7 +924,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 }
 
 /* Inline image marker action inside the original assistant message. */
-#chat .mes_text .ql-inline-image-trigger{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:4px 6px;padding:7px 12px;border:1px solid var(--SmartThemeBorderColor);border-radius:999px;background:var(--SmartThemeQuoteColor,rgba(160,170,180,.16));color:var(--SmartThemeBodyColor);font-size:.9em;line-height:1.35;white-space:nowrap;cursor:pointer;}
+#chat .mes_text .ql-inline-image-trigger{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin:5px 6px;padding:9px 22px;min-width:136px;min-height:40px;border:1px solid var(--SmartThemeBorderColor);border-radius:999px;background:var(--SmartThemeQuoteColor,rgba(160,170,180,.16));color:var(--SmartThemeBodyColor);font-size:.95em;font-weight:650;line-height:1.35;white-space:nowrap;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.16);}
 #chat .mes_text .ql-inline-image-trigger:disabled{opacity:.65;cursor:wait;}
 #chat .mes_text .ql-inline-image-trigger:hover{filter:brightness(1.06);}
 
@@ -971,3 +971,6 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #chat .ql-chat-image.ql-image-collapsed .ql-chat-image-collapse{bottom:auto;top:10px;}
 #chat .ql-chat-image-editor[hidden]{display:none!important;}
 .ql-statusbar-card>img{touch-action:manipulation!important;}
+
+/* 2026-10-25: make inline album action easy to notice */
+#chat .mes_text .ql-inline-image-trigger:not(:disabled){min-width:150px;padding-left:24px;padding-right:24px;}
