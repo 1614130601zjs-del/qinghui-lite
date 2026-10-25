@@ -1359,41 +1359,47 @@ jQuery(()=>{
 });
 
 
-// 独立入口兜底：菜单会被酒馆重建，因此统一监听 DOM 变化并把入口放回原生魔法棒菜单。
-jQuery(()=>{
- const ensureQinghuiLauncher=()=>{
-  const menu=document.querySelector('#extensionsMenu');
-  if(!menu)return false;
-  let launch=menu.querySelector('#ql-chat-launch');
-  if(!launch){
-   // 只复用菜单内节点；避免误拿到已脱离菜单的旧节点。
-   launch=document.createElement('div');
-   launch.id='ql-chat-launch';
-   launch.className='list-group-item flex-container flexGap5';
-   launch.setAttribute('role','button');
-   launch.setAttribute('tabindex','0');
-   launch.title='打开轻绘 Lite 生图工作区';
-   launch.innerHTML='<i class="fa-solid fa-palette"></i><span>轻绘 Lite</span>';
-   launch.addEventListener('click',()=>{
-    const overlay=document.querySelector('#ql-overlay');
-    if(!overlay){console.warn('[轻绘 Lite] 找不到工作区面板，请检查扩展是否完整加载');return;}
-    overlay.hidden=false;
+
+/* 轻绘 Lite 魔法棒入口兜底。
+ * SillyTavern 会在打开/重建扩展菜单时替换菜单 DOM，因此始终按当前菜单节点幂等挂载。
+ */
+jQuery(() => {
+ const mountQinghuiMagicWand = () => {
+  const menu = document.querySelector('#extensionsMenu');
+  if (!menu) return false;
+  let launch = menu.querySelector('#ql-chat-launch');
+  if (!launch) {
+   launch = document.createElement('div');
+   launch.id = 'ql-chat-launch';
+   launch.className = 'list-group-item flex-container flexGap5';
+   launch.setAttribute('role', 'button');
+   launch.setAttribute('tabindex', '0');
+   launch.title = '打开轻绘 Lite 生图工作区';
+   launch.innerHTML = '<i class="fa-solid fa-palette"></i><span>轻绘 Lite</span>';
+   launch.addEventListener('click', () => {
+    const overlay = document.querySelector('#ql-overlay');
+    if (!overlay) {
+     console.warn('[轻绘 Lite] 工作区尚未初始化，无法打开');
+     return;
+    }
+    overlay.hidden = false;
     document.body.classList.add('ql-modal-open');
    });
-   launch.addEventListener('keydown',e=>{
-    if(e.key==='Enter'||e.key===' '){e.preventDefault();launch.click();}
+   launch.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+     event.preventDefault();
+     launch.click();
+    }
    });
   }
-  if(launch.parentElement!==menu)menu.append(launch);
+  if (launch.parentElement !== menu) menu.append(launch);
   return true;
  };
- ensureQinghuiLauncher();
- // 观察整个页面，菜单被清空、替换或重新创建时都会重新挂载入口。
- if(!document.documentElement.dataset.qlLauncherObserver){
-  document.documentElement.dataset.qlLauncherObserver='1';
-  const observer=new MutationObserver(()=>ensureQinghuiLauncher());
-  observer.observe(document.documentElement,{childList:true,subtree:true});
+ mountQinghuiMagicWand();
+ if (!document.documentElement.dataset.qlMagicWandObserver) {
+  document.documentElement.dataset.qlMagicWandObserver = '1';
+  const observer = new MutationObserver(() => mountQinghuiMagicWand());
+  observer.observe(document.documentElement, { childList: true, subtree: true });
  }
- // 菜单可能在扩展初始化之后才打开；点击页面时再做一次幂等检查作为兜底。
- document.addEventListener('click',()=>{ensureQinghuiLauncher();},true);
+ document.addEventListener('click', () => mountQinghuiMagicWand(), true);
 });
