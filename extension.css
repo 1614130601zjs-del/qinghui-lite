@@ -580,12 +580,38 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel #ql-history .ql-cache-actions button{flex:1 1 auto;min-height:40px;cursor:pointer}
 #qinghui-lite-panel #ql-history [data-ql-bulk-delete]:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:520px){
- #qinghui-lite-panel #ql-history .ql-cache-grid{grid-template-columns:repeat(min(var(--ql-history-columns,2),2),minmax(0,1fr))}
+ /* 列数由“每行图片数量”控件统一控制；手机端也不能强制覆盖成两列。 */
  #qinghui-lite-panel #ql-history .ql-cache-actions{gap:3px}
- #qinghui-lite-panel #ql-history .ql-cache-actions button{padding:6px 4px;font-size:11px}
+ #qinghui-lite-panel #ql-history .ql-cache-actions button{padding:6px 4px;font-size:11px;min-width:0}
 }
 
 /* Preserve the original cache-image grid; bulk selection controls sit below the entire gallery. */
 #qinghui-lite-panel #ql-history .ql-cache-grid{order:1}
 #qinghui-lite-panel #ql-cache-footer{order:2}
 #qinghui-lite-panel #ql-history .ql-cache-select-one{padding:2px 0}
+
+/* 图片缓存页细节：控件、卡片与缩略图保持一致的轻量圆角和间距。 */
+#qinghui-lite-panel #ql-history-columns{
+ display:block;width:auto;max-width:180px;min-width:112px;margin:6px 0 12px;padding:8px 30px 8px 10px;
+ border-radius:10px;border-color:var(--ql-glass-line,var(--SmartThemeBorderColor));
+ background:var(--ql-card,var(--SmartThemeBlurTintColor));font-size:13px;
+}
+#qinghui-lite-panel #ql-history .ql-cache-grid{width:100%;box-sizing:border-box;align-items:start;gap:10px}
+#qinghui-lite-panel #ql-history .ql-cache-tile{
+ border-color:var(--ql-glass-line,var(--SmartThemeBorderColor));border-radius:12px;padding:6px;
+ box-shadow:0 2px 8px rgba(0,0,0,.06);transition:border-color .16s ease,transform .16s ease;
+}
+#qinghui-lite-panel #ql-history .ql-cache-tile:active{transform:scale(.99)}
+#qinghui-lite-panel #ql-history .ql-cache-image{border-radius:8px}
+#qinghui-lite-panel #ql-history .ql-cache-caption{margin:7px 2px 6px;line-height:1.4}
+#qinghui-lite-panel #ql-history .ql-cache-actions{gap:5px}
+#qinghui-lite-panel #ql-history .ql-cache-actions button{
+ border-radius:8px;min-height:34px;padding:6px 5px;font-size:11px;line-height:1.2;
+}
+#qinghui-lite-panel #ql-cache-footer{border-radius:12px;gap:7px}
+@media(max-width:360px){
+ #qinghui-lite-panel #ql-history .ql-cache-grid{gap:6px}
+ #qinghui-lite-panel #ql-history .ql-cache-tile{padding:4px;border-radius:9px}
+ #qinghui-lite-panel #ql-history .ql-cache-actions{gap:2px}
+ #qinghui-lite-panel #ql-history .ql-cache-actions button{font-size:10px;padding:5px 2px;min-height:30px}
+}
