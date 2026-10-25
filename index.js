@@ -893,6 +893,36 @@ $('#ql-preset-save').onclick=()=>{const name=$('#ql-preset-name').value.trim(),p
 $('#ql-clear').onclick=()=>{if(confirm('清空轻绘本地生成记录？不会删除聊天图片。')){cfg().records=[];save();history();status('记录已清空。');}};
 }
 jQuery(()=>{
+ // 入口注册必须独立于面板创建判断：酒馆重复注入时，#ql-overlay 可能已存在，但魔法棒菜单项仍可能缺失。
+ const ensureLiteLauncher=()=>{
+  const menu=document.querySelector('#extensionsMenu');
+  if(!menu)return false;
+  let launch=menu.querySelector('#ql-chat-launch');
+  if(!launch){
+   // 若旧入口被酒馆移到其他容器，先复用节点，再放回原生魔法棒菜单。
+   launch=document.querySelector('#ql-chat-launch')||document.createElement('div');
+   launch.id='ql-chat-launch';
+   launch.className='list-group-item flex-container flexGap5';
+   launch.setAttribute('role','button');
+   launch.setAttribute('tabindex','0');
+   launch.title='打开轻绘 Lite 生图工作区';
+   launch.innerHTML='<i class="fa-solid fa-palette"></i><span>轻绘 Lite</span>';
+  }
+  if(launch.parentElement!==menu)menu.append(launch);
+  launch.onclick=()=>{
+   const overlay=document.querySelector('#ql-overlay');
+   if(!overlay)return;
+   overlay.hidden=false;
+   document.body.classList.add('ql-modal-open');
+  };
+  launch.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();launch.click();}};
+  return true;
+ };
+ ensureLiteLauncher();
+ if(!document.documentElement.dataset.qlLiteMenuWatch){
+  document.documentElement.dataset.qlLiteMenuWatch='1';
+  new MutationObserver(()=>ensureLiteLauncher()).observe(document.documentElement,{childList:true,subtree:true});
+ }
  if(!$('#ql-overlay')){
   document.documentElement.insertAdjacentHTML('beforeend',html());
   const overlay=$('#ql-overlay');
