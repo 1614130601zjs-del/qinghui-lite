@@ -69,7 +69,7 @@ function hideMarkersInTextNode(root,entries=[]){
    button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='定格此刻：生成图片并收录到当前消息';
    button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
-   fragment.append(button);ordinal++;last=re.lastIndex;
+   const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);fragment.append(buttonWrap);ordinal++;last=re.lastIndex;
   }
   fragment.append(document.createTextNode(value.slice(last)));
   node.parentNode?.replaceChild(fragment,node);
@@ -829,7 +829,7 @@ async function processLatestAssistantMessage(){
    button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
    button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
-   host.append(button);
+   const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);host.append(buttonWrap);
   }
  }
 }
