@@ -1034,7 +1034,12 @@ async function processStatusbarFrames(){
    frame.dataset.qlDone='';
    frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading').forEach(el=>el.remove());
   }
-  if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
+  if(frame.dataset.qlBusy==='1')continue;
+  // 刷新后 data-ql-done 可能仍保留，但卡片 DOM/事件对象已丢失。
+  // 只有卡片仍有本次运行时渲染器时才跳过；否则必须继续走缓存恢复。
+  const existingCard=frame.querySelector('.ql-statusbar-card');
+  if(frame.dataset.qlDone==='1'&&existingCard?._qlRender)continue;
+  if(frame.dataset.qlDone==='1')frame.dataset.qlDone='';
   frame.dataset.qlBusy='1';
   let taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
   // 恢复已缓存的状态栏图片：酒馆刷新后消息 DOM 的 mesid/同消息标记序号偶尔会变化，
