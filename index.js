@@ -735,6 +735,10 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
  applyChatAlbumStyle(card,cfg().chatAlbumStyle||'classic');applyChatTheme(card);
  if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;}
  card._qlRender?.();
+ // 首次扫描可能先走“记录兜底”把图片放到正文末尾；后续扫描找到原 marker 后，
+ // 即使卡片已经存在，也必须把它移动回 marker 所在位置，不能只在新建时定位。
+ if(anchor?.parentNode&&card.parentNode!==anchor.parentNode)anchor.parentNode.insertBefore(card,anchor);
+ else if(anchor?.parentNode&&card.nextSibling!==anchor)anchor.parentNode.insertBefore(card,anchor);
  return card;
 }
 function snapshotConfig(prompt, negativeOverride){
