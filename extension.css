@@ -1568,3 +1568,16 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #qinghui-lite-panel .ql-album-page-arrow[data-album-step="-1"]{left:-34px!important;}
  #qinghui-lite-panel .ql-album-page-arrow[data-album-step="1"]{right:-34px!important;}
 }
+
+/* 0.5.30: status-bar actions stay reachable and flip arrows sit outside the photo. */
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action{position:absolute!important;top:10px!important;right:10px!important;left:auto!important;bottom:auto!important;z-index:2147483001!important;pointer-events:auto!important;cursor:pointer!important;}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite{right:54px!important;}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-delete{right:10px!important;}
+#qinghui-lite-panel .ql-album-flip-book{margin:0 52px!important;}
+#qinghui-lite-panel .ql-album-page-arrow[data-album-step="-1"]{left:-48px!important;}
+#qinghui-lite-panel .ql-album-page-arrow[data-album-step="1"]{right:-48px!important;}
+@media(max-width:360px){
+ #qinghui-lite-panel .ql-album-flip-book{margin:0 42px!important;}
+ #qinghui-lite-panel .ql-album-page-arrow[data-album-step="-1"]{left:-39px!important;}
+ #qinghui-lite-panel .ql-album-page-arrow[data-album-step="1"]{right:-39px!important;}
+}
