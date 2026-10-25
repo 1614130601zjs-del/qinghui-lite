@@ -185,8 +185,9 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel .ql-cache-actions{display:flex;gap:3px;flex-wrap:wrap}
 #qinghui-lite-panel .ql-cache-actions button{flex:1 1 auto;min-width:0;margin:0;padding:4px 2px;font-size:10px}
 #ql-image-cache-modal[hidden]{display:none!important}
-#ql-image-cache-modal{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;background:rgba(0,0,0,.82);backdrop-filter:blur(5px)}
-#ql-image-cache-modal .ql-cache-modal-panel{width:min(760px,100%);max-height:92dvh;overflow:auto;overscroll-behavior:contain;padding:12px;border:1px solid var(--SmartThemeBorderColor);border-radius:14px;background:var(--SmartThemeBlurTintColor,var(--SmartThemeBodyColor));color:var(--SmartThemeBodyColor)}
+/* 详情弹窗属于插件 overlay，避免脱离插件后错位或被移动端 fixed 容器裁切。 */
+#ql-image-cache-modal{position:absolute;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:0;overflow:auto;padding:12px;box-sizing:border-box;background:rgba(0,0,0,.82);backdrop-filter:blur(5px)}
+#ql-image-cache-modal .ql-cache-modal-panel{position:relative;flex:0 1 760px;width:min(760px,100%);max-height:calc(100% - 8px);overflow:auto;overscroll-behavior:contain;padding:12px;border:1px solid var(--SmartThemeBorderColor);border-radius:14px;background:var(--SmartThemeBlurTintColor,var(--SmartThemeBodyColor));color:var(--SmartThemeBodyColor)}
 #ql-image-cache-modal .ql-cache-modal-close{display:block;margin:0 0 8px auto}
 #ql-image-cache-modal .ql-cache-large{display:block;max-width:100%;max-height:48dvh;object-fit:contain;margin:0 auto 12px;border-radius:9px}
 #ql-image-cache-modal pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto;padding:8px;border-radius:8px;background:rgba(127,127,127,.08);font-size:12px}
