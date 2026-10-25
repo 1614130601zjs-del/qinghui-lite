@@ -345,7 +345,8 @@ async function saveCleanImage(src,filename){
    objectUrl=URL.createObjectURL(blob);
   }
   // Edge on Android: show an in-page download sheet instead of opening the image.
-  const isEdgeAndroid=/EdgA?\//i.test(navigator.userAgent||'');
+  const ua=String(navigator.userAgent||'')+' '+String(navigator.userAgentData?.brands?.map(x=>x.brand).join(' ')||'');
+  const isEdgeAndroid=/(Edg|Edge|Microsoft Edge)/i.test(ua);
   const a=document.createElement('a');
   a.href=objectUrl;a.download=name;a.rel='noopener';
   if(isEdgeAndroid){
