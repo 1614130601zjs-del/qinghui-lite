@@ -53,3 +53,19 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 }
 
 @media(max-width:600px){#ql-overlay{padding:6px;align-items:center}#qinghui-lite-panel{width:100%;max-height:calc(100vh - 12px);max-height:calc(100dvh - 12px);border-radius:14px;padding:10px}#ql-chat-launch{font-size:12px;padding:5px 8px}}
+
+
+/* 生图区与预设子页 */
+#qinghui-lite-panel .ql-image-stage{display:flex;align-items:center;justify-content:center;min-height:160px;max-height:44dvh;overflow:auto;border:1px dashed var(--SmartThemeBorderColor);border-radius:10px;background:rgba(127,127,127,.06)}
+#qinghui-lite-panel .ql-image-placeholder{padding:30px 12px;opacity:.55;text-align:center}
+#qinghui-lite-panel .ql-tag-chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+#qinghui-lite-panel .ql-tag-chip{margin:0;padding:5px 8px;border:1px solid var(--SmartThemeBorderColor);border-radius:999px;background:var(--SmartThemeQuoteColor,rgba(127,127,127,.12));font-size:12px;overflow-wrap:anywhere}
+#qinghui-lite-panel .ql-subtabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:8px 8px 0;flex:0 0 auto}
+#qinghui-lite-panel .ql-subtab{min-width:0;margin:0;padding:9px 3px;border:1px solid var(--SmartThemeBorderColor);border-radius:9px;background:transparent;color:var(--SmartThemeBodyColor);font-size:12px}
+#qinghui-lite-panel .ql-subtab.active{background:var(--SmartThemeQuoteColor,rgba(127,127,127,.16));font-weight:700}
+#qinghui-lite-panel .ql-subpage{min-width:0}
+#qinghui-lite-panel .ql-subpage[hidden]{display:none!important}
+#qinghui-lite-panel .ql-subpage>.ql-card:first-child{margin-top:8px}
+#qinghui-lite-panel #ql-result img{display:block;max-width:100%;max-height:42dvh;object-fit:contain;margin:8px auto;border-radius:8px}
+#qinghui-lite-panel #ql-fast-provider{font-weight:600}
+@media(max-width:600px){#qinghui-lite-panel .ql-image-stage{min-height:130px;max-height:35dvh}#qinghui-lite-panel .ql-subtabs{gap:3px;padding:6px 5px 0}#qinghui-lite-panel .ql-subtab{font-size:11px;padding:9px 1px}}
