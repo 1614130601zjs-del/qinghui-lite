@@ -57,8 +57,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
  if(c.provider==='novelai'||c.provider==='novelai-thirdparty'){
   const naiModel=c.naiModel||'nai-diffusion-4-5-full';
   const negative=String(negativeOverride??c.negative??'');
-  const isV4=/^nai-diffusion-4(?:-|$)/i.test(naiModel);
-  const isV45=/^nai-diffusion-4-5-/i.test(naiModel);
+  const isV4=/^nai-diffusion-(?:4(?:-|$)|5-)/i.test(naiModel);
   const isV5=/^nai-diffusion-5-/i.test(naiModel);
   const isV3=/^nai-diffusion-3(?:-|$)/i.test(naiModel);
   const width=Number(c.naiWidth)||832;
@@ -70,6 +69,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
    height,
    scale:Number(c.naiScale)||5,
    sampler,
+   noise_schedule:c.naiScheduler||'karras',
    steps:Number(c.naiSteps)||28,
    n_samples:1,
    seed:Math.floor(Math.random()*2147483647),
