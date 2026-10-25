@@ -110,8 +110,8 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
   }
   if(vibeItem){
    const vibes=Array.isArray(vibeItem.entries)
-    ?vibeItem.entries.map(item=>{const extracted=extractUsableVibe(item.raw||item);const image=typeof item.image==='string'&&item.image.trim()?String(item.image).trim().replace(/^data:(?:application\\/octet-stream|image\\/[^;]+);base64,/i,'').replace(/\\s+/g,''):extracted?.image||'';return image?{image,strength:Number(item.strength??extracted?.strength??0.6),informationExtracted:Number(item.informationExtracted??extracted?.informationExtracted??1)}:null;}).filter(Boolean)
-    :(()=>{const one=extractUsableVibe(vibeItem.raw||vibeItem);return one?[one]:[];})();
+    ?vibeItem.entries.map(item=>{const extracted=extractUsableVibe(item.raw||item,naiModel);const image=typeof item.image==='string'&&item.image.trim()?String(item.image).trim().replace(/^data:(?:application\\/octet-stream|image\\/[^;]+);base64,/i,'').replace(/\\s+/g,''):extracted?.image||'';return image?{image,strength:Number(item.strength??extracted?.strength??0.6),informationExtracted:Number(item.informationExtracted??extracted?.informationExtracted??1)}:null;}).filter(Boolean)
+    :(()=>{const one=extractUsableVibe(vibeItem.raw||vibeItem,naiModel);return one?[one]:[];})();
    if(!vibes.length)throw new Error('这个 Vibe 组没有识别到可发送的编码。请重新导入包含 encoding 数据的 .naiv4vibe / bundle 或智绘姬导出 JSON；普通预览图不能替代编码。');
    if(vibes.length>16)throw new Error('NovelAI 单次最多使用 16 条 Vibe 参考，请先删除多余条目。');
    if(vibes.some(v=>!Number.isFinite(v.strength)||v.strength<0||v.strength>1||!Number.isFinite(v.informationExtracted)||v.informationExtracted<0||v.informationExtracted>1))throw new Error('Vibe 强度与 Information Extracted 必须在 0 到 1 之间。');
@@ -250,32 +250,42 @@ async function requestWithActiveSettings(prompt, negativeOverride){
  return requestImage(resolved.prompt,resolved.negative,resolved.vibe);
 }
 
-function extractUsableVibe(raw){
- const encodedKeys=/^(?:encoding|referenceImage|reference_image|referenceImageData|reference_image_data|base64|imageBase64|image_base64|encoded|encodedVibe|encoded_vibe|vibeEncoding|vibe_encoding|vibeData|vibe_data|payload)$/i;
+function vibeModelKey(model){
+ if(model.includes('nai-diffusion-5-curated'))return 'v5curated';
+ if(model.includes('nai-diffusion-5-full'))return 'v5full';
+ if(model.includes('4-5-curated'))return 'v4-5curated';
+ if(model.includes('4-5-full'))return 'v4-5full';
+ if(model.includes('4-curated'))return 'v4curated';
+ if(model.includes('4-full'))return 'v4full';
+ if(model.includes('diffusion-3'))return 'v3';
+ return 'v4-5full';
+}
+function extractUsableVibe(raw,model='nai-diffusion-4-5-full'){
  const seen=new WeakSet();let found='';
  const clean=value=>String(value||'').trim().replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,'').replace(/\s+/g,'').replace(/-/g,'+').replace(/_/g,'/');
- const walk=(value,key='',canonical=false)=>{
+ const key=vibeModelKey(model);
+ const walk=(value,keyName='',canonical=false)=>{
   if(found||value==null)return;
   if(typeof value==='string'){
    const v=clean(value);
-   if((canonical||encodedKeys.test(key))&&/^[A-Za-z0-9+/]+={0,2}$/.test(v)&&v.length>160){found=v;return;}
+   if((canonical||/^(?:encoding|encoded|encodedVibe|encoded_vibe|vibeEncoding|vibe_encoding|vibeData|vibe_data|payload|base64|imageBase64|image_base64|referenceImage|reference_image)$/i.test(keyName))&&/^[A-Za-z0-9+/]+={0,2}$/.test(v)&&v.length>160){found=v;return;}
    return;
   }
   if(typeof value!=='object'||seen.has(value))return;
   seen.add(value);
-  if(Array.isArray(value)){for(const item of value)walk(item,key,canonical);return;}
-  const isCanonical=value.identifier==='novelai-vibe-transfer'&&value.type==='image';
-  if(isCanonical&&value.encodings&&typeof value.encodings==='object'){
-   const modelKeys={'nai-diffusion-4-5-full':'v4-5full','nai-diffusion-4-5-curated':'v4-5curated','nai-diffusion-4-full':'v4full','nai-diffusion-4-curated':'v4curated','nai-diffusion-5-full':'v5full','nai-diffusion-5-curated':'v5curated','nai-diffusion-3':'v3'};
-   const modelGroup=value.encodings[modelKeys[cfg().naiModel]||'v4-5full']||Object.values(value.encodings).find(group=>group&&typeof group==='object');
-   if(modelGroup&&typeof modelGroup==='object'){
-    const encodedEntry=Object.values(modelGroup).find(entry=>entry&&typeof entry.encoding==='string'&&entry.encoding.length>160);
-    if(encodedEntry){found=clean(encodedEntry.encoding);return;}
+  if(Array.isArray(value)){for(const item of value)walk(item,keyName,canonical);return;}
+  // .naiv4vibe 的编码按模型分组，优先使用与当前模型完全匹配的 encoding。
+  if(value.encodings&&typeof value.encodings==='object'){
+   const enc=value.encodings[key];
+   if(enc){
+    const payload=typeof enc==='string'?enc:enc.encoding||enc.encoded||enc.data;
+    if(typeof payload==='string'&&clean(payload).length>160){found=clean(payload);return;}
    }
   }
-  if(isCanonical&&typeof value.image==='string'&&value.image.length>160)walk(value.image,'image',true);
+  const isCanonical=value.identifier==='novelai-vibe-transfer'&&value.type==='image';
+  if(isCanonical&&typeof value.image==='string')walk(value.image,'image',true);
   for(const [k,v] of Object.entries(value)){
-   if(isCanonical&&k==='image')continue;
+   if(k==='encodings'||(isCanonical&&k==='image'))continue;
    walk(v,k,false);
   }
  };
@@ -284,9 +294,8 @@ function extractUsableVibe(raw){
  const serialized=safeMigrationStringify(raw)||'';
  const readNumber=(re,fallback)=>{const m=serialized.match(re);return m?Number(m[1]):fallback;};
  const strength=readNumber(/"(?:reference_strength|referenceStrength|strength)"\s*:\s*([0-9.]+)/i,0.6);
- const informationExtracted=readNumber(/"(?:reference_information_extracted|referenceInformationExtracted|information_extracted|informationExtracted|info_extracted)"\s*:\s*([0-9.]+)/i,1);
- const norm=serialized.match(/"normalize_reference_strength"\s*:\s*(true|false)/i);
- return {image:found,strength,informationExtracted,normalize:norm?norm[1]==='true':undefined};
+ const informationExtracted=readNumber(/"(?:reference_information_extracted|referenceInformationExtracted|information_extracted|informationExtracted|info_extracted|infoExtracted)"\s*:\s*([0-9.]+)/i,1);
+ return {image:found,strength,informationExtracted};
 }
 function renderActivePresets(){const select=$('#ql-active-preset');if(!select)return;const s=cfg(),prior=String(s.activePresetIndex??-1);select.innerHTML='<option value="-1">不使用画师串预设</option>'+s.presets.map((p,i)=>'<option value="'+i+'">'+esc(p.name||('画师串 '+(i+1)))+'</option>').join('');select.value=s.presets[Number(prior)]?prior:'-1';select.onchange=()=>{s.activePresetIndex=Number(select.value);save();};}
 function currentCharacter(){const ctx=getContext()||{},id=ctx.characterId,ch=Number.isInteger(id)&&id>=0?ctx.characters?.[id]:null;return {id:id==null?'':String(id),name:ch?.name||ch?.avatar||''};}
@@ -300,18 +309,19 @@ function renderActiveVibes(){
  select.value=cfg().vibes[Number(prior)]?prior:'-1';
  select.onchange=()=>{cfg().activeVibeIndex=Number(select.value);save();};
 }
-async function saveCleanImage(src,filename){
+async async function saveCleanImage(src,filename){
  if(!src)return;
+ const name=filename||'qinghui-image.png';
  try{
   const response=await fetch(src);
-  if(!response.ok)throw new Error('HTTP '+response.status);
-  const blob=await response.blob(),objectUrl=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=objectUrl;a.download=filename||'qinghui-image.png';a.rel='noopener';a.style.cssText='position:fixed;left:-9999px;top:0';
-  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
+  if(!response.ok)throw new Error('无法读取图片');
+  const blob=await response.blob();
+  const objectUrl=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=objectUrl;a.download=name;a.rel='noopener';a.style.position='fixed';a.style.left='-9999px';document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
  }catch(error){
-  console.error('[轻绘 Lite] 保存图片失败',error);
-  if(src.startsWith('data:')){const a=document.createElement('a');a.href=src;a.download=filename||'qinghui-image.png';a.style.cssText='position:fixed;left:-9999px;top:0';document.body.append(a);a.click();a.remove();return;}
-  status('保存图片失败：'+(error?.message||String(error))+'。请长按放大图选择保存。');
+  const opened=window.open(src,'_blank','noopener');
+  if(!opened)throw new Error('浏览器阻止了图片下载或新窗口，请允许酒馆打开图片，或长按放大后的图片保存。');
  }
 }
 function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
@@ -601,14 +611,29 @@ function status(t){$('#ql-status').textContent=t;}
 function history(){
  const host=$('#ql-history');if(!host)return;
  const s=cfg(),records=s.records||[],cols=Math.max(1,Math.min(5,Number(s.historyColumns)||3));
- const settings=$('#ql-history-columns');if(settings){settings.value=String(cols);settings.onchange=()=>{s.historyColumns=Math.max(1,Math.min(5,Number(settings.value)||3));save();history();};}
+ const settings=$('#ql-history-columns');
+ if(settings){settings.value=String(cols);settings.onchange=()=>{s.historyColumns=Math.max(1,Math.min(5,Number(settings.value)||3));save();history();};}
  host.style.setProperty('--ql-history-columns',String(cols));
- host.innerHTML=records.map((r,i)=>'<article class="ql-cache-tile"><button type="button" class="ql-cache-image" data-ql-detail="'+i+'" aria-label="查看图片详情"><img loading="lazy" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></button><div class="ql-cache-caption">'+esc((r.prompt||'').slice(0,70)||'无提示词')+'</div><div class="ql-cache-actions"><button class="menu_button" data-ql-detail="'+i+'">详情</button><button class="menu_button" data-ql-download="'+i+'">保存</button><button class="menu_button" data-ql-delete="'+i+'">删除</button></div></article>').join('')||'<p class="ql-muted">暂无缓存图片。生成的图片会保存在这里。</p>';
+ host.innerHTML=records.map((r,i)=>'<article class="ql-cache-tile"><button type="button" class="ql-cache-image" data-ql-detail="'+i+'" aria-label="查看图片详情"><img loading="lazy" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></button><div class="ql-cache-caption">'+esc((r.prompt||'').slice(0,70)||'无提示词')+'</div><div class="ql-cache-actions"><button type="button" class="menu_button" data-ql-detail="'+i+'">详情</button><button type="button" class="menu_button" data-ql-download="'+i+'">保存</button><button type="button" class="menu_button" data-ql-delete="'+i+'">删除</button></div></article>').join('')||'<p class="ql-muted">暂无缓存图片。生成的图片会保存在这里。</p>';
  let modal=document.getElementById('ql-image-cache-modal');
- if(!modal){document.body.insertAdjacentHTML('beforeend','<div id="ql-image-cache-modal" hidden role="dialog" aria-modal="true" aria-label="图片详情"><div class="ql-cache-modal-panel"><button type="button" class="menu_button ql-cache-modal-close">关闭</button><div class="ql-cache-modal-content"></div></div></div>');modal=document.getElementById('ql-image-cache-modal');modal.querySelector('.ql-cache-modal-close').onclick=()=>{modal.hidden=true;modal.style.display='none';document.body.classList.remove('ql-modal-open');};modal.addEventListener('click',e=>{if(e.target===modal){modal.hidden=true;modal.style.display='none';document.body.classList.remove('ql-modal-open');}});}
- host.querySelectorAll('[data-ql-detail]').forEach(b=>b.onclick=()=>{const r=records[Number(b.dataset.qlDetail)];if(!r)return;const preset=r.preset||null,vibe=r.vibe||null,meta=r.config||{};const content=modal.querySelector('.ql-cache-modal-content');content.innerHTML='<img class="ql-cache-large" src="'+esc(r.dataUrl||'')+'" alt="生成结果"><h3>生成记录</h3><p><b>时间：</b>'+esc(new Date(r.at||Date.now()).toLocaleString())+'</p><p><b>后端 / 模型：</b>'+esc((r.provider||'未知')+' / '+(r.model||meta.model||'未知'))+'</p><p><b>尺寸：</b>'+esc(r.size||meta.size||'未知')+'</p><p><b>画师串预设：</b>'+esc(preset?.name||'未使用')+'</p><details open><summary>正向提示词</summary><pre>'+esc(r.prompt||'')+'</pre></details><details><summary>负向提示词</summary><pre>'+esc(r.negative||meta.negative||'')+'</pre></details><details><summary>Vibe 参考</summary><pre>'+esc(vibe?JSON.stringify(vibe,null,2):'未使用 Vibe')+'</pre></details><details><summary>完整参数</summary><pre>'+esc(JSON.stringify(meta,null,2))+'</pre></details><div class="ql-row"><button type="button" class="menu_button" data-modal-load>载入提示词</button><button type="button" class="menu_button" data-modal-save>保存图片</button></div>';content.querySelector('[data-modal-load]').onclick=()=>{$('#ql-prompt').value=r.prompt||'';$('#ql-negative').value=r.negative||'';read();modal.hidden=true;modal.style.display='none';document.body.classList.remove('ql-modal-open');status('提示词已载入；点击生成会创建新记录。');};content.querySelector('[data-modal-save]').onclick=()=>saveCleanImage(r.dataUrl,'qinghui-'+(r.at||Date.now())+'.png');modal.hidden=false;modal.style.display='flex';modal.style.visibility='visible';document.body.classList.add('ql-modal-open');});
- host.querySelectorAll('[data-ql-download]').forEach(b=>b.onclick=()=>{const r=records[+b.dataset.qlDownload];if(r)saveCleanImage(r.dataUrl,'qinghui-'+(r.at||Date.now())+'.png');});
- host.querySelectorAll('[data-ql-delete]').forEach(b=>b.onclick=()=>{const i=+b.dataset.qlDelete;if(!confirm('删除这条轻绘图片缓存？不会删除聊天消息中的图片。'))return;s.records.splice(i,1);save();history();status('图片缓存已删除。');});
+ if(!modal){
+  document.body.insertAdjacentHTML('beforeend','<div id="ql-image-cache-modal" hidden role="dialog" aria-modal="true" aria-label="图片详情"><div class="ql-cache-modal-panel"><button type="button" class="menu_button ql-cache-modal-close">关闭</button><div class="ql-cache-modal-content"></div></div></div>');
+  modal=document.getElementById('ql-image-cache-modal');
+  modal.querySelector('.ql-cache-modal-close').addEventListener('click',()=>{modal.hidden=true;modal.style.display='';});
+  modal.addEventListener('click',e=>{if(e.target===modal){modal.hidden=true;modal.style.display='';}});
+ }
+ const openDetail=index=>{
+  const r=records[index];if(!r)return;
+  const preset=r.preset||null,vibe=r.vibe||null,meta=r.config||{};
+  const content=modal.querySelector('.ql-cache-modal-content');
+  content.innerHTML='<img class="ql-cache-large" src="'+esc(r.dataUrl||'')+'" alt="生成结果"><h3>生成记录</h3><p><b>时间：</b>'+esc(new Date(r.at||Date.now()).toLocaleString())+'</p><p><b>后端 / 模型：</b>'+esc((r.provider||'未知')+' / '+(r.model||meta.model||'未知'))+'</p><p><b>尺寸：</b>'+esc(r.size||meta.size||'未知')+'</p><h4>画师串预设</h4><p>'+esc(preset?.name||'未使用')+'</p><details><summary>预设正文</summary><pre>'+esc(preset?.positive||'')+'</pre></details><details><summary>预设负向词</summary><pre>'+esc(preset?.negative||'')+'</pre></details><details open><summary>正向提示词</summary><pre>'+esc(r.prompt||'')+'</pre></details><details><summary>负向提示词</summary><pre>'+esc(r.negative||meta.negative||'')+'</pre></details><details><summary>Vibe 参考</summary><pre>'+esc(vibe?JSON.stringify(vibe,null,2):'未使用 Vibe')+'</pre></details><details><summary>完整参数</summary><pre>'+esc(JSON.stringify(meta,null,2))+'</pre></details><div class="ql-row"><button type="button" class="menu_button" data-modal-load>载入提示词</button><button type="button" class="menu_button" data-modal-save>保存图片</button></div>';
+  content.querySelector('[data-modal-load]').onclick=()=>{$('#ql-prompt').value=r.prompt||'';$('#ql-negative').value=r.negative||'';read();modal.hidden=true;modal.style.display='';status('提示词已载入；点击生成会创建新记录。');};
+  content.querySelector('[data-modal-save]').onclick=async()=>{try{await saveCleanImage(r.dataUrl,'qinghui-'+(r.at||Date.now())+'.png');status('已请求保存图片。');}catch(e){status(e.message||String(e));}};
+  modal.hidden=false;modal.style.display='flex';
+ };
+ host.querySelectorAll('[data-ql-detail]').forEach(b=>b.onclick=()=>openDetail(Number(b.dataset.qlDetail)));
+ host.querySelectorAll('[data-ql-download]').forEach(b=>b.onclick=async()=>{const r=records[Number(b.dataset.qlDownload)];if(!r)return;try{await saveCleanImage(r.dataUrl,'qinghui-'+(r.at||Date.now())+'.png');status('已请求保存图片。');}catch(e){status(e.message||String(e));}});
+ host.querySelectorAll('[data-ql-delete]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.qlDelete);if(!confirm('删除这条轻绘图片缓存？不会删除聊天消息中的图片。'))return;s.records.splice(i,1);save();history();status('图片缓存已删除。');});
 }
 function renderLibrary(){
  const s=cfg();
