@@ -668,7 +668,7 @@ function storeChatRecord(url,prompt,taskKey,meta={}){
  });
  c.records=c.records.slice(0,100);save();history();
 }
-async async function runInlineImageTrigger(button,entry){
+async function runInlineImageTrigger(button,entry){
  if(!button||button.dataset.qlBusy==='1'||button.dataset.qlDone==='1')return;
  const prompt=String(entry?.prompt||button.dataset.qlPrompt||'').trim();
  const taskKey=String(entry?.taskKey||button.dataset.qlTrigger||'');
