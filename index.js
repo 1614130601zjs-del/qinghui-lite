@@ -930,13 +930,10 @@ jQuery(()=>{
    if(launch.parentElement!==menu)menu.append(launch);
    return true;
   };
-  if(!mountLauncher()){
-   // 等待酒馆原生扩展菜单创建完成，再注册菜单项。
-   const observer=new MutationObserver(()=>{
-    if(mountLauncher())observer.disconnect();
-   });
-   observer.observe(document.body,{childList:true,subtree:true});
-  }
+  // 酒馆移动端可能在初始化后重建扩展菜单，因此持续监听并在菜单被重绘时补回入口。
+  mountLauncher();
+  const launcherObserver=new MutationObserver(()=>{mountLauncher();});
+  launcherObserver.observe(document.body,{childList:true,subtree:true});
    // 统一用捕获阶段委托处理所有主导航与子导航，减少移动端点击被内部控件/重绘节点打断的情况。
    panel.addEventListener('click',event=>{
     const node=event.target instanceof Element?event.target:null;
