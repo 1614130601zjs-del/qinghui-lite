@@ -1,0 +1,12 @@
+#qinghui-lite-panel{padding:12px;color:var(--SmartThemeBodyColor);font-size:14px}#qinghui-lite-panel .ql-card{border:1px solid var(--SmartThemeBorderColor);border-radius:12px;padding:12px;margin:10px 0;background:var(--SmartThemeBlurTintColor)}#qinghui-lite-panel h3{margin:0 0 8px}#qinghui-lite-panel label{display:block;margin:8px 0 4px}#qinghui-lite-panel input,#qinghui-lite-panel textarea,#qinghui-lite-panel select{width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--SmartThemeBorderColor);border-radius:8px;background:var(--SmartThemeBlurTintColor);color:var(--SmartThemeBodyColor)}#qinghui-lite-panel textarea{min-height:88px;resize:vertical}#qinghui-lite-panel .ql-row{display:flex;gap:8px}#qinghui-lite-panel .ql-row>*{flex:1;min-width:0}#qinghui-lite-panel button{margin:8px 5px 4px 0}#qinghui-lite-panel .ql-muted{opacity:.75;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}#qinghui-lite-panel #ql-result img,#qinghui-lite-panel .ql-record img{display:block;max-width:100%;max-height:70vh;margin:10px auto;border-radius:10px}#qinghui-lite-panel .ql-record{border-top:1px solid var(--SmartThemeBorderColor);padding:8px 0}
+/* Chat image candidates: keep rerolls attached to their originating message. */
+#chat .ql-chat-image{display:block;max-width:min(100%,720px);margin:12px auto;padding:8px;border:1px solid var(--SmartThemeBorderColor);border-radius:12px;background:var(--SmartThemeBlurTintColor)}
+#chat .ql-chat-image img{display:block;width:100%;max-height:75vh;object-fit:contain;border-radius:8px}
+#chat .ql-chat-image-prompt{margin:7px 2px;font-size:12px;opacity:.78;overflow-wrap:anywhere}
+#chat .ql-chat-image-controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6px}
+#chat .ql-chat-image-controls button{margin:0;min-height:32px}
+#chat .ql-chat-image-count{font-size:12px;opacity:.75;min-width:42px;text-align:center}
+#chat .ql-chat-image-status{font-size:12px;opacity:.8;overflow-wrap:anywhere}
+
+/* Horizontal candidate swipes while preserving normal vertical page scrolling. */
+#chat .ql-chat-image img,#chat .ql-statusbar-card img{touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:default}
