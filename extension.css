@@ -1781,3 +1781,151 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
   #qinghui-lite-panel .ql-album-spread-book>.ql-album-page-arrow[data-spread-step="-1"]{left:-15px!important;}
   #qinghui-lite-panel .ql-album-spread-book>.ql-album-page-arrow[data-spread-step="1"]{right:-15px!important;}
 }
+
+/* 轻绘 Lite 工作台视觉：减少气泡感，强化纸面分区与操作层级 */
+#qinghui-lite-panel{
+  border-radius:8px!important;
+  box-shadow:0 20px 56px rgba(25,35,45,.28),0 2px 8px rgba(25,35,45,.12)!important;
+}
+#qinghui-lite-panel .ql-header{
+  padding:14px 16px 12px!important;
+  border-bottom:2px solid var(--ql-accent)!important;
+}
+#qinghui-lite-panel .ql-brand strong{
+  font-size:18px!important;
+  letter-spacing:.025em;
+}
+#qinghui-lite-panel .ql-brand span{
+  font-size:11px!important;
+  letter-spacing:.035em;
+}
+#qinghui-lite-panel .ql-tabs{
+  gap:0!important;
+  padding:7px 10px 0!important;
+  border-bottom:1px solid var(--ql-border)!important;
+}
+#qinghui-lite-panel .ql-tab{
+  position:relative;
+  padding:11px 3px 12px!important;
+  border:0!important;
+  border-radius:4px 4px 0 0!important;
+  border-bottom:3px solid transparent!important;
+  font-weight:500;
+  transition:background .15s ease,border-color .15s ease;
+}
+#qinghui-lite-panel .ql-tab.active{
+  border:0!important;
+  border-bottom:3px solid var(--ql-accent)!important;
+  border-radius:4px 4px 0 0!important;
+  box-shadow:none!important;
+  font-weight:750!important;
+}
+#qinghui-lite-panel .ql-page{
+  padding-top:8px!important;
+}
+#qinghui-lite-panel .ql-card{
+  border-radius:6px!important;
+  border:1px solid var(--ql-border)!important;
+  padding:13px!important;
+  margin:10px 0!important;
+  box-shadow:0 2px 5px rgba(45,55,65,.045);
+}
+#qinghui-lite-panel .ql-card h3{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  margin:0 0 12px!important;
+  padding:0 0 9px;
+  border-bottom:1px solid var(--ql-border);
+  font-size:15px!important;
+  font-weight:750;
+  letter-spacing:.015em;
+}
+#qinghui-lite-panel .ql-card h3:before{
+  content:"";
+  display:inline-block;
+  width:4px;
+  height:17px;
+  flex:0 0 4px;
+  background:var(--ql-accent);
+  border-radius:1px;
+}
+#qinghui-lite-panel label{
+  margin:10px 0 5px!important;
+  font-size:12px;
+  font-weight:650;
+  letter-spacing:.01em;
+}
+#qinghui-lite-panel input,
+#qinghui-lite-panel textarea,
+#qinghui-lite-panel select{
+  border-radius:5px!important;
+  border-width:1px!important;
+  padding:9px 10px!important;
+  box-shadow:inset 0 1px 2px rgba(35,45,55,.035);
+}
+#qinghui-lite-panel textarea{
+  line-height:1.55;
+}
+#qinghui-lite-panel button{
+  border-radius:5px!important;
+  border:1px solid var(--ql-border);
+  transition:filter .12s ease,transform .12s ease,background .12s ease;
+}
+#qinghui-lite-panel button:active{
+  transform:translateY(1px);
+}
+#qinghui-lite-panel .ql-primary,
+#qinghui-lite-panel #ql-generate,
+#qinghui-lite-panel #ql-theme-apply{
+  border:1px solid var(--ql-accent)!important;
+  border-bottom-width:2px!important;
+  border-radius:5px!important;
+  font-weight:700;
+}
+#qinghui-lite-panel .ql-subtabs{
+  gap:0!important;
+  padding:7px 0 0!important;
+  border-bottom:1px solid var(--ql-border);
+}
+#qinghui-lite-panel .ql-subtab{
+  border-radius:4px 4px 0 0!important;
+  border-bottom:2px solid transparent!important;
+}
+#qinghui-lite-panel .ql-subtab.active{
+  border-bottom-color:var(--ql-accent)!important;
+  box-shadow:none!important;
+}
+#qinghui-lite-panel .ql-tag-chip{
+  border-radius:4px!important;
+  padding:5px 8px!important;
+}
+#qinghui-lite-panel .ql-vibe-entry{
+  border-radius:5px!important;
+  background:var(--ql-card)!important;
+  border-left:3px solid var(--ql-accent)!important;
+}
+#qinghui-lite-panel .ql-image-stage{
+  border-radius:5px!important;
+}
+#qinghui-lite-panel .ql-image-placeholder{
+  letter-spacing:.025em;
+}
+#qinghui-lite-panel .ql-muted{
+  line-height:1.55;
+}
+#qinghui-lite-panel .ql-row{
+  align-items:stretch;
+}
+#qinghui-lite-panel .ql-row button{
+  min-height:38px;
+}
+@media(max-width:600px){
+  #qinghui-lite-panel .ql-header{padding:11px 12px 10px!important}
+  #qinghui-lite-panel .ql-tabs{padding:5px 5px 0!important}
+  #qinghui-lite-panel .ql-tab{padding:10px 1px 11px!important;font-size:11px!important}
+  #qinghui-lite-panel .ql-page{padding:4px 7px 12px!important}
+  #qinghui-lite-panel .ql-card{padding:11px!important;margin:8px 0!important}
+  #qinghui-lite-panel .ql-card h3{margin-bottom:10px!important}
+}
+
