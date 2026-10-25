@@ -274,7 +274,7 @@ function extractUsableVibe(raw,model='nai-diffusion-4-5-full'){
   if(typeof value!=='object'||seen.has(value))return;
   seen.add(value);
   if(Array.isArray(value)){for(const item of value)walk(item,keyName,canonical);return;}
-  const isCanonical=value.identifier==='novelai-vibe-transfer'&&value.type==='image';
+  const isCanonical=value.identifier==='novelai-vibe-transfer'&&(value.type==null||value.type==='image');
   if(isCanonical&&key==='v3'&&typeof value.image==='string'&&value.image.trim()){
    const original=clean(value.image);
    if(/^[A-Za-z0-9+/]+={0,2}$/.test(original)&&original.length>160){found=original;return;}
