@@ -1995,3 +1995,31 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
   #qinghui-lite-panel #ql-combos-list .ql-combo-materials{grid-template-columns:1fr;}
 }
 
+
+
+/* 六个主导航标签均分整行宽度，避免挤在左侧。 */
+#qinghui-lite-panel .ql-tabs{
+  display:grid!important;
+  grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  gap:0!important;
+  padding-left:8px!important;
+  padding-right:8px!important;
+}
+#qinghui-lite-panel .ql-tabs>.ql-tab{
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  padding-left:1px!important;
+  padding-right:1px!important;
+  text-align:center!important;
+  justify-self:stretch!important;
+}
+@media(max-width:600px){
+  #qinghui-lite-panel .ql-tabs{grid-template-columns:repeat(6,minmax(0,1fr))!important;padding-left:5px!important;padding-right:5px!important;}
+  #qinghui-lite-panel .ql-tabs>.ql-tab{font-size:11px!important;padding-left:0!important;padding-right:0!important;}
+}
