@@ -50,7 +50,31 @@ function cfg(){
 const triggerRegistry = new TriggerRegistry();
 const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状态以 triggerRegistry 为准。
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
-function hideMarkersInTextNode(root){if(!root)return;const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue?.includes('image###'))nodes.push(walker.currentNode);for(const node of nodes){node.nodeValue=node.nodeValue.replace(/image###[\s\S]*?###/g,'');}}
+function hideMarkersInTextNode(root,entries=[]){
+ if(!root)return;
+ const byMarker=new Map(entries.map(entry=>[entry.raw,entry]));
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+ const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue?.includes('image###'))nodes.push(walker.currentNode);
+ let ordinal=0;
+ for(const node of nodes){
+  const value=node.nodeValue||'',re=/image###([\s\S]*?)###/g;
+  if(!re.test(value))continue;
+  re.lastIndex=0;
+  const fragment=document.createDocumentFragment();let last=0,match;
+  while((match=re.exec(value))!==null){
+   fragment.append(document.createTextNode(value.slice(last,match.index)));
+   const entry=byMarker.get(match[0]),prompt=match[1].trim();
+   if(!prompt){last=re.lastIndex;continue;}
+   const button=document.createElement('button');
+   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='轻绘生图';button.title='点击将提示词提交给 NovelAI，并把图片插入当前消息';
+   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;
+   button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
+   fragment.append(button);ordinal++;last=re.lastIndex;
+  }
+  fragment.append(document.createTextNode(value.slice(last)));
+  node.parentNode?.replaceChild(fragment,node);
+ }
+}
 async function requestImage(prompt, negativeOverride, vibeItem=null){
  const c=cfg();
  let raw='',data=null,res;
@@ -616,6 +640,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
  }
  if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;}
  card._qlRender?.();
+ return card;
 }
 function snapshotConfig(prompt, negativeOverride){
  const c=cfg();
@@ -643,58 +668,52 @@ function storeChatRecord(url,prompt,taskKey,meta={}){
  });
  c.records=c.records.slice(0,100);save();history();
 }
+async async function runInlineImageTrigger(button,entry){
+ if(!button||button.dataset.qlBusy==='1'||button.dataset.qlDone==='1')return;
+ const prompt=String(entry?.prompt||button.dataset.qlPrompt||'').trim();
+ const taskKey=String(entry?.taskKey||button.dataset.qlTrigger||'');
+ if(!prompt||!taskKey)return;
+ const accepted=triggerRegistry.begin(taskKey,{prompt,source:'chat-button',messageIndex:entry.messageIndex,markerOrdinal:entry.markerOrdinal});
+ if(!accepted.accepted)return;
+ triggerRegistry.markRunning(taskKey);
+ button.dataset.qlBusy='1';button.disabled=true;button.textContent='生成中…';
+ const statusNode=document.createElement('span');statusNode.className='ql-chat-image-status';statusNode.textContent=' 正在提交给 NovelAI…';button.after(statusNode);
+ try{
+  const context=getContext();
+  const meta={messageIndex:entry.messageIndex,character:context?.name||null,chatId:context?.chatId||null};
+  const url=await requestWithActiveSettings(prompt);
+  const host=button.closest('.mes_text')||document.querySelector('.mes[mesid="'+entry.messageIndex+'"] .mes_text');
+  if(!host)throw new Error('找不到原消息正文，图片已生成但无法插入原消息。');
+  const card=addMessageImage(host,url,prompt,taskKey,meta);
+  if(card)button.after(card);
+  button.remove();statusNode.remove();
+  storeChatRecord(url,prompt,taskKey,meta);
+  triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());
+ }catch(error){
+  triggerRegistry.markFailed(taskKey,error?.message||String(error));
+  button.dataset.qlBusy='0';button.disabled=false;button.textContent='重试生图';
+  statusNode.textContent=' 生成失败：'+(error?.message||String(error));
+ }finally{if(button.isConnected)button.dataset.qlBusy='0';}
+}
 async function processLatestAssistantMessage(){
  const context=getContext();const chat=context?.chat;if(!Array.isArray(chat)||!chat.length)return;
  let messageIndex=-1;for(let i=chat.length-1;i>=0;i--){if(!chat[i]?.is_user&&!chat[i]?.is_system&&typeof chat[i]?.mes==='string'){messageIndex=i;break;}}
  if(messageIndex<0)return;
- const message=chat[messageIndex];const found=markers(message.mes);if(!found.length)return;
- const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');if(host)hideMarkersInTextNode(host);
- for(let markerOrdinal=0;markerOrdinal<found.length;markerOrdinal++){
-  const marker=found[markerOrdinal];
-  // 不把 marker.index 放进任务 ID：流式输出时，前文增长会改变标记的字符偏移，
-  // 进而让同一张图被重复请求。按消息、swipe 和标记出现顺序去重。
+ const message=chat[messageIndex],found=markers(message.mes);if(!found.length)return;
+ const entries=found.map((marker,markerOrdinal)=>{
   let taskKey;
-  try {
-   taskKey=makeTriggerId({
-    chatId:context.chatId||'chat',
-    messageId:String(messageIndex)+':'+String(message.swipe_id??0),
-    markerIndex:markerOrdinal
-   });
-  } catch (error) {
-   console.warn('[轻绘 Lite] 无法为消息创建稳定任务 ID',error);
-   continue;
-  }
-  if(!host)continue;
-  // 任务注册表统一负责自动触发去重与状态迁移；同一流式消息重复扫描不会重复请求。
-  const accepted=triggerRegistry.begin(taskKey,{prompt:marker.prompt,source:'chat',messageIndex,markerOrdinal});
-  if(!accepted.accepted)continue;
-  autoTasks.add(taskKey);
-  triggerRegistry.markRunning(taskKey);
-  const pending=document.createElement('p');pending.className='ql-chat-image-status';pending.textContent='轻绘：正在生成图片…';host.append(pending);
-  try{
-   const url=await requestWithActiveSettings(marker.prompt);
-   pending.remove();
-   addMessageImage(host,url,marker.prompt,taskKey,{messageIndex});
-   storeChatRecord(url,marker.prompt,taskKey,{messageIndex});
-   triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());
-  }
-  catch(error){
-   triggerRegistry.markFailed(taskKey,error?.message||String(error));
-   pending.replaceChildren();
-   const message=document.createElement('span');
-   message.textContent='轻绘生成失败：'+(error?.message||String(error))+' ';
-   const retry=document.createElement('button');
-   retry.type='button';retry.className='menu_button';retry.textContent='点击重试';
-   retry.addEventListener('click',()=>{
-    pending.remove();
-    // failed 状态允许再次 begin；成功任务仍由 registry 拒绝重复执行。
-    processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 手动重试失败',e));
-   },{once:true});
-   pending.append(message,retry);
-  }
+  try{taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});}
+  catch(error){console.warn('[轻绘 Lite] 无法为消息创建稳定任务 ID',error);return null;}
+  return {...marker,taskKey,messageIndex,markerOrdinal};
+ }).filter(Boolean);
+ const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');if(!host)return;
+ hideMarkersInTextNode(host,entries);
+ for(const entry of entries){
+  if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
+  const button=document.createElement('button');button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='轻绘生图';button.title='点击将提示词提交给 NovelAI，并把图片插入当前消息';button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;
+  button.addEventListener('click',()=>runInlineImageTrigger(button,entry));host.append(button);
  }
 }
-
 let statusbarObserver=null;
 const statusbarObservedDocs=new WeakSet();
 function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);return match?.[1]?.trim()||'';}
