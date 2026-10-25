@@ -1296,7 +1296,7 @@ async function scanChatu8Settings(){
  merged.prompts=[];
  renderMigrationPreview(merged);
  const host=$('#ql-migrate-preview');
- if(host)host.textContent+='\n扫描到 '+found.length+' 个可能相关的数据源。若这里仍显示 0 组 Vibe，说明当前可读取的数据源没有包含智绘姬的 Vibe 编码；请改用智绘姬完整导出 JSON。';
+ if(host)host.textContent+='\\n扫描到 '+found.length+' 个可能相关的数据源；只迁移画师串。';
 }
 function safeMigrationStringify(value){try{return JSON.stringify(value);}catch{return '';}}
 async function readMigrationFile(file){
