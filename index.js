@@ -627,7 +627,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
  if(!host)return;
  let card=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===taskKey);
  if(!card){
-  card=document.createElement('figure');card.className='ql-chat-image';card.dataset.qlTask=taskKey;card.dataset.qlPrompt=String(prompt||'');
+  card=document.createElement('figure');card.className='ql-chat-image';card.dataset.qlTask=taskKey;card.dataset.qlPrompt=String(prompt||'');card.dataset.qlMessageIndex=String(recordMeta.messageIndex??'');card.dataset.qlChatId=String(recordMeta.chatId||getContext()?.chatId||'');
   const img=document.createElement('img');img.loading='lazy';img.alt='轻绘生成图片';
   const controls=document.createElement('div');controls.className='ql-chat-image-controls';
   const edit=document.createElement('button');edit.type='button';edit.className='menu_button ql-chat-image-edit';edit.textContent='修改 tag';edit.title='编辑并保存这张图的画面提示词';
@@ -635,13 +635,16 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   const count=document.createElement('span');count.className='ql-chat-image-count';count.textContent='1 / 1';
   const next=document.createElement('button');next.type='button';next.className='menu_button ql-chat-image-arrow';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
   const reroll=document.createElement('button');reroll.type='button';reroll.className='menu_button ql-chat-image-reroll';reroll.setAttribute('aria-label','重新生成');reroll.title='重新生成';reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14 5l2-2"/><path d="M20 20v-4h-4"/></svg>';
+  const remove=document.createElement('button');remove.type='button';remove.className='menu_button ql-chat-image-remove';remove.textContent='从正文移除';remove.title='只从聊天正文移除，图片仍保留在缓存中';
+  remove.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const records=cfg().records||[];let changed=false;for(const item of records){if(item?.taskKey!==taskKey)continue;if(card.dataset.qlMessageIndex!==''&&Number(item.messageIndex)!==Number(card.dataset.qlMessageIndex))continue;if(card.dataset.qlChatId&&item.chatId&&item.chatId!==card.dataset.qlChatId)continue;item.hiddenInChat=true;changed=true;}if(changed)save();card.remove();});
+
   const collapse=document.createElement('button');collapse.type='button';collapse.className='ql-chat-image-collapse';collapse.setAttribute('aria-label','折叠图片');collapse.title='折叠图片';collapse.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg><span>收起相册</span>';
   const editor=document.createElement('div');editor.className='ql-chat-image-editor';editor.hidden=true;
   const textarea=document.createElement('textarea');textarea.className='ql-chat-image-tag-input';textarea.rows=3;textarea.value=String(prompt||'');textarea.setAttribute('aria-label','画面提示词');
   const saveTag=document.createElement('button');saveTag.type='button';saveTag.className='menu_button';saveTag.textContent='保存 tag';
   const cancelTag=document.createElement('button');cancelTag.type='button';cancelTag.className='menu_button';cancelTag.textContent='取消';
   const editorActions=document.createElement('div');editorActions.className='ql-chat-image-editor-actions';editorActions.append(saveTag,cancelTag);editor.append(textarea,editorActions);
-  controls.append(edit,prev,count,next,reroll);card.append(img,controls,collapse,editor);if(anchor?.parentNode)anchor.parentNode.insertBefore(card,anchor);else host.append(card);
+  controls.append(edit,prev,count,next,reroll,remove);card.append(img,controls,collapse,editor);if(anchor?.parentNode)anchor.parentNode.insertBefore(card,anchor);else host.append(card);
   collapse.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const collapsed=card.classList.toggle('ql-image-collapsed');collapse.setAttribute('aria-label',collapsed?'展开相册':'折叠相册');collapse.title=collapsed?'展开相册':'折叠相册';collapse.innerHTML=collapsed?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6 6 6-6"/></svg><span>展开相册</span>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg><span>收起相册</span>';});
   edit.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const currentUrl=card._qlCandidates[card._qlIndex]?.url||img.getAttribute('src');editor.hidden=!editor.hidden;if(!editor.hidden){textarea.value=card.dataset.qlPrompt||'';if(currentUrl)img.src=currentUrl;textarea.focus();}});
   cancelTag.addEventListener('click',()=>{textarea.value=card.dataset.qlPrompt||'';editor.hidden=true;});
@@ -784,7 +787,7 @@ async function processLatestAssistantMessage(){
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
   hideMarkersInTextNode(host,entries);
   for(const entry of entries){
-   const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+   const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
     const latest=savedRecords[savedRecords.length-1];
     const markerButton=host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
