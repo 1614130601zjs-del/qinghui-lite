@@ -117,3 +117,12 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel .ql-vibe-state.is-missing{color:var(--ql-muted)}
 
 #qinghui-lite-panel .ql-inline-check{display:flex!important;align-items:center;gap:8px;margin:10px 0}#qinghui-lite-panel .ql-inline-check input{width:auto!important;flex:0 0 auto;margin:0}
+
+/* 画师串列表只显示名称和状态；完整内容只在切换编辑时显示。 */
+#qinghui-lite-panel .ql-preset-compact{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+#qinghui-lite-panel .ql-preset-compact-info{min-width:0;flex:1}
+#qinghui-lite-panel .ql-preset-compact-info>strong{display:block;overflow-wrap:anywhere}
+#qinghui-lite-panel .ql-preset-compact-info>p{margin:4px 0 0;font-size:.82em}
+#qinghui-lite-panel .ql-preset-compact-actions{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+#qinghui-lite-panel .ql-preset-compact-actions button{padding:5px 8px;min-height:32px}
+@media(max-width:480px){#qinghui-lite-panel .ql-preset-compact{align-items:flex-start;flex-direction:column}#qinghui-lite-panel .ql-preset-compact-actions{width:100%;justify-content:flex-start}}
