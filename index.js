@@ -20,8 +20,8 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
   const payload={prompt,model:naiModel,sampler:c.naiSampler||'k_euler_ancestral',noise_schedule:c.naiScheduler||'karras',steps:Number(c.naiSteps)||28,scale:Number(c.naiScale)||5,width:Number(c.naiWidth)||832,height:Number(c.naiHeight)||1216,negative_prompt:negativeOverride??c.negative??'',decrisper:false,variety_boost:false,sm:false,sm_dyn:false,seed:-1};
   if(vibeItem){
    if(!/^nai-diffusion-4(?:-|$)/i.test(naiModel))throw new Error('当前所选 NovelAI 模型不支持导入的 V4 Vibe 编码。请切换到 NovelAI Diffusion V4 / V4.5 模型；编码不能当作普通参考图片跨模型使用。');
-   const vibes=Array.isArray(vibeItem.entries)&&vibeItem.entries.length
-    ?vibeItem.entries.filter(item=>typeof item.image==='string'&&item.image.trim()).map(item=>({image:String(item.image).trim().replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,''),strength:Number(item.strength??0.6),informationExtracted:Number(item.informationExtracted??1)}))
+   const vibes=Array.isArray(vibeItem.entries)
+    ?vibeItem.entries.map(item=>{const extracted=extractUsableVibe(item.raw||item);const image=typeof item.image==='string'&&item.image.trim()?String(item.image).trim().replace(/^data:(?:application\/octet-stream|image\/[^;]+);base64,/i,''):extracted?.image||'';return image?{image,strength:Number(item.strength??extracted?.strength??0.6),informationExtracted:Number(item.informationExtracted??extracted?.informationExtracted??1)}:null;}).filter(Boolean)
     :(()=>{const one=extractUsableVibe(vibeItem.raw||vibeItem);return one?[one]:[];})();
    if(!vibes.length)throw new Error('这个 Vibe 组没有可用的预编码资源。请重新导入官网 .naiv4vibe / bundle，或检查智绘姬导出 JSON 是否包含 vibeData 编码；普通预览图不能替代编码。');
    if(vibes.length>16)throw new Error('NovelAI 单次最多使用 16 条 Vibe 参考，请先删除多余条目。');
@@ -103,7 +103,7 @@ let pendingVibeImage=null;
 function renderActiveVibes(){
  const select=$('#ql-active-vibe');if(!select)return;
  const prior=String(cfg().activeVibeIndex??-1);
- select.innerHTML='<option value="-1">不使用 Vibe</option>'+cfg().vibes.map((v,i)=>'<option value="'+i+'">'+esc(v.name||('Vibe '+(i+1)))+(v.hasPayload?' · 保留了疑似编码':' · 原始数据待核验')+'</option>').join('');
+ select.innerHTML='<option value="-1">不使用 Vibe</option>'+cfg().vibes.map((v,i)=>'<option value="'+i+'">'+esc(v.name||('Vibe '+(i+1)))+(v.hasPayload?' · 已识别编码':' · 尚无可用编码')+'</option>').join('');
  select.value=cfg().vibes[Number(prior)]?prior:'-1';
  select.onchange=()=>{cfg().activeVibeIndex=Number(select.value);save();};
 }
