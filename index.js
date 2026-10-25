@@ -321,27 +321,34 @@ function renderActiveVibes(){
  select.onchange=()=>{cfg().activeVibeIndex=Number(select.value);save();};
 }
 async function saveCleanImage(src,filename){
- if(!src)return;
+ if(!src)throw new Error('这条缓存记录没有可保存的图片数据。');
  const name=filename||'qinghui-image.png';
  try{
-  // data URL 在点击回调内同步转 Blob，避免 Android WebView 因 await 后失去用户手势而拦截下载。
-  if(/^data:image\//i.test(src)){
+  let objectUrl=src;
+  if(/^data:image\\//i.test(src)){
    const comma=src.indexOf(',');
    if(comma<0)throw new Error('图片数据格式无效');
    const header=src.slice(0,comma),raw=src.slice(comma+1);
    let blob;
    if(/;base64/i.test(header)){
-    const binary=atob(raw.replace(/\s/g,''));
+    const binary=atob(raw.replace(/\\s/g,''));
     const chunks=[];for(let i=0;i<binary.length;i+=0x8000){const part=binary.slice(i,i+0x8000),bytes=new Uint8Array(part.length);for(let j=0;j<part.length;j++)bytes[j]=part.charCodeAt(j);chunks.push(bytes);}
     blob=new Blob(chunks,{type:(header.match(/^data:([^;]+)/i)||[])[1]||'image/png'});
    }else blob=new Blob([decodeURIComponent(raw)],{type:(header.match(/^data:([^;]+)/i)||[])[1]||'image/png'});
-   const objectUrl=URL.createObjectURL(blob);
-   const a=document.createElement('a');a.href=objectUrl;a.download=name;a.rel='noopener';a.style.position='fixed';a.style.left='-9999px';document.body.append(a);a.click();a.remove();
-   setTimeout(()=>URL.revokeObjectURL(objectUrl),60000);
-   return;
+   objectUrl=URL.createObjectURL(blob);
   }
-  const opened=window.open(src,'_blank','noopener');
-  if(!opened)throw new Error('浏览器阻止了打开图片，请允许酒馆打开新窗口后长按图片保存。');
+  // Android WebView often ignores the download attribute for Blob URLs.
+  // Prefer opening the image in a user-initiated tab so it can be long-pressed and saved.
+  const opened=window.open(objectUrl,'_blank');
+  if(opened){
+   if(objectUrl!==src)setTimeout(()=>URL.revokeObjectURL(objectUrl),120000);
+   return {opened:true};
+  }
+  // If popups are blocked, fall back to a normal download link.
+  const a=document.createElement('a');a.href=objectUrl;a.download=name;a.rel='noopener';a.target='_blank';
+  a.style.position='fixed';a.style.left='-9999px';document.body.append(a);a.click();a.remove();
+  if(objectUrl!==src)setTimeout(()=>URL.revokeObjectURL(objectUrl),120000);
+  return {opened:false};
  }catch(error){throw new Error('保存图片失败：'+(error?.message||String(error)));}
 }
 function addMessageImage(host,url,prompt,taskKey,recordMeta={}) {
@@ -634,7 +641,7 @@ function history(){
  const settings=$('#ql-history-columns');
  if(settings){settings.value=String(cols);settings.onchange=()=>{s.historyColumns=Math.max(1,Math.min(5,Number(settings.value)||3));save();history();};}
  host.style.setProperty('--ql-history-columns',String(cols));
- host.innerHTML=records.map((r,i)=>'<article class="ql-cache-tile"><button type="button" class="ql-cache-image" data-ql-detail="'+i+'" aria-label="查看图片详情"><img loading="lazy" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></button><div class="ql-cache-caption">'+esc((r.prompt||'').slice(0,70)||'无提示词')+'</div><div class="ql-cache-actions"><button type="button" class="menu_button" data-ql-detail="'+i+'">详情</button><button type="button" class="menu_button" data-ql-download="'+i+'">保存</button><button type="button" class="menu_button" data-ql-delete="'+i+'">删除</button></div></article>').join('')||'<p class="ql-muted">暂无缓存图片。生成的图片会保存在这里。</p>';
+ host.innerHTML=(records.length?'<div class="ql-cache-bulk-tools"><label class="ql-cache-select-all"><input type="checkbox" data-ql-select-all> 全选</label><span class="ql-cache-selected-count" data-ql-selected-count>已选 0 张</span><button type="button" class="menu_button" data-ql-bulk-delete disabled>删除所选</button></div><div class="ql-cache-grid">'+records.map((r,i)=>'<article class="ql-cache-tile"><label class="ql-cache-select-one"><input type="checkbox" data-ql-select="'+i+'" aria-label="选择第 '+(i+1)+' 张缓存图片"> 选择</label><button type="button" class="ql-cache-image" data-ql-detail="'+i+'" aria-label="查看图片详情"><img loading="lazy" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></button><div class="ql-cache-caption">'+esc((r.prompt||'').slice(0,70)||'无提示词')+'</div><div class="ql-cache-actions"><button type="button" class="menu_button" data-ql-detail="'+i+'">详情</button><button type="button" class="menu_button" data-ql-download="'+i+'">保存</button><button type="button" class="menu_button" data-ql-delete="'+i+'">删除</button></div></article>').join('')+'</div>':'<p class="ql-muted">暂无缓存图片。生成的图片会保存在这里。</p>');
  let modal=document.getElementById('ql-image-cache-modal');
  if(!modal){
   const modalHost=document.getElementById('ql-overlay')||document.body;modalHost.insertAdjacentHTML('beforeend','<div id="ql-image-cache-modal" hidden role="dialog" aria-modal="true" aria-label="图片详情"><div class="ql-cache-modal-panel"><button type="button" class="menu_button ql-cache-modal-close">关闭</button><div class="ql-cache-modal-content"></div></div></div>');
@@ -655,12 +662,16 @@ function history(){
   content.innerHTML='<div class="ql-cache-detail-hero"><div class="ql-cache-detail-image-wrap"><img class="ql-cache-large" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></div><div class="ql-cache-detail-heading"><span class="ql-cache-eyebrow">IMAGE ARCHIVE · 轻绘缓存</span><h3>生成记录</h3><p>'+esc(createdAt.toLocaleString())+'</p><div class="ql-cache-badges"><span>'+esc(r.provider||'未知后端')+'</span><span>'+esc(r.model||meta.model||'未知模型')+'</span><span>'+esc(r.size||meta.size||'尺寸未知')+'</span></div></div></div><div class="ql-cache-stat-grid"><div class="ql-cache-stat"><span>提示词条目</span><strong>'+promptWords+'</strong></div><div class="ql-cache-stat"><span>Vibe 参考</span><strong>'+vibeCount+'</strong></div><div class="ql-cache-stat"><span>画师串</span><strong>'+esc(preset?.name||'未使用')+'</strong></div></div><section class="ql-cache-prompt-section"><div class="ql-cache-section-title"><div><span class="ql-cache-eyebrow">PROMPT</span><h4>正向提示词</h4></div><span class="ql-cache-section-note">点击图标复制</span></div><div class="ql-cache-prompt-box"><pre>'+esc(promptText||'此记录没有保存正向提示词')+'</pre><button type="button" class="ql-cache-copy-icon" data-copy-positive aria-label="复制正向提示词" title="复制正向提示词"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 7.5V5.8A1.8 1.8 0 0 1 9.8 4h8.4A1.8 1.8 0 0 1 20 5.8v10.4a1.8 1.8 0 0 1-1.8 1.8h-1.7"/><rect x="4" y="8" width="11" height="12" rx="1.8"/><path d="M7 11h5M7 14h5"/></svg></button></div></section><div class="ql-cache-detail-actions"><button type="button" class="menu_button ql-cache-action-primary" data-modal-load>载入提示词</button><button type="button" class="menu_button" data-modal-save>保存图片</button></div><div class="ql-cache-accordions"><details><summary><span>画师串预设</span><small>'+esc(preset?.name||'未使用')+'</small></summary><div class="ql-cache-accordion-body"><label>预设正文</label><pre>'+esc(preset?.positive||'未记录')+'</pre><label>预设负向词</label><pre>'+esc(preset?.negative||'未记录')+'</pre></div></details><details><summary><span>负向提示词</span><small>NEGATIVE PROMPT</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(r.negative||meta.negative||'未记录')+'</pre></div></details><details><summary><span>Vibe 参考</span><small>'+vibeCount+' 条参考</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(vibe?JSON.stringify(vibe,null,2):'未使用 Vibe')+'</pre></div></details><details><summary><span>完整生成参数</span><small>ADVANCED</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(JSON.stringify(meta,null,2))+'</pre></div></details></div>';
   content.querySelector('[data-copy-positive]').onclick=async()=>{const value=String(r.prompt||'');try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);}else{const area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('浏览器未允许复制');}const button=content.querySelector('[data-copy-positive]');button.classList.add('is-copied');button.setAttribute('title','已复制');button.setAttribute('aria-label','已复制正向提示词');status('已复制正向提示词。');setTimeout(()=>{button.classList.remove('is-copied');button.setAttribute('title','复制正向提示词');button.setAttribute('aria-label','复制正向提示词');},1300);}catch(error){status('复制失败：请长按提示词文本手动复制。');}};
   content.querySelector('[data-modal-load]').onclick=()=>{$('#ql-prompt').value=r.basePrompt||r.prompt||'';$('#ql-negative').value=r.negative||'';read();modal.hidden=true;modal.style.display='';status('基础提示词已载入；记录中的画师串不会自动切换，请确认当前画师串后再生成。');};
-  content.querySelector('[data-modal-save]').onclick=async e=>{e.preventDefault();e.stopPropagation();const button=e.currentTarget;if(button.dataset.busy==='1')return;button.dataset.busy='1';try{const imageUrl=String(r.dataUrl||content.querySelector('.ql-cache-large')?.currentSrc||content.querySelector('.ql-cache-large')?.src||'');if(!imageUrl)throw new Error('这条缓存记录没有可保存的图片数据。');await saveCleanImage(imageUrl,'qinghui-'+(r.at||Date.now())+'.png');status('已请求保存图片；若浏览器未自动下载，请在打开的图片上长按保存。');}catch(e){status(e.message||String(e));}finally{delete button.dataset.busy;}};
+  content.querySelector('[data-modal-save]').onclick=async e=>{e.preventDefault();e.stopPropagation();const button=e.currentTarget;if(button.dataset.busy==='1')return;button.dataset.busy='1';try{const imageUrl=String(r.dataUrl||content.querySelector('.ql-cache-large')?.currentSrc||content.querySelector('.ql-cache-large')?.src||'');const result=await saveCleanImage(imageUrl,'qinghui-'+(r.at||Date.now())+'.png');status(result?.opened?'已在新页面打开图片，请长按图片保存到设备。':'已尝试下载图片；若未出现下载，请允许打开新页面后重试。');}catch(e){status(e.message||String(e));}finally{delete button.dataset.busy;}};
   modal.hidden=false;modal.style.display='flex';
  };
- host.querySelectorAll('[data-ql-detail]').forEach(b=>b.onclick=()=>openDetail(Number(b.dataset.qlDetail)));
- host.querySelectorAll('[data-ql-download]').forEach(b=>b.onclick=async()=>{const r=records[Number(b.dataset.qlDownload)];if(!r)return;try{await saveCleanImage(r.dataUrl,'qinghui-'+(r.at||Date.now())+'.png');status('已请求保存图片。');}catch(e){status(e.message||String(e));}});
- host.querySelectorAll('[data-ql-delete]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.qlDelete);if(!confirm('删除这条轻绘图片缓存？不会删除聊天消息中的图片。'))return;s.records.splice(i,1);save();history();status('图片缓存已删除。');});
+ host.querySelectorAll('[data-ql-detail]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();openDetail(Number(b.dataset.qlDetail));});
+ host.querySelectorAll('[data-ql-download]').forEach(b=>b.onclick=async e=>{e.preventDefault();e.stopPropagation();const button=e.currentTarget;if(button.dataset.busy==='1')return;button.dataset.busy='1';try{const r=records[Number(button.dataset.qlDownload)];if(!r)throw new Error('找不到这条缓存记录。');const result=await saveCleanImage(r.dataUrl,'qinghui-'+(r.at||Date.now())+'.png');status(result?.opened?'已在新页面打开图片，请长按图片保存到设备。':'已尝试下载图片；若未出现下载，请允许打开新页面后重试。');}catch(e){status(e.message||String(e));}finally{delete button.dataset.busy;}});
+ host.querySelectorAll('[data-ql-delete]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const i=Number(b.dataset.qlDelete);if(!confirm('删除这条轻绘图片缓存？不会删除聊天消息中的图片。'))return;s.records.splice(i,1);save();history();status('图片缓存已删除。');});
+ const updateSelection=()=>{const checks=[...host.querySelectorAll('[data-ql-select]')],selected=checks.filter(x=>x.checked);const count=host.querySelector('[data-ql-selected-count]'),bulk=host.querySelector('[data-ql-bulk-delete]'),all=host.querySelector('[data-ql-select-all]');if(count)count.textContent='已选 '+selected.length+' 张';if(bulk)bulk.disabled=!selected.length;if(all){all.checked=checks.length>0&&selected.length===checks.length;all.indeterminate=selected.length>0&&selected.length<checks.length;}};
+ host.querySelectorAll('[data-ql-select]').forEach(input=>input.addEventListener('change',updateSelection));
+ host.querySelector('[data-ql-select-all]')?.addEventListener('change',e=>{host.querySelectorAll('[data-ql-select]').forEach(input=>input.checked=e.currentTarget.checked);updateSelection();});
+ host.querySelector('[data-ql-bulk-delete]')?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const selected=[...host.querySelectorAll('[data-ql-select]:checked')].map(input=>Number(input.dataset.qlSelect)).filter(Number.isInteger);if(!selected.length)return;if(!confirm('确定删除选中的 '+selected.length+' 张缓存图片？不会删除聊天消息中的图片。'))return;selected.sort((a,b)=>b-a).forEach(i=>{if(i>=0&&i<s.records.length)s.records.splice(i,1);});save();history();status('已删除所选缓存图片。');});
 }
 function renderLibrary(){
  const s=cfg();
