@@ -351,13 +351,18 @@ async function saveCleanImage(src,filename){
   // Always use a body-level sheet. Avoid nesting under Tavern dialogs/panels, whose transforms
   // and stacking contexts can displace fixed-position children on mobile.
   document.querySelector('[data-ql-download-sheet]')?.remove();
-  const overlay=document.createElement('div');
+  // 使用原生 dialog.showModal() 将下载面板放进浏览器 Top Layer。
+  // 普通 fixed + 极大 z-index 仍可能被酒馆模态框的层叠上下文压住。
+  const overlay=document.createElement('dialog');
   overlay.setAttribute('data-ql-download-sheet','');
-  overlay.style.cssText='position:fixed;inset:0;width:100%;height:100%;height:100dvh;z-index:2147483647;background:rgba(20,12,18,.62);display:flex;align-items:flex-end;justify-content:center;padding:12px;box-sizing:border-box;margin:0;overflow:auto;overscroll-behavior:contain;';
+  overlay.style.cssText='position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;border:0;background:rgba(20,12,18,.62);display:flex;align-items:flex-end;justify-content:center;padding:12px;box-sizing:border-box;margin:0;overflow:auto;overscroll-behavior:contain;color:inherit;';
   overlay.style.setProperty('position','fixed','important');
   overlay.style.setProperty('inset','0','important');
   overlay.style.setProperty('width','100vw','important');
   overlay.style.setProperty('height','100dvh','important');
+  overlay.style.setProperty('max-width','none','important');
+  overlay.style.setProperty('max-height','none','important');
+  overlay.style.setProperty('border','0','important');
   overlay.style.setProperty('z-index','2147483647','important');
   overlay.style.setProperty('transform','none','important');
   overlay.style.setProperty('visibility','visible','important');
@@ -383,14 +388,20 @@ async function saveCleanImage(src,filename){
    try{await navigator.share({files:[file],title:name});}
    catch(error){if(error?.name!=='AbortError')hint.textContent='系统分享失败：'+(error?.message||String(error))+'。请长按预览图，或尝试其他浏览器下载。';}
   });
-  const cleanup=()=>{overlay.remove();if(objectUrl!==src)setTimeout(()=>URL.revokeObjectURL(objectUrl),60*1000);};
+  const cleanup=()=>{try{if(overlay.open)overlay.close();}catch{}overlay.remove();if(objectUrl!==src)setTimeout(()=>URL.revokeObjectURL(objectUrl),60*1000);};
   close.onclick=cleanup;
   overlay.addEventListener('click',e=>{if(e.target===overlay)cleanup();});
   sheet.append(top,preview,filenameNode,hint,a);
   overlay.append(sheet);
-  // Append directly to document.body and reassert after insertion in case Tavern CSS overrides it.
+  // dialog.showModal() 会进入浏览器 Top Layer，优先级高于酒馆所有普通弹窗与插件面板。
   document.body.append(overlay);
-  Object.assign(overlay.style,{position:'fixed',left:'0',top:'0',right:'0',bottom:'0',width:'100vw',height:'100dvh',zIndex:'2147483647'});
+  if(typeof overlay.showModal==='function'){
+   overlay.showModal();
+  }else{
+   // 旧内核兜底：仍使用全屏 fixed 面板。
+   overlay.setAttribute('open','');
+  }
+  Object.assign(overlay.style,{position:'fixed',left:'0',top:'0',right:'0',bottom:'0',width:'100vw',height:'100dvh',maxWidth:'none',maxHeight:'none',zIndex:'2147483647'});
   status('已打开下载面板，请点击“保存图片”。');
   return {opened:true,downloadStarted:false,edgeFallback:true};
  }catch(error){
