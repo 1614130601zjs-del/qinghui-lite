@@ -842,27 +842,32 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   const img=document.createElement('img');img.alt='轻绘状态栏画面';img.loading='eager';img.style.cssText='display:block;width:100%;height:100%;object-fit:contain;';
   card._qlPrompt=prompt;card._qlCandidates=[];card._qlIndex=0;
   const controls=document.createElement('div');controls.className='ql-statusbar-controls';
-  controls.style.cssText='position:absolute!important;left:50%!important;bottom:8px!important;transform:translateX(-50%)!important;z-index:2147483000!important;display:flex!important;visibility:visible;opacity:1;pointer-events:auto;align-items:center;justify-content:center;gap:8px;padding:3px 7px;border:1px solid rgba(255,255,255,.45);border-radius:999px;background:rgba(20,16,22,.72);color:#fff;max-width:calc(100% - 12px);box-sizing:border-box;touch-action:manipulation;';
+  controls.style.cssText='position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483000;display:flex;visibility:hidden;opacity:0;pointer-events:none;align-items:center;justify-content:center;gap:8px;padding:3px 7px;border:1px solid rgba(255,255,255,.45);border-radius:999px;background:rgba(20,16,22,.72);color:#fff;max-width:calc(100% - 12px);box-sizing:border-box;touch-action:manipulation;transition:opacity .22s ease;';
   const prev=document.createElement('button');prev.type='button';prev.className='ql-statusbar-arrow';prev.style.cssText='display:flex!important;align-items:center;justify-content:center;min-width:36px;min-height:32px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.25);color:#fff;pointer-events:auto;touch-action:manipulation;';prev.setAttribute('aria-label','上一张');prev.title='上一张';prev.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
   const count=document.createElement('span');count.className='ql-statusbar-count';count.setAttribute('aria-live','polite');count.setAttribute('aria-label','当前图片序号');count.style.cssText='display:none!important;';count.textContent='1 / 1';
   const next=document.createElement('button');next.type='button';next.className='ql-statusbar-arrow';next.style.cssText='display:flex!important;align-items:center;justify-content:center;min-width:36px;min-height:32px;padding:0;border:0;border-radius:50%;background:rgba(0,0,0,.25);color:#fff;pointer-events:auto;touch-action:manipulation;';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
   let controlsHideTimer=null;
   const showControlsBriefly=()=>{
-   controls.style.transition='opacity .22s ease';
-   controls.style.opacity='1';
-   controls.style.visibility='visible';
-   controls.style.pointerEvents='auto';
+   controls.style.setProperty('opacity','1','important');
+   controls.style.setProperty('visibility','visible','important');
+   controls.style.setProperty('pointer-events','auto','important');
    if(controlsHideTimer)clearTimeout(controlsHideTimer);
    controlsHideTimer=setTimeout(()=>{
-    controls.style.opacity='0';
-    controls.style.pointerEvents='none';
-    controls.style.visibility='hidden';
+    controls.style.setProperty('opacity','0','important');
+    controls.style.setProperty('pointer-events','none','important');
+    controls.style.setProperty('visibility','hidden','important');
    },1600);
   };
+  const hideControls=()=>{
+   if(controlsHideTimer)clearTimeout(controlsHideTimer);
+   controls.style.setProperty('opacity','0','important');
+   controls.style.setProperty('pointer-events','none','important');
+   controls.style.setProperty('visibility','hidden','important');
+  };
   const updateControls=()=>{const total=card._qlCandidates.length;count.textContent=total?String(card._qlIndex+1)+' / '+total:'0 / 0';prev.disabled=total<2;next.disabled=total<2;};
-  card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;updateControls();showControlsBriefly();};
+  card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;updateControls();};
   card._qlAddCandidate=url=>{if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});}card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
-  const moveCandidate=delta=>{const total=card._qlCandidates.length;if(total<2)return;card._qlIndex=(card._qlIndex+delta+total)%total;card._qlRender();};
+  const moveCandidate=delta=>{const total=card._qlCandidates.length;if(total<2)return;card._qlIndex=(card._qlIndex+delta+total)%total;card._qlRender();showControlsBriefly();};
   prev.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();moveCandidate(-1);});
   next.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();moveCandidate(1);});
   for(const control of [prev,next]){control.addEventListener('touchstart',e=>e.stopPropagation(),{passive:true});control.addEventListener('touchend',e=>e.stopPropagation(),{passive:true});}
@@ -883,13 +888,11 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
    if(e.changedTouches?.length!==1)return;
    const touch=e.changedTouches[0],dx=touch.clientX-touchStartX,dy=touch.clientY-touchStartY;
    if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25){
-    e.preventDefault();e.stopPropagation();lastTouchTap=0;
+    lastTouchTap=0;
     if(tapTimer){clearTimeout(tapTimer);tapTimer=null;}
-    const total=card._qlCandidates.length;
-    if(total>1){card._qlIndex=(card._qlIndex+(dx<0?1:-1)+total)%total;card._qlRender();}
     return;
    }
-   const now=Date.now(),rect=card.getBoundingClientRect();
+   const now=Date.now();
    if(lastTouchTap>0&&now-lastTouchTap<450){
     e.preventDefault();e.stopPropagation();lastTouchTap=0;
     if(tapTimer){clearTimeout(tapTimer);tapTimer=null;}
@@ -899,25 +902,14 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
     if(tapTimer)clearTimeout(tapTimer);
     tapTimer=setTimeout(()=>{
      tapTimer=null;lastTouchTap=0;
-     const total=card._qlCandidates.length;
-     if(total<2)return;
-     // 只允许屏幕左右边缘区域点击切图，中间区域不切换，避免误触。
-     const relativeX=(touch.clientX-rect.left)/Math.max(rect.width,1);
-     if(relativeX<=0.28)moveCandidate(-1);
-     else if(relativeX>=0.72)moveCandidate(1);
+     showControlsBriefly();
     },450);
    }
   },{passive:false});
   card.addEventListener('click',e=>{
    if(e.detail>1||e.target?.closest?.('.ql-statusbar-controls'))return;
-   if('ontouchstart' in window)return;
-   const rect=card.getBoundingClientRect();
-   const relativeX=(e.clientX-rect.left)/Math.max(rect.width,1);
-   // 桌面端同样只响应左右边缘；中间 44% 保持纯展示，不切图。
-   if(relativeX<=0.28)moveCandidate(-1);
-   else if(relativeX>=0.72)moveCandidate(1);
-   else return;
-   e.preventDefault();e.stopPropagation();
+   // 单击图片只呼出居中的左右切换键，不直接切图。
+   showControlsBriefly();
   });
   card.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll();});
   img.addEventListener('contextmenu',e=>{e.preventDefault();saveCleanImage(img.src,'qinghui-'+Date.now()+'.png');});
