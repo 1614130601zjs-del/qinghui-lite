@@ -631,21 +631,19 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   const img=document.createElement('img');img.loading='lazy';img.alt='轻绘生成图片';
   const controls=document.createElement('div');controls.className='ql-chat-image-controls';
   const edit=document.createElement('button');edit.type='button';edit.className='menu_button ql-chat-image-edit';edit.textContent='修改 tag';edit.title='编辑并保存这张图的画面提示词';
-  const prev=document.createElement('button');prev.type='button';prev.className='menu_button ql-chat-image-arrow';prev.setAttribute('aria-label','上一张');prev.title='上一张';prev.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
-  const count=document.createElement('span');count.className='ql-chat-image-count';count.textContent='1 / 1';
-  const next=document.createElement('button');next.type='button';next.className='menu_button ql-chat-image-arrow';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
-  const reroll=document.createElement('button');reroll.type='button';reroll.className='menu_button ql-chat-image-reroll';reroll.setAttribute('aria-label','重新生成');reroll.title='重新生成';reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14 5l2-2"/><path d="M20 20v-4h-4"/></svg>';
-  const remove=document.createElement('button');remove.type='button';remove.className='menu_button ql-chat-image-remove';remove.setAttribute('aria-label','从正文隐藏当前图片');remove.title='仅从正文隐藏当前图片，缓存历史中保留';remove.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="m6 7 1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg>';
+  const prev=document.createElement('button');prev.type='button';prev.className='menu_button ql-chat-image-arrow ql-chat-image-arrow-prev';prev.setAttribute('aria-label','上一张');prev.title='上一张';prev.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+  const next=document.createElement('button');next.type='button';next.className='menu_button ql-chat-image-arrow ql-chat-image-arrow-next';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
+  const reroll=document.createElement('button');reroll.type='button';reroll.className='menu_button ql-chat-image-reroll';reroll.setAttribute('aria-label','重 Roll');reroll.title='重 Roll';reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14 5l2-2"/><path d="M20 20v-4h-4"/></svg>';
+  const remove=document.createElement('button');remove.type='button';remove.className='menu_button ql-chat-image-remove';remove.setAttribute('aria-label','删除当前图片');remove.title='仅从正文隐藏当前图片，缓存和相册中的原图保留';remove.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="m6 7 1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg>';
+  const favorite=document.createElement('button');favorite.type='button';favorite.className='menu_button ql-chat-image-favorite';favorite.setAttribute('aria-label','收藏到角色相册');favorite.title='收藏到当前角色的相册';favorite.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>';
   remove.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const current=card._qlCandidates?.[card._qlIndex];if(!current)return;const records=cfg().records||[];let changed=false;for(const item of records){if(item?.taskKey!==taskKey||item.dataUrl!==current.url)continue;if(card.dataset.qlMessageIndex!==''&&Number(item.messageIndex)!==Number(card.dataset.qlMessageIndex))continue;if(card.dataset.qlChatId&&item.chatId&&item.chatId!==card.dataset.qlChatId)continue;item.hiddenInChat=true;changed=true;}if(changed)save();card._qlCandidates=card._qlCandidates.filter(candidate=>candidate.url!==current.url);if(!card._qlCandidates.length){card.remove();return;}card._qlIndex=Math.min(card._qlIndex,card._qlCandidates.length-1);card._qlRender?.();});
 
-  const collapse=document.createElement('button');collapse.type='button';collapse.className='ql-chat-image-collapse';collapse.setAttribute('aria-label','折叠图片');collapse.title='折叠图片';collapse.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg><span>收起相册</span>';
   const editor=document.createElement('div');editor.className='ql-chat-image-editor';editor.hidden=true;
   const textarea=document.createElement('textarea');textarea.className='ql-chat-image-tag-input';textarea.rows=3;textarea.value=String(prompt||'');textarea.setAttribute('aria-label','画面提示词');
   const saveTag=document.createElement('button');saveTag.type='button';saveTag.className='menu_button';saveTag.textContent='保存 tag';
   const cancelTag=document.createElement('button');cancelTag.type='button';cancelTag.className='menu_button';cancelTag.textContent='取消';
   const editorActions=document.createElement('div');editorActions.className='ql-chat-image-editor-actions';editorActions.append(saveTag,cancelTag);editor.append(textarea,editorActions);
-  controls.append(edit,prev,count,next,reroll,remove);card.append(img,controls,collapse,editor);if(anchor?.parentNode)anchor.parentNode.insertBefore(card,anchor);else host.append(card);
-  collapse.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const collapsed=card.classList.toggle('ql-image-collapsed');collapse.setAttribute('aria-label',collapsed?'展开相册':'折叠相册');collapse.title=collapsed?'展开相册':'折叠相册';collapse.innerHTML=collapsed?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6 6 6-6"/></svg><span>展开相册</span>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg><span>收起相册</span>';});
+  controls.append(edit,reroll,remove,favorite);card.append(img,prev,next,controls,editor);if(anchor?.parentNode)anchor.parentNode.insertBefore(card,anchor);else host.append(card);
   edit.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const currentUrl=card._qlCandidates[card._qlIndex]?.url||img.getAttribute('src');editor.hidden=!editor.hidden;if(!editor.hidden){textarea.value=card.dataset.qlPrompt||'';if(currentUrl)img.src=currentUrl;textarea.focus();}});
   cancelTag.addEventListener('click',()=>{textarea.value=card.dataset.qlPrompt||'';editor.hidden=true;});
   saveTag.addEventListener('click',()=>{
@@ -660,9 +658,24 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
    const saved=document.createElement('span');saved.className='ql-chat-image-tag-saved';saved.textContent='tag 已保存';editor.after(saved);setTimeout(()=>saved.remove(),1600);
   });
   card._qlCandidates=[];card._qlIndex=0;
-  const render=()=>{const list=card._qlCandidates;const i=card._qlIndex;if(!list.length)return;img.src=list[i].url;count.textContent=(i+1)+' / '+list.length;count.setAttribute('aria-label','第'+(i+1)+'张，共'+list.length+'张');prev.disabled=i<=0;next.disabled=i>=list.length-1;};
+  const render=()=>{const list=card._qlCandidates;const i=card._qlIndex;if(!list.length)return;img.src=list[i].url;prev.disabled=i<=0;next.disabled=i>=list.length-1;const saved=(cfg().records||[]).some(item=>item.taskKey===taskKey&&item.dataUrl===list[i].url&&item.albumCharacterName);favorite.classList.toggle('is-favorite',saved);favorite.setAttribute('aria-label',saved?'取消角色相册收藏':'收藏到角色相册');favorite.title=saved?'已收藏到角色相册':'收藏到当前角色的相册';};
   const step=delta=>{const nextIndex=card._qlIndex+delta;if(nextIndex>=0&&nextIndex<card._qlCandidates.length){card._qlIndex=nextIndex;render();}};
-  prev.addEventListener('click',()=>step(-1));next.addEventListener('click',()=>step(1));
+  prev.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();step(-1);});next.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();step(1);});
+  favorite.addEventListener('click',event=>{
+   event.preventDefault();event.stopPropagation();
+   const current=card._qlCandidates?.[card._qlIndex];if(!current?.url)return;
+   let records=(cfg().records||[]).filter(item=>item.taskKey===taskKey&&item.dataUrl===current.url);
+   if(!records.length){storeChatRecord(current.url,card.dataset.qlPrompt||prompt,taskKey,recordMeta);records=(cfg().records||[]).filter(item=>item.taskKey===taskKey&&item.dataUrl===current.url);}
+   const record=records[0];if(!record){status('未能找到这张图片的缓存记录。');return;}
+   if(record.albumCharacterName){for(const item of records)delete item.albumCharacterName;save();render();history();status('已取消收藏；图片仍保留在缓存中。');return;}
+   const currentChar=currentCharacter();
+   const storedCharacter=typeof record.character==='string'?record.character:'';
+   let name=String(record.characterName||storedCharacter||currentChar.name||'').trim();
+   if(!name)name=String(prompt('请输入这张图片所属的角色卡名称','')||'').trim();
+   if(!name){status('未收藏：没有指定角色名称。');return;}
+   for(const item of records){item.albumCharacterName=name;item.albumCharacterKey=currentChar.id||'';}
+   save();render();history();status('已收藏到「'+name+'」角色相册。');
+  });
   let touchX=0,touchY=0;
   img.addEventListener('touchstart',e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY;},{passive:true});
   img.addEventListener('touchend',e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(Math.abs(dx)>42&&Math.abs(dx)>Math.abs(dy)*1.25)step(dx<0?1:-1);},{passive:true});
