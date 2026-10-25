@@ -21,7 +21,7 @@ git clone https://github.com/1614130601zjs-del/qinghui-lite.git qinghui-lite
 
 ## 使用说明
 
-消息中的 `image###提示词###` 标记可触发生图。可在扩展设置中配置 OpenAI 兼容图像接口，或选择 NovelAI。NovelAI Vibe 只接受已编码资源；智绘姬标准 `vibeData` 中 `identifier: novelai-vibe-transfer` 的 `image` 会作为编码载荷，预览图单独保留。Vibe 组内每条参考可单独设置强度，Information Extracted 在编码后保持只读；普通预览图不会被冒充为编码输入。
+酒馆聊天消息中的 `image###提示词###` 标记会被渲染为「轻绘生图」按钮；点击后才会提交当前提示词到已配置的 NovelAI 官网或第三方接口，并把生成图片插入同一条消息正文。不会在流式输出时自动请求生图。可在扩展设置中配置 OpenAI 兼容图像接口，或选择 NovelAI。NovelAI Vibe 只接受已编码资源；智绘姬标准 `vibeData` 中 `identifier: novelai-vibe-transfer` 的 `image` 会作为编码载荷，预览图单独保留。Vibe 组内每条参考可单独设置强度，Information Extracted 在编码后保持只读；普通预览图不会被冒充为编码输入。
 
 
 ## 工作区分区
