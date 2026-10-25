@@ -904,11 +904,22 @@ function statusbarPromptForTarget(target){
  }
  return '';
 }
+function statusbarTargetsForDoc(doc){
+ const candidates=new Set(Array.from(doc.querySelectorAll('[class~="scanning"], [data-ql-prompt]')));
+ // 状态栏正则把提示词放在外层 data-tag，真正显示图片的 .shot-frame 默认没有 scanning 类。
+ for(const tagged of Array.from(doc.querySelectorAll('[data-tag]'))){
+  if(!parseStatusbarMarker(tagged.getAttribute('data-tag')))continue;
+  const frame=tagged.querySelector('.shot-frame, [id="frame"], [id$="-frame"]');
+  candidates.add(frame||tagged);
+ }
+ const all=Array.from(candidates).filter(el=>statusbarPromptForTarget(el)||el.dataset.qlPrompt);
+ return all.filter(el=>!all.some(child=>child!==el&&el.contains(child)&&statusbarPromptForTarget(child)===statusbarPromptForTarget(el)));
+}
 function statusbarTaskKey(target,prompt,doc){
  const message=target.closest('.mes[mesid]')||target.closest('.mes');
  const messageId=message?.getAttribute('mesid')||message?.dataset?.mesid||'no-message-id';
  const scope=message||doc;
- const targets=Array.from(scope.querySelectorAll('[class~="scanning"], [data-ql-prompt]')).filter(el=>statusbarPromptForTarget(el)||el.dataset.qlPrompt);
+ const targets=statusbarTargetsForDoc(scope);
  const ordinal=Math.max(0,targets.indexOf(target));
  let hash=2166136261;
  for(let i=0;i<prompt.length;i++){hash^=prompt.charCodeAt(i);hash=Math.imul(hash,16777619);}
@@ -1023,12 +1034,7 @@ function statusbarError(frame,prompt,taskKey,error){
 async function processStatusbarFrames(){
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
- const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"], [data-ql-prompt]')).filter(frame=>{
-  const prompt=statusbarPromptForTarget(frame);
-  if(!prompt)return false;
-  // 只选最内层的状态栏锚点，避免同一提示词的父容器和子节点重复生图。
-  return !Array.from(frame.querySelectorAll('[class~="scanning"], [data-ql-prompt]')).some(child=>statusbarPromptForTarget(child)===prompt);
- }));
+ const frames=docs.flatMap(doc=>statusbarTargetsForDoc(doc));
  for(const frame of frames){
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)continue;
