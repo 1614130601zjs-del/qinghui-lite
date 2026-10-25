@@ -882,7 +882,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
     controls.style.setProperty('opacity','0','important');
     controls.style.setProperty('pointer-events','none','important');
     controls.style.setProperty('visibility','hidden','important');
-   },1600);
+   },5000);
   };
   const hideControls=()=>{
    if(controlsHideTimer)clearTimeout(controlsHideTimer);
@@ -891,7 +891,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
    controls.style.setProperty('visibility','hidden','important');
   };
   const matchingStatusRecords=url=>(cfg().records||[]).filter(item=>item&&item.taskKey===taskKey&&item.dataUrl===url&&(item.source||'chat')==='statusbar');
-  const updateStatusActions=()=>{const current=card._qlCandidates[card._qlIndex];const records=current?.url?matchingStatusRecords(current.url):[];const saved=records.some(item=>item.albumCharacterName);favorite.textContent=saved?'★':'☆';favorite.classList.toggle('is-favorite',saved);favorite.title=saved?'取消收藏':'收藏到角色相册';favorite.setAttribute('aria-label',favorite.title);remove.disabled=!current?.url;};
+  const updateStatusActions=()=>{const current=card._qlCandidates[card._qlIndex];const records=current?.url?matchingStatusRecords(current.url):[];const saved=records.some(item=>item.albumCharacterName);favorite.classList.toggle('is-favorite',saved);favorite.title=saved?'取消收藏':'收藏到角色相册';favorite.setAttribute('aria-label',favorite.title);const star=favorite.querySelector('svg path');if(star){star.style.fill=saved?'currentColor':'none';star.style.stroke='currentColor';}remove.disabled=!current?.url;favorite.disabled=!current?.url;};
   const updateControls=()=>{const total=card._qlCandidates.length;count.textContent=total?String(card._qlIndex+1)+' / '+total:'0 / 0';prev.disabled=total<2;next.disabled=total<2;updateStatusActions();};
   card._qlRender=()=>{if(card._qlCandidates.length)img.src=card._qlCandidates[card._qlIndex].url;else img.removeAttribute('src');updateControls();};
   card._qlAddCandidate=url=>{if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});}card._qlIndex=card._qlCandidates.length-1;card._qlRender();};
