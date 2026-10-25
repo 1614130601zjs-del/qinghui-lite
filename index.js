@@ -94,7 +94,7 @@ async function requestImage(prompt, negativeOverride, vibeItem=null){
    try{data=JSON.parse(raw);}catch{}
    let value=data?.images?.[0]??data?.image??raw.trim();
    if(typeof value!=='string'||!value)throw new Error('NovelAI 响应中没有可识别的图片');
-   return /^(data:|https?:)/.test(value)?value:'data:image/png;base64,'+value.replace(/^data:image\\/[^;]+;base64,/,'');
+   return /^(data:|https?:)/.test(value)?value:'data:image/png;base64,'+value.replace(/^data:image\/[^;]+;base64,/,'');
   }
   const negative=String(negativeOverride??c.negative??'');
   const isV4=/^nai-diffusion-(?:4(?:-|$)|5-)/i.test(naiModel);
