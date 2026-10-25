@@ -1372,9 +1372,15 @@ jQuery(()=>{
  const scheduleInlineScan=()=>setTimeout(()=>processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 正文标记扫描失败',e)),80);
  scheduleInlineScan();
  const chatObserver=new MutationObserver(records=>{
-  if(records.some(record=>record.target?.closest?.('.mes_text')||[...record.addedNodes].some(node=>node.nodeType===1&&(node.matches?.('.mes, .mes_text')||node.querySelector?.('.mes_text'))))){scheduleInlineScan();}
+  // 酒馆点击“编辑消息”时可能只切换 .mes 的 class/编辑区状态，不一定增删 .mes_text；
+  // 退出编辑、保存或取消后也必须重新扫描并补回“相册收录”按钮。
+  const relevant=records.some(record=>{
+   if(record.target?.closest?.('.mes'))return true;
+   return [...(record.addedNodes||[])].some(node=>node.nodeType===1&&(node.matches?.('.mes, .mes_text')||node.querySelector?.('.mes_text')));
+  });
+  if(relevant)scheduleInlineScan();
  });
- chatObserver.observe(document.body,{childList:true,subtree:true});
+ chatObserver.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
  if(!eventSource||!event_types)return;
  let scanTimer=null;
  const scheduleScan=()=>{if(scanTimer)clearTimeout(scanTimer);scanTimer=setTimeout(()=>{
