@@ -147,4 +147,4 @@ for(let messageIndex=0;messageIndex<chat.length;messageIndex++){
 }
 }
 
-export { processLatestAssistantMessage, runInlineImageTrigger };
+export { processLatestAssistantMessage };
