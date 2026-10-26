@@ -893,9 +893,9 @@ async function processLatestAssistantMessage(){
   // 优先按酒馆消息 ID 定位正文；若正文 DOM 的 mesid 与聊天数组索引暂时错位，
   // 则按原始 marker 反查真正包含该标记的正文容器。
   let host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
-  if(found.length&&(!host||!found.some(marker=>(host.textContent||'').includes(marker.raw)))){
+  if(found.length&&(!host||!found.some(marker=>findRenderedMarkerRange(String(host.textContent||''),marker.raw)))){
    const visibleHosts=Array.from(document.querySelectorAll('#chat .mes .mes_text, .mes .mes_text'));
-   const matchedHost=visibleHosts.find(candidate=>found.some(marker=>(candidate.textContent||'').includes(marker.raw)));
+   const matchedHost=visibleHosts.find(candidate=>found.some(marker=>findRenderedMarkerRange(String(candidate.textContent||''),marker.raw)));
    if(matchedHost)host=matchedHost;
   }
   if(!host)continue;
