@@ -903,10 +903,6 @@ async function processLatestAssistantMessage(){
   // 如果原始聊天对象尚未同步，但正文 DOM 已经显示完整 image###...###，
   // 以 DOM 文本作为兜底来源继续渲染按钮。
   if(host&&!found.length)found=markers(String(host.textContent||''));
-  if(!found.length){
-   const renderedHost=visibleHosts.find(candidate=>markers(String(candidate.textContent||'')).length>0);
-   if(renderedHost){host=renderedHost;found=markers(String(host.textContent||''));}
-  }
   if(!host)continue;
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
   const messageElement=host.closest('.mes');
