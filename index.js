@@ -3,7 +3,7 @@ import { saveSettingsDebounced, eventSource, event_types, getRequestHeaders } fr
 import { parseImageMarkers, makeTriggerId, TriggerRegistry } from './trigger-core.js';
 
 const EXT = 'qinghui_lite';
-const defaults = { enabled:true, activeConfigMode:'combo', downloadFormat:'png', historyColumns:3, chatAlbumStyle:'classic', vibes:[], combinations:[], activeComboIndex:-1, activeVibeIndex:-1, activePresetIndex:-1, bindings:[], provider:'novelai', endpoint:'', apiKey:'', naiApiKey:'', naiThirdEndpoint:'', naiThirdKey:'', model:'gpt-image-1', size:'auto', quality:'medium', naiModel:'nai-diffusion-4-5-full', naiSteps:28, naiScale:5, naiWidth:832, naiHeight:1216, naiSampler:'k_euler_ancestral', naiScheduler:'karras', naiNormalizeVibeStrengths:true, prompt:'', negative:'', records:[], presets:[], characters:[], prompts:[] };
+const defaults = { enabled:true, activeConfigMode:'combo', downloadFormat:'png', historyColumns:3, chatAlbumStyle:'classic', vibes:[], combinations:[], activeComboIndex:-1, activeVibeIndex:-1, activePresetIndex:-1, bindings:[], provider:'novelai', endpoint:'', apiKey:'', naiApiKey:'', naiThirdEndpoint:'', naiThirdKey:'', model:'gpt-image-1', size:'auto', quality:'medium', naiModel:'nai-diffusion-4-5-full', naiSteps:28, naiScale:5, naiWidth:832, naiHeight:1216, naiSampler:'k_euler_ancestral', naiScheduler:'karras', naiNormalizeVibeStrengths:true, prompt:'', negative:'', records:[], presets:[], characters:[], prompts:[], userAlbums:[] };
 const $ = (s, root=document) => root.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let busy=false;
@@ -20,7 +20,7 @@ function cfg(){
  if(!['combo','separate'].includes(s.activeConfigMode))s.activeConfigMode='combo';
  if(typeof s.naiNormalizeVibeStrengths!=='boolean')s.naiNormalizeVibeStrengths=true;
  if(s.model==='gpt-image-2.5-sunburst'){s.model='gpt-image-1';saveSettingsDebounced();}
- for(const key of ['records','presets','characters','prompts','vibes','bindings','combinations'])if(!Array.isArray(s[key]))s[key]=[];
+ for(const key of ['records','presets','characters','prompts','vibes','bindings','combinations','userAlbums'])if(!Array.isArray(s[key]))s[key]=[];
  // 组合配置升级只补充新字段，不清空用户已有的 Vibe 或角色绑定。
  if(!s.comboMigrationV1){
   const comboFor=(artistIndex,vibeIndex)=>{let i=s.combinations.findIndex(c=>Number(c.artistIndex??-1)===Number(artistIndex??-1)&&Number(c.vibeIndex??-1)===Number(vibeIndex??-1));if(i<0){s.combinations.push({name:[s.presets[artistIndex]?.name,s.vibes[vibeIndex]?.name].filter(Boolean).join(' + ')||'旧配置组合',artistIndex:Number(artistIndex??-1),vibeIndex:Number(vibeIndex??-1),migrated:true});i=s.combinations.length-1;}return i;};
@@ -1199,8 +1199,10 @@ function history(){
   const favorites=(settings.records||[]).map((record,index)=>({...record,_cacheIndex:index})).filter(record=>record.albumCharacterName&&record.dataUrl);
   const groups=new Map();
   for(const record of favorites){const key=String(record.albumCharacterKey||record.albumCharacterName||'current');if(!groups.has(key))groups.set(key,[]);groups.get(key).push(record);}
-  const titleFor=(key,items)=>String(settings.albumNames[key]||items[0]?.albumCharacterName||'当前角色').trim()||'未命名相册';
-  const imageTile=(record,index)=>'<article class="ql-cache-tile ql-album-photo"><button type="button" class="ql-cache-image" data-album-photo="'+index+'" aria-label="查看照片"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="相册照片"></button><button type="button" class="ql-cache-favorite is-favorite" data-ql-unfavorite="'+record._cacheIndex+'" aria-label="移出相册" title="移出相册">×</button></article>';
+  for(const album of settings.userAlbums||[]){if(album&&album.id&&!groups.has(String(album.id)))groups.set(String(album.id),[]);}
+  const titleFor=(key,items)=>String(settings.albumNames[key]||items[0]?.albumCharacterName||(settings.userAlbums||[]).find(album=>String(album.id)===String(key))?.name||'当前角色').trim()||'未命名相册';
+  const imageTile=(record,index)=>'<article class="ql-cache-tile ql-album-photo"><button type="button" class="ql-cache-image" data-album-photo="'+index+'" aria-label="查看照片"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="相册照片"></button><button type="button" class="ql-album-move-photo" data-ql-move-photo="'+record._cacheIndex+'" title="移动到其他相册">移动</button><button type="button" class="ql-cache-favorite is-favorite" data-ql-unfavorite="'+record._cacheIndex+'" aria-label="移出相册" title="移出相册">×</button></article>';
+  const moveRecordToAlbum=recordIndex=>{const record=settings.records[Number(recordIndex)];if(!record)return;const targets=[...groups.entries()].filter(([targetKey])=>String(targetKey)!==String(record.albumCharacterKey||''));if(!targets.length){status('请先新建另一个相册。');return;}const options=targets.map(([targetKey,items],i)=>(i+1)+'. '+titleFor(targetKey,items)).join('\\n');const answer=prompt('输入要移动到的相册编号：\\n'+options,'1');if(answer===null)return;const target=targets[Number(answer)-1];if(!target){status('相册编号无效，照片没有移动。');return;}record.albumCharacterKey=String(target[0]);record.albumCharacterName=titleFor(target[0],target[1]);save();history();renderAlbums();status('照片已移动到「'+record.albumCharacterName+'」。');};
   const books=[...groups.entries()];
   albums.dataset.albumKey=albums.dataset.albumKey||'';
   if(albums.dataset.albumKey&&groups.has(albums.dataset.albumKey)){
@@ -1208,7 +1210,7 @@ function history(){
    const mode=settings.albumViewMode==='flip'?'flip':'spread';
    albums.innerHTML='<div class="ql-album-toolbar"><button type="button" class="menu_button" data-album-back>‹ 所有相册</button><div class="ql-album-toolbar-title"><span>PHOTO ALBUM</span><strong>'+esc(name)+' 相册</strong><small>'+items.length+' 张照片</small></div><button type="button" class="menu_button" data-album-rename>编辑名称</button></div><div class="ql-album-mode" role="group" aria-label="照片排列方式"><button type="button" class="menu_button '+(mode==='flip'?'active':'')+'" data-album-mode="flip">翻页浏览</button><button type="button" class="menu_button '+(mode==='spread'?'active':'')+'" data-album-mode="spread">铺开浏览</button></div><div class="ql-album-paper '+(mode==='flip'?'is-flip':'is-spread')+'">'+(mode==='flip'?'<div class="ql-album-flip-book"><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-prev ql-album-page-arrow" data-album-step="-1" aria-label="上一张"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><div class="ql-album-single-page"><button type="button" class="ql-album-single-photo" data-album-photo="'+items[0]._cacheIndex+'"><img src="'+esc(items[0].dataUrl)+'" alt="相册照片"></button><span class="ql-album-page-number" data-album-page-number>1/'+String(items.length)+'</span></div><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-next ql-album-page-arrow" data-album-step="1" aria-label="下一张"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div>':'<div class="ql-album-spread-book"><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-prev ql-album-page-arrow" data-spread-step="-1" aria-label="上一页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><div class="ql-album-spread-grid" data-columns="2">'+items.slice(0,6).map(record=>imageTile(record,record._cacheIndex)).join('')+'</div><span class="ql-album-page-number" data-spread-page-number>1/'+String(Math.max(1,Math.ceil(items.length/6)))+'</span><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-next ql-album-page-arrow" data-spread-step="1" aria-label="下一页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div>')+'</div>';
    albums.querySelector('[data-album-back]')?.addEventListener('click',()=>{albums.dataset.albumKey='';renderAlbums();});
-   albums.querySelector('[data-album-rename]')?.addEventListener('click',()=>{const next=prompt('编辑相册名称',name);if(next==null)return;const clean=next.trim();if(!clean){status('相册名称不能为空。');return;}settings.albumNames[key]=clean;save();renderAlbums();status('相册名称已更新。');});
+   albums.querySelector('[data-album-rename]')?.addEventListener('click',()=>{const next=prompt('编辑相册名称',name);if(next==null)return;const clean=next.trim();if(!clean){status('相册名称不能为空。');return;}settings.albumNames[key]=clean;const custom=(settings.userAlbums||[]).find(album=>String(album.id)===String(key));if(custom)custom.name=clean;save();renderAlbums();status('相册名称已更新。');});
    albums.querySelectorAll('[data-album-mode]').forEach(button=>button.addEventListener('click',()=>{settings.albumViewMode=button.dataset.albumMode;save();renderAlbums();}));
    const flipImage=albums.querySelector('.ql-album-single-photo img'),flipButton=albums.querySelector('.ql-album-single-photo'),pageNumber=albums.querySelector('[data-album-page-number]');
    let pageIndex=0;
@@ -1228,7 +1230,9 @@ function history(){
     const photo=event.target?.closest?.('[data-album-photo]');
     if(photo){openDetail(Number(photo.dataset.albumPhoto));return;}
     const remove=event.target?.closest?.('[data-ql-unfavorite]');
-    if(remove){const record=settings.records[Number(remove.dataset.qlUnfavorite)];if(record){delete record.albumCharacterName;delete record.albumCharacterKey;save();history();status('已从相册移除，缓存图片仍保留。');}}
+    const move=event.target?.closest?.('[data-ql-move-photo]');
+     if(move){event.preventDefault();event.stopPropagation();moveRecordToAlbum(move.dataset.qlMovePhoto);return;}
+     if(remove){const record=settings.records[Number(remove.dataset.qlUnfavorite)];if(record){delete record.albumCharacterName;delete record.albumCharacterKey;save();history();renderAlbums();status('已从相册移除，缓存图片仍保留。');}}
    });
    albums.querySelectorAll('[data-spread-step]').forEach(button=>button.addEventListener('click',()=>{spreadPage=Math.max(0,Math.min(Math.max(0,Math.ceil(items.length/6)-1),spreadPage+Number(button.dataset.spreadStep)));paintSpread();}));
    const spreadArea=albums.querySelector('.ql-album-spread-grid');let spreadStartX=0;
@@ -1239,8 +1243,9 @@ function history(){
    paintFlip();paintSpread();return;
   }
   albums.dataset.albumKey='';
-  albums.innerHTML=books.length?'<div class="ql-album-shelf-heading"><span>YOUR PHOTO LIBRARY</span><h3>角色相册集</h3><p>每一本都收纳着属于角色的影像。</p></div><div class="ql-album-bookshelf">'+books.map(([key,items],i)=>{const name=titleFor(key,items);return '<article class="ql-album-book-card"><button type="button" class="ql-album-book" data-open-album="'+esc(key)+'" aria-label="打开'+esc(name)+'相册"><span class="ql-album-book-cover"><span class="ql-album-book-spine"></span><span class="ql-album-cover-title">'+esc(name)+'</span><span class="ql-album-cover-count">'+items.length+' PHOTOS</span></span></button><div class="ql-album-book-caption"><strong>'+esc(name)+'</strong><span>'+items.length+' 张照片</span><button type="button" class="menu_button" data-rename-album="'+esc(key)+'">编辑名称</button></div></article>';}).join('')+'</div>':'<div class="ql-album-empty-book"><div class="ql-album-empty-cover"><span>MY PHOTO ALBUM</span><strong>等待收藏第一张照片</strong><small>在聊天正文的影像卡片下方点击收藏，照片就会放进对应角色的相册。</small></div></div>';
-  albums.querySelectorAll('[data-open-album]').forEach(button=>button.addEventListener('click',()=>{albums.dataset.albumKey=button.dataset.openAlbum;renderAlbums();}));
+   albums.innerHTML='<div class="ql-album-shelf-heading"><span>YOUR PHOTO LIBRARY</span><h3>我的相册集</h3><p>可以新建相册，并把收藏的照片移动到不同相册。</p><button type="button" class="menu_button ql-album-create-button" data-create-album>＋ 新建相册</button></div>'+(books.length?'<div class="ql-album-bookshelf">'+books.map(([key,items],i)=>{const name=titleFor(key,items);return '<article class="ql-album-book-card"><button type="button" class="ql-album-book" data-open-album="'+esc(key)+'" aria-label="打开'+esc(name)+'相册"><span class="ql-album-book-cover"><span class="ql-album-book-spine"></span><span class="ql-album-cover-title">'+esc(name)+'</span><span class="ql-album-cover-count">'+items.length+' PHOTOS</span></span></button><div class="ql-album-book-caption"><strong>'+esc(name)+'</strong><span>'+items.length+' 张照片</span><button type="button" class="menu_button" data-rename-album="'+esc(key)+'">编辑名称</button></div></article>';}).join('')+'</div>':'<div class="ql-album-empty-book"><div class="ql-album-empty-cover"><span>MY PHOTO ALBUM</span><strong>还没有相册</strong><small>点击上方「新建相册」，创建自己的相册。</small></div></div>');
+  albums.querySelector('[data-create-album]')?.addEventListener('click',()=>{const input=prompt('新相册名称：','我的相册');if(input===null)return;const name=input.trim();if(!name){status('相册名称不能为空。');return;}const id='custom-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);settings.userAlbums.push({id,name,createdAt:Date.now()});settings.albumNames[id]=name;save();renderAlbums();status('已创建相册「'+name+'」。');});
+   albums.querySelectorAll('[data-open-album]').forEach(button=>button.addEventListener('click',()=>{albums.dataset.albumKey=button.dataset.openAlbum;renderAlbums();}));
   albums.querySelectorAll('[data-rename-album]').forEach(button=>button.addEventListener('click',()=>{const key=button.dataset.renameAlbum,items=groups.get(key),old=titleFor(key,items),next=prompt('编辑相册名称',old);if(next==null)return;const clean=next.trim();if(!clean){status('相册名称不能为空。');return;}settings.albumNames[key]=clean;save();renderAlbums();status('相册名称已更新。');}));
  }; 
  const setAlbumView=view=>{const albumMode=view==='albums';if(cacheView)cacheView.hidden=albumMode;if(albums)albums.hidden=!albumMode;viewTabs.forEach(button=>{const active=button.dataset.albumView===view;button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active));});if(albumMode)renderAlbums();};
@@ -1541,10 +1546,10 @@ function openViewfinderImage(url){
   overlay.innerHTML='<button type="button" class="ql-viewfinder-lightbox-close" aria-label="关闭图片">×</button><img alt="放大查看的生成图片">';
   overlay.addEventListener('click',event=>{if(event.target===overlay||event.target.closest('.ql-viewfinder-lightbox-close'))overlay.hidden=true;});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!overlay.hidden)overlay.hidden=true;});
-  document.body.append(overlay);
+  document.documentElement.append(overlay);
  }
  overlay.querySelector('img').src=url;
- overlay.hidden=false;
+ overlay.hidden=false;overlay.style.setProperty('position','fixed','important');overlay.style.setProperty('inset','0','important');overlay.style.setProperty('width','100vw','important');overlay.style.setProperty('height','100dvh','important');overlay.style.setProperty('z-index','2147483647','important');
 }
 function normalizedImageKey(url){
  if(!url)return '';
