@@ -53,56 +53,28 @@ const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
 function hideMarkersInTextNode(root,entries=[]){
  if(!root)return;
- // 酒馆/主题可能把同一个 image###...### 标记拆到多个相邻文本节点中。
- // 先按正文整体文本定位，再用 Range 替换，避免逐个文本节点扫描时漏掉按钮。
- const fullText=root.textContent||'';
- const re=/image###([\s\S]*?)###/g;
- const replacements=[];
- let match,ordinal=0;
- while((match=re.exec(fullText))!==null){
-  const prompt=match[1].trim();
-  if(!prompt)continue;
-  replacements.push({start:match.index,end:re.lastIndex,prompt,entry:entries[ordinal],ordinal});
-  ordinal++;
- }
- if(!replacements.length)return;
- const locate=(offset,preferPrevious=false)=>{
-  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
-  let cursor=0,last=null;
-  while(walker.nextNode()){
-   const node=walker.currentNode;
-   const length=(node.nodeValue||'').length;
-   const end=cursor+length;
-   last={node,offset:length};
-   if(offset<end||(preferPrevious&&offset===end))return {node,offset:offset-cursor};
-   cursor=end;
+ let entryCursor=0;
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+ const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue?.includes('image###'))nodes.push(walker.currentNode);
+ let ordinal=0;
+ for(const node of nodes){
+  const value=node.nodeValue||'',re=/image###([\s\S]*?)###/g;
+  if(!re.test(value))continue;
+  re.lastIndex=0;
+  const fragment=document.createDocumentFragment();let last=0,match;
+  while((match=re.exec(value))!==null){
+   fragment.append(document.createTextNode(value.slice(last,match.index)));
+   const entry=entries[entryCursor++],prompt=match[1].trim();
+   if(!prompt){last=re.lastIndex;continue;}
+   const button=document.createElement('button');
+   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='定格此刻：生成图片并收录到当前消息';
+   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
+   button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
+   button._qlClickBound=true;
+   const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);fragment.append(buttonWrap);ordinal++;last=re.lastIndex;
   }
-  return last;
- };
- for(let i=replacements.length-1;i>=0;i--){
-  const item=replacements[i];
-  const startPos=locate(item.start,false);
-  const endPos=locate(item.end,true);
-  if(!startPos||!endPos)continue;
-  const range=document.createRange();
-  range.setStart(startPos.node,startPos.offset);
-  range.setEnd(endPos.node,endPos.offset);
-  const button=document.createElement('button');
-  button.type='button';
-  button.className='menu_button ql-inline-image-trigger';
-  button.textContent='定格此刻';
-  button.title='定格此刻：生成图片并收录到当前消息';
-  button.dataset.qlTrigger=item.entry?.taskKey||('marker-'+item.ordinal);
-  button.dataset.qlPrompt=item.prompt;
-  applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');
-  applyChatTheme(button);
-  button.addEventListener('click',()=>runInlineImageTrigger(button,item.entry||{prompt:item.prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
-  button._qlClickBound=true;
-  const wrap=document.createElement('span');
-  wrap.className='ql-inline-image-trigger-wrap';
-  wrap.append(button);
-  range.deleteContents();
-  range.insertNode(wrap);
+  fragment.append(document.createTextNode(value.slice(last)));
+  node.parentNode?.replaceChild(fragment,node);
  }
 }
 let qlImageRequestQueue=Promise.resolve();
@@ -833,6 +805,7 @@ async function runInlineImageTrigger(button,entry){
  }finally{if(button.isConnected)button.dataset.qlBusy='0';}
 }
 async function processLatestAssistantMessage(){
+ if(cfg().enabled===false)return;
  // 清理旧版本遗留在正文图片下方的失败提示；当前失败统一用弹窗，不在图片卡片内留错。
  document.querySelectorAll('.ql-chat-image-status').forEach(node=>{if(/生成失败|HTTP\s*429|Concurrent generation is locked/i.test(node.textContent||''))node.remove();});
  const context=getContext();
@@ -843,78 +816,26 @@ async function processLatestAssistantMessage(){
   const message=chat[messageIndex];
   if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
   const found=markers(message.mes);
-  // 优先按酒馆标准 mesid 定位；部分主题/旧版本重绘后的 DOM 不一定保留可匹配的 mesid，
-  // 此时按聊天消息顺序兜底定位，避免原始 image### 标记留在正文却一直没有按钮。
-  const messageElement=document.querySelector('.mes[mesid="'+messageIndex+'"]')
-   ||document.querySelectorAll('.mes')[messageIndex]
-   ||null;
-  let host=messageElement?.querySelector('.mes_text')
-   ||document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
-  // 有些酒馆主题/重绘会让聊天数据索引与可见 .mes 顺序短暂不一致。
-  // 如果当前节点不含聊天数据中的 marker，按 marker 原文反查真正显示它的正文容器。
-  if(found.length&&(!host||!found.some(marker=>(host.textContent||'').includes(marker.raw)))){
-   const visibleHosts=[...document.querySelectorAll('#chat .mes .mes_text, .mes .mes_text')];
-   const matchedHost=visibleHosts.find(candidate=>found.some(marker=>(candidate.textContent||'').includes(marker.raw)));
-   if(matchedHost)host=matchedHost;
-  }
+  const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
   if(!host)continue;
-  // 编辑消息时不改写原始正文；只检查真正的编辑器，避免消息内其他 contenteditable 控件误跳过整条消息。
-  if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input)')||host.querySelector('[contenteditable="true"]'))continue;
-  // 先校验 swipe_id 是否真的指向当前正文。部分重 Roll 事件里，正文已切换但 swipe_id 仍短暂停留在旧值。
-  const swipes=Array.isArray(message.swipes)?message.swipes:[];
-  const reportedSwipeId=Number.isInteger(message.swipe_id)?message.swipe_id:-1;
-  const reportedSwipe=reportedSwipeId>=0?swipes[reportedSwipeId]:undefined;
-  let activeSwipeId=reportedSwipeId>=0?reportedSwipeId:0;
-  if(swipes.length){
-   if(reportedSwipe===message.mes){
-    activeSwipeId=reportedSwipeId;
-   }else{
-    // 以当前正文反查真实 swipe；优先最后一个匹配项，避免相同文本的旧 swipe 抢先命中。
-    const matchedSwipeId=swipes.findLastIndex
-     ? swipes.findLastIndex(swipe=>swipe===message.mes)
-     : (()=>{for(let i=swipes.length-1;i>=0;i--)if(swipes[i]===message.mes)return i;return -1;})();
-    if(matchedSwipeId>=0)activeSwipeId=matchedSwipeId;
-   }
-  }
-  // 将完整正文指纹纳入任务 ID。即使旧版酒馆没有可靠的 swipe_id，
-  // 只要重 Roll 后正文变化，就不能复用上一版的按钮/图片任务。
-  let bodyHash=2166136261;
-  for(let i=0;i<message.mes.length;i++){bodyHash^=message.mes.charCodeAt(i);bodyHash=Math.imul(bodyHash,16777619);}
-  const messageVersion=String(messageIndex)+':'+String(activeSwipeId)+':'+(bodyHash>>>0).toString(36);
+  // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
+  const messageElement=host.closest('.mes');
+  if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input), [contenteditable="true"]'))continue;
+  // 旧版/定制版若未暴露 swipe_id，再由 swipes 与当前正文推导当前版本。
+  const activeSwipeId=Number.isInteger(message.swipe_id)
+   ? message.swipe_id
+   : (Array.isArray(message.swipes)&&message.swipes.length
+      ? Math.max(0,message.swipes.findIndex(swipe=>swipe===message.mes))
+      : 0);
   const entries=found.map((marker,markerOrdinal)=>{
-   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:messageVersion,markerIndex:markerOrdinal});
+   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(activeSwipeId),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
   });
-  // 旧 swipe 的图片卡片和按钮都必须清理；否则旧按钮可能占用新任务的位置，
-  // 让新 marker 无法生成按钮，并使旧图看起来像是新 tag 的结果。
+  // 重 Roll/切换 swipe 后，酒馆有时会保留扩展插入的旧图片 DOM。
+  // 只保留当前正文 marker 对应的任务卡片；旧图记录仍留在缓存与角色相册中。
   const validTaskKeys=new Set(entries.map(entry=>entry.taskKey));
   host.querySelectorAll('.ql-chat-image').forEach(card=>{
    if(!validTaskKeys.has(card.dataset.qlTask||''))card.remove();
-  });
-  // 兼容升级前已经被替换成按钮的 marker：原始 image### 文本此时已不在 DOM，
-  // 不能先删旧按钮，否则 hideMarkersInTextNode 无法再从 DOM 里生成新按钮。
-  const claimedEntries=new Set();
-  host.querySelectorAll('[data-ql-trigger]').forEach(button=>{
-   const currentKey=button.dataset.qlTrigger||'';
-   if(validTaskKeys.has(currentKey)){
-    const matched=entries.find(entry=>entry.taskKey===currentKey);
-    if(matched)claimedEntries.add(matched.taskKey);
-    return;
-   }
-   const oldPrompt=String(button.dataset.qlPrompt||'').trim();
-   const replacement=entries.find(entry=>!claimedEntries.has(entry.taskKey)&&String(entry.prompt||'').trim()===oldPrompt);
-   if(!replacement){
-    button.closest('.ql-inline-image-trigger-wrap')?.remove();
-    if(button.isConnected)button.remove();
-    return;
-   }
-   claimedEntries.add(replacement.taskKey);
-   const repaired=button.cloneNode(true);
-   repaired.dataset.qlTrigger=replacement.taskKey;
-   repaired.dataset.qlPrompt=replacement.prompt;
-   repaired.addEventListener('click',()=>runInlineImageTrigger(repaired,replacement));
-   repaired._qlClickBound=true;
-   button.replaceWith(repaired);
   });
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
   hideMarkersInTextNode(host,entries);
@@ -948,14 +869,14 @@ async function processLatestAssistantMessage(){
     }
     continue;
    }
-   const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&(!item.basePrompt||String(item.basePrompt).trim()===entry.prompt)&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+   const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
     const latest=savedRecords[savedRecords.length-1];
     for(const record of savedRecords)addMessageImage(host,record.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},markerButton);
     host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]').forEach(button=>button.remove());
     continue;
    }
-   const removedFromBody=(cfg().records||[]).some(item=>item&&item.hiddenInChat&&item.taskKey===entry.taskKey&&(!item.basePrompt||String(item.basePrompt).trim()===entry.prompt)&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat');
+   const removedFromBody=(cfg().records||[]).some(item=>item&&item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat');
    if(removedFromBody){host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]').forEach(button=>button.remove());continue;}
    if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
    if([...host.querySelectorAll('[data-ql-prompt]')].some(button=>button.dataset.qlPrompt===entry.prompt&&button.dataset.qlTrigger===entry.taskKey))continue;
@@ -985,8 +906,6 @@ function statusbarPromptForTarget(target){
   target?.dataset?.qlPrompt
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
- const savedPrompt=String(target?.getAttribute?.('data-ql-prompt')||target?.dataset?.qlPrompt||'').trim();
- if(savedPrompt)return savedPrompt;
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
   const raw=ancestor.getAttribute?.('data-tag');
