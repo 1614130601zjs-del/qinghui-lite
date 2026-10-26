@@ -885,40 +885,67 @@ async function processLatestAssistantMessage(){
 }
 let statusbarObserver=null;
 const statusbarObservedDocs=new WeakSet();
-const statusbarLoadBoundFrames=new WeakSet();
 function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);return match?.[1]?.trim()||'';}
+function plainStatusbarTag(text){return String(text||'').replace(/^image###\s*/i,'').replace(/\s*###$/,'').trim();}
 function statusbarPromptForTarget(target){
  const direct=[
   target?.textContent,
   target?.getAttribute?.('data-tag'),
-  target?.getAttribute?.('data-ql-prompt'),
-  target?.dataset?.qlPrompt,
   ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
- // data-ql-prompt 保存的是已解析后的纯提示词，不含 image###...### 包裹；
- // 因此不能再交给 parseStatusbarMarker，否则刷新后会被误判为空提示词。
+ // 已处理过的状态栏会移除 scanning 类；正则通常把纯提示词放在外层 data-tag，而非 image### 标记里。
  const savedPrompt=String(target?.getAttribute?.('data-ql-prompt')||target?.dataset?.qlPrompt||'').trim();
  if(savedPrompt)return savedPrompt;
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
-  const prompt=parseStatusbarMarker(ancestor.getAttribute?.('data-tag'));
-  if(prompt)return prompt;
+  const raw=ancestor.getAttribute?.('data-tag');
+  const marked=parseStatusbarMarker(raw);
+  if(marked)return marked;
+  // 只有包含状态栏图片框架的包装节点才把普通 data-tag 当作提示词，避免误识别其他标签。
+  if(raw&&ancestor.querySelector?.('.shot-frame, [id="frame"], [id$="-frame"]')){
+   const plain=plainStatusbarTag(raw);
+   if(plain)return plain;
+  }
   ancestor=ancestor.parentElement;
  }
  return '';
+}
+function statusbarTargetsForDoc(doc){
+ const candidates=new Set(Array.from(doc.querySelectorAll('[class~="scanning"], [data-ql-prompt]')));
+ // 正则将提示词放在外层 data-tag；即使刷新后没有 scanning 类，也按结构定位真正的图片框架。
+ for(const tagged of Array.from(doc.querySelectorAll('[data-tag]'))){
+  const frame=tagged.querySelector('.shot-frame, [id="frame"], [id$="-frame"]');
+  if(!frame)continue;
+  const raw=tagged.getAttribute('data-tag');
+  if(!parseStatusbarMarker(raw)&&!plainStatusbarTag(raw))continue;
+  candidates.add(frame);
+ }
+ const all=Array.from(candidates).filter(el=>statusbarPromptForTarget(el)||el.dataset.qlPrompt);
+ return all.filter(el=>!all.some(child=>child!==el&&el.contains(child)&&statusbarPromptForTarget(child)===statusbarPromptForTarget(el)));
 }
 function statusbarTaskKey(target,prompt,doc){
  const message=target.closest('.mes[mesid]')||target.closest('.mes');
  const messageId=message?.getAttribute('mesid')||message?.dataset?.mesid||'no-message-id';
  const scope=message||doc;
- const targets=Array.from(scope.querySelectorAll('[class~="scanning"], [data-qlPrompt]')).filter(el=>statusbarPromptForTarget(el)||el.dataset.qlPrompt);
+ const targets=statusbarTargetsForDoc(scope);
  const ordinal=Math.max(0,targets.indexOf(target));
  let hash=2166136261;
  for(let i=0;i<prompt.length;i++){hash^=prompt.charCodeAt(i);hash=Math.imul(hash,16777619);}
  return 'statusbar:'+String(getContext()?.chatId||'chat')+':'+messageId+':'+ordinal+':'+(hash>>>0).toString(36);
 }
+function revealStatusbarFrame(frame){
+  if(!frame)return;
+  frame.classList.remove('scanning');
+  if(getComputedStyle(frame).position==='static')frame.style.position='relative';
+  // 状态栏正则可能使用 .screen 或 .dy-screen；两种布局都要切换到已显示图片状态。
+  const screen=frame.closest('.screen, .dy-screen');
+  if(screen)screen.classList.add('has-image');
+  frame.style.display='block';
+  frame.style.visibility='visible';
+ }
 function renderStatusbarCard(frame,prompt,url,taskKey){
+ revealStatusbarFrame(frame);
  let card=frame.querySelector('.ql-statusbar-card');
  // 酒馆刷新后可能只留下卡片 HTML；HTML 不会保留事件监听和轮播状态，必须重建。
  if(!card||card.dataset.qlTask!==taskKey||!card._qlRender){
@@ -1006,7 +1033,9 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   },{passive:false});
   card.addEventListener('click',e=>{
    if(e.detail>1||e.target?.closest?.('.ql-statusbar-controls'))return;
-   // 单击图片只呼出居中的左右切换键，不直接切图。
+   // 触屏设备的 touchend 后也会合成 click；不能在第一次轻触时立刻盖上控制层，
+   // 否则第二次轻触会落在控制按钮上，被排除在双击重 Roll 之外。
+   if('ontouchstart' in window)return;
    showControlsBriefly();
   });
   card.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();reroll();});
@@ -1023,16 +1052,10 @@ function statusbarError(frame,prompt,taskKey,error){
  alert('轻绘生成失败：'+(error?.message||String(error)));
 }
 async function processStatusbarFrames(){
+ if(cfg().enabled===false)return;
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
- // 刷新后状态栏 frame 可能已经没有 scanning class（首次渲染成功时会移除），
- // 只扫描 scanning 会导致缓存恢复不执行，直到小铅笔重新生成 marker。
- // 同时检查 data-tag 和已标记提示词节点，再按 image### 标记筛选。
- const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"], [data-tag], [data-ql-prompt]')).filter(frame=>{
-  const prompt=statusbarPromptForTarget(frame);
-  if(!prompt)return false;
-  return !Array.from(frame.querySelectorAll('[class~="scanning"], [data-tag], [data-ql-prompt]')).some(child=>statusbarPromptForTarget(child)===prompt);
- }));
+ const frames=docs.flatMap(doc=>statusbarTargetsForDoc(doc));
  for(const frame of frames){
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)continue;
@@ -1042,29 +1065,16 @@ async function processStatusbarFrames(){
    frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading').forEach(el=>el.remove());
   }
   if(frame.dataset.qlBusy==='1')continue;
-  // 刷新后 data-ql-done 可能仍保留，但卡片 DOM/事件对象已丢失。
-  // 只有卡片仍有本次运行时渲染器时才跳过；否则必须继续走缓存恢复。
   const existingCard=frame.querySelector('.ql-statusbar-card');
+  // DOM 刷新会清除 JS 事件与 _qlRender；即使 qlDone 属性残留，也必须走缓存恢复。
   if(frame.dataset.qlDone==='1'&&existingCard?._qlRender)continue;
   if(frame.dataset.qlDone==='1')frame.dataset.qlDone='';
   frame.dataset.qlBusy='1';
-  let taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
-  // 恢复已缓存的状态栏图片：酒馆刷新后消息 DOM 的 mesid/同消息标记序号偶尔会变化，
-  // 先精确匹配任务键；精确匹配失败时，再按当前消息 ID + 提示词哈希匹配，忽略标记序号变化。
-  const message=frame.closest('.mes[mesid]')||frame.closest('.mes');
-  const messageId=message?.getAttribute('mesid')||message?.dataset?.mesid||'no-message-id';
-  const promptHash=taskKey.split(':').at(-1);
-  let savedStatusbar=(cfg().records||[])
+  const taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
+  // 恢复已缓存的状态栏图片：DOM 重绘/重新打开消息时不应自动重新请求 NAI。
+  const savedStatusbar=(cfg().records||[])
    .filter(item=>item&&item.dataUrl&&item.taskKey===taskKey&&(item.source||'chat')==='statusbar')
    .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
-  if(!savedStatusbar.length){
-   const prefix='statusbar:'+String(getContext()?.chatId||'chat')+':'+messageId+':';
-   savedStatusbar=(cfg().records||[])
-    .filter(item=>item&&item.dataUrl&&(item.source||'chat')==='statusbar'&&String(item.taskKey||'').startsWith(prefix)&&String(item.taskKey||'').endsWith(':'+promptHash))
-    .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
-   // 继续沿用缓存记录原本的 taskKey，确保收藏、删除等操作也能找到记录。
-   if(savedStatusbar.length)taskKey=savedStatusbar[savedStatusbar.length-1].taskKey;
-  }
   if(savedStatusbar.length){
    const latest=savedStatusbar[savedStatusbar.length-1];
    renderStatusbarCard(frame,prompt,latest.dataUrl,taskKey);
@@ -1081,7 +1091,8 @@ async function processStatusbarFrames(){
   const accepted=triggerRegistry.begin(taskKey,{prompt,source:'statusbar'});
   if(!accepted.accepted){frame.dataset.qlBusy='0';continue;}
   triggerRegistry.markRunning(taskKey);
-  const loading=(frame.ownerDocument||document).createElement('div');
+  revealStatusbarFrame(frame);
+   const loading=(frame.ownerDocument||document).createElement('div');
   loading.className='ql-statusbar-loading';
   loading.textContent='轻绘：正在生成画面…';
   loading.style.cssText='position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);color:#fff;font-size:13px;';
@@ -1106,28 +1117,17 @@ function observeStatusbarFrames(){
   const target=doc.body||doc.documentElement;if(!target)return;
   statusbarObservedDocs.add(doc);
   const observer=new MutationObserver(()=>{attachFrames();processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));});
-  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class','data-tag','data-ql-prompt']});
+  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
   if(doc===document)statusbarObserver=observer;
  };
  const attachFrames=()=>{
   attach(document);
-  document.querySelectorAll('iframe').forEach(frame=>{
-   // iframe 的 srcdoc 导航可能替换 contentDocument。不能只观察插入时拿到的旧文档，
-   // 必须在 load 后重新读取 contentDocument 并为新文档安装观察器。
-   if(!statusbarLoadBoundFrames.has(frame)){
-    statusbarLoadBoundFrames.add(frame);
-    frame.addEventListener('load',()=>{
-     try{attach(frame.contentDocument);}catch{}
-     attachFrames();
-     processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
-    });
-   }
-   try{attach(frame.contentDocument);}catch{}
-  });
+  document.querySelectorAll('iframe').forEach(frame=>{try{attach(frame.contentDocument);}catch{}});
  };
  attachFrames();
  processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
 }
+
 const themePalettes={mist:{accent:'#7f98ad',panel:'rgba(239,244,248,.98)',card:'rgba(250,252,254,.98)',text:'#344653',muted:'#657784',border:'rgba(127,152,173,.30)',field:'rgba(255,255,255,.98)'},sage:{accent:'#849b8c',panel:'rgba(239,246,239,.98)',card:'rgba(251,253,249,.98)',text:'#3c5044',muted:'#687a6d',border:'rgba(132,155,140,.30)',field:'rgba(255,255,252,.98)'},lavender:{accent:'#9a91b0',panel:'rgba(246,242,250,.98)',card:'rgba(253,251,255,.98)',text:'#4c465b',muted:'#777083',border:'rgba(154,145,176,.30)',field:'rgba(255,255,255,.98)'},oat:{accent:'#b09c82',panel:'rgba(249,245,237,.98)',card:'rgba(255,252,246,.98)',text:'#554b3e',muted:'#817565',border:'rgba(176,156,130,.32)',field:'rgba(255,255,252,.98)'}};
 function applyTheme(preset,customColor){const panel=$('#qinghui-lite-panel');if(!panel)return;panel.querySelectorAll('#ql-custom-theme-style').forEach(x=>x.remove());if(preset==='auto'){for(const key of ['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-muted','--ql-border','--ql-field'])panel.style.removeProperty(key);panel.style.removeProperty('color');panel.style.removeProperty('background');return;}let p=themePalettes[preset];if(preset==='custom'){const accent=/^#[0-9a-f]{6}$/i.test(String(customColor||''))?customColor:'#9aaec2';p={accent,panel:'rgba(242,246,249,.98)',card:'rgba(252,253,254,.98)',text:'#35434d',muted:'#687680',border:'color-mix(in srgb, '+accent+' 32%, transparent)',field:'rgba(255,255,255,.98)'};}if(!p)return;panel.style.setProperty('--ql-accent',p.accent);panel.style.setProperty('--ql-panel',p.panel);panel.style.setProperty('--ql-card',p.card);panel.style.setProperty('--ql-text',p.text);panel.style.setProperty('--ql-muted',p.muted);panel.style.setProperty('--ql-border',p.border);panel.style.setProperty('--ql-field',p.field);panel.style.color='var(--ql-text)';panel.style.background='var(--ql-panel)';}
 function save(){ saveSettingsDebounced(); }
