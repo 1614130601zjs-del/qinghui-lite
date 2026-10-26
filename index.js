@@ -816,11 +816,22 @@ async function processLatestAssistantMessage(){
   const message=chat[messageIndex];
   if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
   const found=markers(message.mes);
-  const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
+  // 先按标准 mesid 定位；若主题/重绘导致索引不一致，再按可见正文中的原始 marker 反查，
+  // 避免聊天数据里已经有 image###...###，但按钮处理器一直盯着另一条正文。
+  const messageElementByIndex=document.querySelector('.mes[mesid="'+messageIndex+'"]')
+   ||document.querySelectorAll('.mes')[messageIndex]
+   ||null;
+  let host=messageElementByIndex?.querySelector('.mes_text')
+   ||document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
+  if(found.length&&(!host||!found.some(marker=>(host.textContent||'').includes(marker.raw)))){
+   const visibleHosts=[...document.querySelectorAll('#chat .mes .mes_text, .mes .mes_text')];
+   const matchedHost=visibleHosts.find(candidate=>found.some(marker=>(candidate.textContent||'').includes(marker.raw)));
+   if(matchedHost)host=matchedHost;
+  }
   if(!host)continue;
-  // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
-  const messageElement=host.closest('.mes');
-  if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input), [contenteditable="true"]'))continue;
+  // 以真正承载 marker 的消息节点检查编辑状态，避免索引错位时误跳过正文渲染。
+  const messageElement=host.closest('.mes')||messageElementByIndex;
+  if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input)')||host.querySelector('[contenteditable="true"]'))continue;
   // 先校验 swipe_id 是否真的指向当前正文。部分重 Roll 事件里，正文已切换但 swipe_id 仍短暂停留在旧值。
   const swipes=Array.isArray(message.swipes)?message.swipes:[];
   const reportedSwipeId=Number.isInteger(message.swipe_id)?message.swipe_id:-1;
