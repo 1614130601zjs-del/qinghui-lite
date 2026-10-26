@@ -833,11 +833,13 @@ async function processLatestAssistantMessage(){
    if(!markerButton){
     const waitingCard=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===entry.taskKey);
     if(waitingCard){
-     // 图片卡片存在但正文锚点尚未恢复：先隐藏旧卡片，等待下一次扫描重新定位。
+     // 没有 marker 锚点时仍要恢复旧卡片的事件监听；以旧卡片的下一个兄弟节点作为锚点，
+     // 让新卡片原位替换旧 HTML，不把它追加到消息末尾，也不需要用户先点小铅笔。
+     const nextSibling=waitingCard.nextSibling;
      const records=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
      if(!waitingCard._qlRender&&records.length){
       const latest=records[records.length-1];
-      addMessageImage(host,latest.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},waitingCard);
+      addMessageImage(host,latest.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},nextSibling);
       const rebuilt=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===entry.taskKey);
       if(rebuilt){rebuilt.hidden=false;delete rebuilt.dataset.qlWaitingForAnchor;}
      }else{
