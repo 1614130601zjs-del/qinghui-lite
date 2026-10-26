@@ -56,7 +56,7 @@ function hideMarkersInTextNode(root,entries=[]){
  // 酒馆/主题可能把同一个 image###...### 标记拆到多个相邻文本节点中。
  // 先按正文整体文本定位，再用 Range 替换，避免逐个文本节点扫描时漏掉按钮。
  const fullText=root.textContent||'';
- const re=/image###([\\s\\S]*?)###/g;
+ const re=/image###([\s\S]*?)###/g;
  const replacements=[];
  let match,ordinal=0;
  while((match=re.exec(fullText))!==null){
