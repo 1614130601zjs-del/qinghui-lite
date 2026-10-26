@@ -821,12 +821,22 @@ async function processLatestAssistantMessage(){
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
   const messageElement=host.closest('.mes');
   if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input), [contenteditable="true"]'))continue;
-  // 旧版/定制版若未暴露 swipe_id，再由 swipes 与当前正文推导当前版本。
-  const activeSwipeId=Number.isInteger(message.swipe_id)
-   ? message.swipe_id
-   : (Array.isArray(message.swipes)&&message.swipes.length
-      ? Math.max(0,message.swipes.findIndex(swipe=>swipe===message.mes))
-      : 0);
+  // 先校验 swipe_id 是否真的指向当前正文。部分重 Roll 事件里，正文已切换但 swipe_id 仍短暂停留在旧值。
+  const swipes=Array.isArray(message.swipes)?message.swipes:[];
+  const reportedSwipeId=Number.isInteger(message.swipe_id)?message.swipe_id:-1;
+  const reportedSwipe=reportedSwipeId>=0?swipes[reportedSwipeId]:undefined;
+  let activeSwipeId=reportedSwipeId>=0?reportedSwipeId:0;
+  if(swipes.length){
+   if(reportedSwipe===message.mes){
+    activeSwipeId=reportedSwipeId;
+   }else{
+    // 以当前正文反查真实 swipe；优先最后一个匹配项，避免相同文本的旧 swipe 抢先命中。
+    const matchedSwipeId=swipes.findLastIndex
+     ? swipes.findLastIndex(swipe=>swipe===message.mes)
+     : (()=>{for(let i=swipes.length-1;i>=0;i--)if(swipes[i]===message.mes)return i;return -1;})();
+    if(matchedSwipeId>=0)activeSwipeId=matchedSwipeId;
+   }
+  }
   const entries=found.map((marker,markerOrdinal)=>{
    const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(activeSwipeId),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
