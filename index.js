@@ -50,10 +50,45 @@ function cfg(){
 const triggerRegistry = new TriggerRegistry();
 const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状态以 triggerRegistry 为准。
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
+function findRenderedMarkerRange(text,raw,startTag='image###',endTag='###',from=0){
+ const exact=text.indexOf(raw,from);
+ if(exact>=0)return {start:exact,end:exact+raw.length};
+ const stripMarkdown=value=>String(value)
+  .replace(/!\\[([^\\]]*)\\]\\([^)]*\\)/g,'$1')
+  .replace(/\\[([^\\]]+)\\]\\([^)]*\\)/g,'$1')
+  .replace(/<!--[\\s\\S]*?-->/g,'')
+  .replace(/<\\/?[A-Za-z][^>]*>/g,'')
+  .replace(/\\`{1,3}|\\*{2}|_{2}|~~/g,'');
+ const compactText=[],offsets=[];
+ for(let i=0;i<text.length;i++){
+  if(!/\\s/.test(text[i])){compactText.push(text[i]);offsets.push(i);}
+ }
+ const compact=compactText.join('');
+ const find=value=>{
+  for(const candidate of [String(value),stripMarkdown(value)]){
+   const needle=candidate.replace(/\\s/g,'');
+   if(!needle)continue;
+   const first=offsets.findIndex(offset=>offset>=from);
+   const at=compact.indexOf(needle,first<0?compact.length:first);
+   if(at>=0)return {start:offsets[at],end:offsets[at+needle.length-1]+1};
+  }
+  return null;
+ };
+ const full=find(raw);
+ if(full)return full;
+ if(raw.startsWith(startTag)&&raw.endsWith(endTag)){
+  const body=find(raw.slice(0,-endTag.length));
+  if(body){
+   const tail=text.slice(body.end).match(/^\\s*(#{1,6})(?=\\s|$)/);
+   if(tail&&tail[1].length<=endTag.length)body.end+=tail[0].length;
+   return body;
+  }
+ }
+ return null;
+}
 function hideMarkersInTextNode(root,entries=[]){
  if(!root)return;
- // 先把正文中的文本节点拼成一条逻辑文本，再按全局偏移替换标记。
- // 酒馆的 Markdown 可能把 image###...### 拆到多个 text node；逐节点正则会漏掉它。
+ // 用酒馆最终渲染出的可见文本定位标记；不能假定整个 marker 留在同一个文本节点。
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
  const nodes=[];
  while(walker.nextNode()){
@@ -62,9 +97,32 @@ function hideMarkersInTextNode(root,entries=[]){
   if(node.nodeValue)nodes.push({node,start:0,end:0});
  }
  let fullText='';
- for(const item of nodes){item.start=fullText.length;fullText+=item.node.nodeValue||'';item.end=fullText.length;}
- const found=markers(fullText);
- if(!found.length)return;
+ for(const item of nodes){
+  item.start=fullText.length;
+  fullText+=item.node.nodeValue||'';
+  item.end=fullText.length;
+ }
+ if(!fullText)return;
+ let candidates=(entries||[]).filter(entry=>entry&&entry.prompt&&entry.raw);
+ if(!candidates.length)candidates=markers(fullText);
+ let cursor=0;
+ const located=[];
+ for(const candidate of candidates){
+  const range=findRenderedMarkerRange(fullText,candidate.raw,'image###','###',cursor);
+  if(!range)continue;
+  located.push({...candidate,renderStart:range.start,renderEnd:range.end});
+  cursor=range.end;
+ }
+ // 如果原始消息中的 marker 已被 Markdown 改写，退回从可见文本本身提取标记。
+ if(!located.length){
+  cursor=0;
+  for(const candidate of markers(fullText)){
+   const range=findRenderedMarkerRange(fullText,candidate.raw,'image###','###',cursor);
+   if(!range)continue;
+   located.push({...candidate,renderStart:range.start,renderEnd:range.end});
+   cursor=range.end;
+  }
+ }
  const pointAt=(offset,isEnd)=>{
   for(const item of nodes){
    if(offset<item.end)return {node:item.node,offset:Math.max(0,offset-item.start)};
@@ -73,25 +131,22 @@ function hideMarkersInTextNode(root,entries=[]){
   const last=nodes[nodes.length-1];
   return last?{node:last.node,offset:(last.node.nodeValue||'').length}:null;
  };
- // 从后往前改 DOM，避免前面的全局偏移被后续替换影响。
- for(let i=found.length-1;i>=0;i--){
-  const marker=found[i];
-  const start=pointAt(marker.index,false),end=pointAt(marker.index+marker.raw.length,true);
-  if(!start||!end||!start.node.isConnected||!end.node.isConnected)continue;
-  const entry=entries[i],prompt=marker.prompt;
-  if(!prompt)continue;
+ // 从后往前替换，避免前面尚未处理的全局偏移发生变化。
+ for(let i=located.length-1;i>=0;i--){
+  const entry=located[i],start=pointAt(entry.renderStart,false),end=pointAt(entry.renderEnd,true);
+  if(!start||!end||!start.node.isConnected||!end.node.isConnected||!entry.prompt)continue;
   const button=document.createElement('button');
   button.type='button';button.className='menu_button ql-inline-image-trigger';
   button.textContent='定格此刻';button.title='定格此刻：生成图片并收录到当前消息';
-  button.dataset.qlTrigger=entry?.taskKey||('marker-'+i);
-  button.dataset.qlPrompt=prompt;
+  button.dataset.qlTrigger=entry.taskKey||('marker-'+i);
+  button.dataset.qlPrompt=entry.prompt;
   applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
-  button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
-  const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);
+  button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
+  const wrap=document.createElement('span');wrap.className='ql-inline-image-trigger-wrap';wrap.append(button);
   try{
    const range=document.createRange();
    range.setStart(start.node,start.offset);range.setEnd(end.node,end.offset);
-   range.deleteContents();range.insertNode(buttonWrap);
+   range.deleteContents();range.insertNode(wrap);
   }catch(error){
    console.warn('[拾帧] 正文标记替换失败，稍后重扫',error);
   }
@@ -830,10 +885,10 @@ async function processLatestAssistantMessage(){
   let found=markers(message.mes);
   let host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
   const visibleHosts=Array.from(document.querySelectorAll('#chat .mes .mes_text, .mes .mes_text'));
-  const containsMarker=(candidate,marker)=>String(candidate?.textContent||'').includes(marker.raw);
+  const containsMarker=(candidate,marker)=>String(candidate?.textContent||'').includes(marker.raw)||!!findRenderedMarkerRange(String(candidate?.textContent||''),marker.raw);
   // DOM 消息编号偶尔会在酒馆重绘后短暂不同步：先按实际 mesid 兜底，再按标记内容定位。
   if(!host){
-   host=visibleHosts.find(candidate=>Number(candidate.closest('.mes')?.getAttribute('mesid'))===messageIndex)||null;
+   host=visibleHosts.find(candidate=>Number(candidate.closest('.mes')?.getAttribute('mesid'))===messageIndex)||visibleHosts[messageIndex]||null;
   }
   if(found.length&&(!host||!found.some(marker=>containsMarker(host,marker)))){
    const matchedHost=visibleHosts.find(candidate=>found.some(marker=>containsMarker(candidate,marker)));
