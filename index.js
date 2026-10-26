@@ -76,6 +76,7 @@ function hideMarkersInTextNode(root,entries=[]){
  }
 }
 let qlAssistantGenerationActive=false;
+let qlStatusbarForceRestore=false;
 let qlImageRequestQueue=Promise.resolve();
 async function requestImage(prompt, negativeOverride, vibeItem=null){
  const queued=qlImageRequestQueue.then(()=>requestImageUnlocked(prompt,negativeOverride,vibeItem));
@@ -1117,7 +1118,7 @@ async function processStatusbarFrames(){
    .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
   if(savedStatusbar.length){
    // 正文流式生成期间只允许后台保存结果，不把图片卡片提前插进状态栏。
-   if(qlAssistantGenerationActive){frame.dataset.qlBusy='0';continue;}
+   if(qlAssistantGenerationActive&&!qlStatusbarForceRestore){frame.dataset.qlBusy='0';continue;}
    const latest=savedStatusbar[savedStatusbar.length-1];
    renderStatusbarCard(frame,prompt,latest.dataUrl,taskKey);
    const card=frame.querySelector('.ql-statusbar-card');
@@ -1754,10 +1755,19 @@ jQuery(()=>{
   processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
  },120);};
  // 生成结束与 swipe 是稳定兜底；如果当前酒馆版本提供流式事件，则在完整 marker 到达时提前触发。
- for(const name of ['STREAM_TOKEN_RECEIVED','MESSAGE_UPDATED','GENERATION_ENDED','MESSAGE_SWIPED','MESSAGE_EDITED']){
+ for(const name of ['STREAM_TOKEN_RECEIVED','MESSAGE_UPDATED','GENERATION_ENDED','MESSAGE_SWIPED']){
   const eventName=event_types[name];
   if(eventName)eventSource.on(eventName,scheduleScan);
  }
+ // 点击酒馆原生消息编辑铅笔后，允许恢复已经缓存的状态栏图片；不触发重新生图。
+ document.addEventListener('click',event=>{
+  const target=event.target instanceof Element?event.target:null;
+  if(!target?.closest('.mes_edit, .mes_edit_button, [data-action="edit"]'))return;
+  qlStatusbarForceRestore=true;
+  scheduleScan();
+  setTimeout(()=>{qlStatusbarForceRestore=false;},1800);
+ },true);
+ if(event_types.MESSAGE_EDITED)eventSource.on(event_types.MESSAGE_EDITED,()=>{qlStatusbarForceRestore=true;scheduleScan();setTimeout(()=>{qlStatusbarForceRestore=false;},1800);});
  if(event_types.GENERATION_STARTED)eventSource.on(event_types.GENERATION_STARTED,()=>{qlAssistantGenerationActive=true;});
  const finishAssistantGeneration=()=>{qlAssistantGenerationActive=false;scheduleScan();};
  if(event_types.GENERATION_ENDED)eventSource.on(event_types.GENERATION_ENDED,finishAssistantGeneration);
