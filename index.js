@@ -821,8 +821,15 @@ async function processLatestAssistantMessage(){
   const messageElement=document.querySelector('.mes[mesid="'+messageIndex+'"]')
    ||document.querySelectorAll('.mes')[messageIndex]
    ||null;
-  const host=messageElement?.querySelector('.mes_text')
+  let host=messageElement?.querySelector('.mes_text')
    ||document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
+  // 有些酒馆主题/重绘会让聊天数据索引与可见 .mes 顺序短暂不一致。
+  // 如果当前节点不含聊天数据中的 marker，按 marker 原文反查真正显示它的正文容器。
+  if(found.length&&(!host||!found.some(marker=>(host.textContent||'').includes(marker.raw)))){
+   const visibleHosts=[...document.querySelectorAll('#chat .mes .mes_text, .mes .mes_text')];
+   const matchedHost=visibleHosts.find(candidate=>found.some(marker=>(candidate.textContent||'').includes(marker.raw)));
+   if(matchedHost)host=matchedHost;
+  }
   if(!host)continue;
   // 编辑消息时不改写原始正文；只检查真正的编辑器，避免消息内其他 contenteditable 控件误跳过整条消息。
   if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input)')||host.querySelector('[contenteditable="true"]'))continue;
