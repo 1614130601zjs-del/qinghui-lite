@@ -1538,7 +1538,11 @@ jQuery(()=>{
  }
  observeStatusbarFrames();
  // 扩展启用时先扫描现有聊天；再观察酒馆正文重绘，避免事件时序导致 marker 一直以原文显示。
- const scheduleInlineScan=()=>setTimeout(()=>processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 正文标记扫描失败',e)),80);
+ let inlineScanTimers=[];
+ const scheduleInlineScan=()=>{
+  inlineScanTimers.forEach(timer=>clearTimeout(timer));
+  inlineScanTimers=[80,250,600,1200].map(delay=>setTimeout(()=>processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 正文标记扫描失败',e)),delay));
+ };
  scheduleInlineScan();
  const chatObserver=new MutationObserver(records=>{
   // 酒馆点击“编辑消息”时可能只切换 .mes 的 class/编辑区状态，不一定增删 .mes_text；
