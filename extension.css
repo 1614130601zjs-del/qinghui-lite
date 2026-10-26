@@ -2069,3 +2069,17 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 /* 偏好区中的插件总开关。 */
 #qinghui-lite-panel #ql-plugin-toggle{width:100%;min-height:40px;white-space:nowrap}
 #qinghui-lite-panel #ql-plugin-toggle.ql-plugin-disabled{opacity:.72;border-style:dashed}
+
+/* 0.5.84 requested UI-only adjustments */
+#qinghui-lite-panel .ql-scene-generate{display:block;width:100%;margin:10px 0 0;min-height:42px}
+#qinghui-lite-panel .ql-result-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+#qinghui-lite-panel .ql-result-actions button{min-width:64px;min-height:34px}
+#qinghui-lite-panel .ql-result-actions button[hidden]{display:none!important}
+#qinghui-lite-panel .ql-album-shelf-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#qinghui-lite-panel .ql-album-heading-main{min-width:0;flex:1 1 180px}
+#qinghui-lite-panel .ql-album-heading-actions{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+#qinghui-lite-panel .ql-album-heading-actions button{min-width:38px!important;padding:4px 7px!important;min-height:30px!important;font-size:12px!important;white-space:nowrap}
+.ql-chat-image-lightbox[hidden]{display:none!important}
+.ql-chat-image-lightbox{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.92)}
+.ql-chat-image-lightbox img{display:block;max-width:100%;max-height:90dvh;object-fit:contain}
+.ql-chat-image-lightbox button{position:absolute;top:12px;right:12px;width:40px;height:40px;border:1px solid rgba(255,255,255,.55);border-radius:50%;background:rgba(30,20,30,.8);color:#fff;font-size:26px;line-height:1}
