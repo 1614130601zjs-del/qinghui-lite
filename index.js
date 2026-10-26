@@ -75,6 +75,7 @@ function hideMarkersInTextNode(root,entries=[]){
   node.parentNode?.replaceChild(fragment,node);
  }
 }
+let qlAssistantGenerationActive=false;
 let qlImageRequestQueue=Promise.resolve();
 async function requestImage(prompt, negativeOverride, vibeItem=null){
  const queued=qlImageRequestQueue.then(()=>requestImageUnlocked(prompt,negativeOverride,vibeItem));
@@ -1115,6 +1116,8 @@ async function processStatusbarFrames(){
    .filter(item=>item&&item.dataUrl&&item.taskKey===taskKey&&(item.source||'chat')==='statusbar')
    .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
   if(savedStatusbar.length){
+   // 正文流式生成期间只允许后台保存结果，不把图片卡片提前插进状态栏。
+   if(qlAssistantGenerationActive){frame.dataset.qlBusy='0';continue;}
    const latest=savedStatusbar[savedStatusbar.length-1];
    renderStatusbarCard(frame,prompt,latest.dataUrl,taskKey);
    const card=frame.querySelector('.ql-statusbar-card');
@@ -1134,13 +1137,17 @@ async function processStatusbarFrames(){
   loading.className='ql-statusbar-loading';
   loading.textContent='轻绘：正在生成画面…';
   loading.style.cssText='position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);color:#fff;font-size:13px;';
-  if(getComputedStyle(frame).position==='static')frame.style.position='relative';
-  frame.append(loading);
+  // 流式输出期间不显示加载遮罩，避免状态栏 DOM 被酒馆反复刷新时闪烁。
+  if(!qlAssistantGenerationActive){
+   if(getComputedStyle(frame).position==='static')frame.style.position='relative';
+   frame.append(loading);
+  }
   try{
    const url=await requestWithActiveSettings(prompt);
    loading.remove();
-   renderStatusbarCard(frame,prompt,url,taskKey);
    await storeChatRecord(url,prompt,taskKey,{source:'statusbar'});
+   // 图片已在后台生成并入库；只有正文结束后才允许实际渲染。
+   if(!qlAssistantGenerationActive&&frame.isConnected)renderStatusbarCard(frame,prompt,url,taskKey);
    triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());
   }catch(e){
    triggerRegistry.markFailed(taskKey,e?.message||String(e));
@@ -1751,6 +1758,10 @@ jQuery(()=>{
   const eventName=event_types[name];
   if(eventName)eventSource.on(eventName,scheduleScan);
  }
+ if(event_types.GENERATION_STARTED)eventSource.on(event_types.GENERATION_STARTED,()=>{qlAssistantGenerationActive=true;});
+ const finishAssistantGeneration=()=>{qlAssistantGenerationActive=false;scheduleScan();};
+ if(event_types.GENERATION_ENDED)eventSource.on(event_types.GENERATION_ENDED,finishAssistantGeneration);
+ if(event_types.GENERATION_STOPPED)eventSource.on(event_types.GENERATION_STOPPED,finishAssistantGeneration);
  if(event_types.CHAT_CHANGED)eventSource.on(event_types.CHAT_CHANGED,()=>{autoTasks.clear();renderBindings();applyCurrentBinding();});
  if(event_types.CHARACTER_SELECTED)eventSource.on(event_types.CHARACTER_SELECTED,()=>{renderBindings();applyCurrentBinding();});
  applyCurrentBinding();
