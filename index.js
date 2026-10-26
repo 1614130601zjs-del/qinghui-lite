@@ -1545,7 +1545,6 @@ function openViewfinderImage(url){
  }
  overlay.querySelector('img').src=url;
  overlay.hidden=false;
- overlay.style.display='flex';
 }
 function normalizedImageKey(url){
  if(!url)return '';
