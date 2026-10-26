@@ -53,27 +53,56 @@ const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
 function hideMarkersInTextNode(root,entries=[]){
  if(!root)return;
- let entryCursor=0;
- const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
- const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue?.includes('image###'))nodes.push(walker.currentNode);
- let ordinal=0;
- for(const node of nodes){
-  const value=node.nodeValue||'',re=/image###([\s\S]*?)###/g;
-  if(!re.test(value))continue;
-  re.lastIndex=0;
-  const fragment=document.createDocumentFragment();let last=0,match;
-  while((match=re.exec(value))!==null){
-   fragment.append(document.createTextNode(value.slice(last,match.index)));
-   const entry=entries[entryCursor++],prompt=match[1].trim();
-   if(!prompt){last=re.lastIndex;continue;}
-   const button=document.createElement('button');
-   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='定格此刻：生成图片并收录到当前消息';
-   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
-   button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
-   const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);fragment.append(buttonWrap);ordinal++;last=re.lastIndex;
+ // 正则/Markdown 渲染可能把一个 image###...### 标记拆到相邻多个文本节点。
+ // 先在整段正文的纯文本中找标记，再把文本偏移映射回 DOM Range。
+ const doc=root.ownerDocument||document;
+ const fullText=String(root.textContent||'');
+ const re=/image###([\\s\\S]*?)###/g;
+ const matches=[];
+ let match;
+ while((match=re.exec(fullText))!==null){
+  const prompt=String(match[1]||'').trim();
+  if(prompt)matches.push({start:match.index,end:re.lastIndex,prompt,raw:match[0]});
+ }
+ if(!matches.length)return;
+ const walker=doc.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+ const nodes=[];
+ let offset=0,node;
+ while((node=walker.nextNode())){
+  const value=node.nodeValue||'';
+  nodes.push({node,start:offset,end:offset+value.length});
+  offset+=value.length;
+ }
+ const locate=position=>{
+  for(const item of nodes){
+   if(position>=item.start&&position<=item.end)return {node:item.node,offset:position-item.start};
   }
-  fragment.append(document.createTextNode(value.slice(last)));
-  node.parentNode?.replaceChild(fragment,node);
+  return null;
+ };
+ // 从后往前修改 DOM，避免删除前面的标记后改变后续文本偏移。
+ for(let i=matches.length-1;i>=0;i--){
+  const item=matches[i];
+  const start=locate(item.start),end=locate(item.end);
+  if(!start||!end)continue;
+  const range=doc.createRange();
+  range.setStart(start.node,start.offset);
+  range.setEnd(end.node,end.offset);
+  const entry=entries[i];
+  const button=doc.createElement('button');
+  button.type='button';
+  button.className='menu_button ql-inline-image-trigger';
+  button.textContent='定格此刻';
+  button.title='定格此刻：生成图片并收录到当前消息';
+  button.dataset.qlTrigger=entry?.taskKey||('marker-'+i);
+  button.dataset.qlPrompt=item.prompt;
+  applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');
+  applyChatTheme(button);
+  button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt:item.prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
+  const wrap=doc.createElement('span');
+  wrap.className='ql-inline-image-trigger-wrap';
+  wrap.append(button);
+  range.deleteContents();
+  range.insertNode(wrap);
  }
 }
 let qlImageRequestQueue=Promise.resolve();
@@ -815,7 +844,14 @@ async function processLatestAssistantMessage(){
   const message=chat[messageIndex];
   if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
   const found=markers(message.mes);
-  const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
+  // 优先按酒馆消息 ID 定位正文；若正文 DOM 的 mesid 与聊天数组索引暂时错位，
+  // 则按原始 marker 反查真正包含该标记的正文容器。
+  let host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
+  if(found.length&&(!host||!found.some(marker=>(host.textContent||'').includes(marker.raw)))){
+   const visibleHosts=Array.from(document.querySelectorAll('#chat .mes .mes_text, .mes .mes_text'));
+   const matchedHost=visibleHosts.find(candidate=>found.some(marker=>(candidate.textContent||'').includes(marker.raw)));
+   if(matchedHost)host=matchedHost;
+  }
   if(!host)continue;
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
   const messageElement=host.closest('.mes');
