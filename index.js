@@ -837,15 +837,23 @@ async function processLatestAssistantMessage(){
     if(matchedSwipeId>=0)activeSwipeId=matchedSwipeId;
    }
   }
+  // 将完整正文指纹纳入任务 ID。即使旧版酒馆没有可靠的 swipe_id，
+  // 只要重 Roll 后正文变化，就不能复用上一版的按钮/图片任务。
+  let bodyHash=2166136261;
+  for(let i=0;i<message.mes.length;i++){bodyHash^=message.mes.charCodeAt(i);bodyHash=Math.imul(bodyHash,16777619);}
+  const messageVersion=String(messageIndex)+':'+String(activeSwipeId)+':'+(bodyHash>>>0).toString(36);
   const entries=found.map((marker,markerOrdinal)=>{
-   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(activeSwipeId),markerIndex:markerOrdinal});
+   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:messageVersion,markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
   });
-  // 重 Roll/切换 swipe 后，酒馆有时会保留扩展插入的旧图片 DOM。
-  // 只保留当前正文 marker 对应的任务卡片；旧图记录仍留在缓存与角色相册中。
+  // 旧 swipe 的图片卡片和按钮都必须清理；否则旧按钮可能占用新任务的位置，
+  // 让新 marker 无法生成按钮，并使旧图看起来像是新 tag 的结果。
   const validTaskKeys=new Set(entries.map(entry=>entry.taskKey));
   host.querySelectorAll('.ql-chat-image').forEach(card=>{
    if(!validTaskKeys.has(card.dataset.qlTask||''))card.remove();
+  });
+  host.querySelectorAll('[data-ql-trigger]').forEach(button=>{
+   if(!validTaskKeys.has(button.dataset.qlTrigger||''))button.closest('.ql-inline-image-trigger-wrap')?.remove()||button.remove();
   });
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
   hideMarkersInTextNode(host,entries);
