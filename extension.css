@@ -1827,3 +1827,39 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  #qinghui-lite-panel .ql-artist-toolbar{grid-template-columns:minmax(0,1fr) minmax(48px,.5fr) minmax(70px,.8fr)!important;}
  #qinghui-lite-panel .ql-preset-compact-actions button{padding:4px!important;font-size:10px!important;}
 }
+
+
+/* 画师串页主题补齐：所有控件优先使用拾帧主题变量，只有 auto 时才回退酒馆配色。 */
+#qinghui-lite-panel .ql-artist-toolbar select{
+ color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;
+ background:var(--ql-field,var(--SmartThemeBlurTintColor,rgba(255,255,255,.7)))!important;
+ border:1px solid var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.3)))!important;
+}
+#qinghui-lite-panel .ql-artist-toolbar .ql-artist-toolbar-button,
+#qinghui-lite-panel #ql-preset-batch-toggle,
+#qinghui-lite-panel #ql-presets-batch .ql-preset-bulk-tools button,
+#qinghui-lite-panel .ql-preset-compact-actions button{
+ color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 9%,var(--ql-card,var(--SmartThemeBlurTintColor,rgba(255,255,255,.5))))!important;
+ border:1px solid var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.3)))!important;
+ box-shadow:none!important;
+}
+#qinghui-lite-panel .ql-artist-toolbar .ql-artist-toolbar-button:hover,
+#qinghui-lite-panel #ql-preset-batch-toggle:hover,
+#qinghui-lite-panel #ql-presets-batch .ql-preset-bulk-tools button:hover,
+#qinghui-lite-panel .ql-preset-compact-actions button:hover{
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 18%,var(--ql-card,var(--SmartThemeBlurTintColor,rgba(255,255,255,.5))))!important;
+ border-color:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 55%,var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.3))))!important;
+}
+#qinghui-lite-panel .ql-preset-compact{
+ color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;
+}
+#qinghui-lite-panel .ql-preset-compact.ql-preset-selectable.is-selected{
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 22%,var(--ql-card,var(--SmartThemeBlurTintColor,rgba(255,255,255,.5))))!important;
+ border-color:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 62%,var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.3))))!important;
+ box-shadow:inset 3px 0 0 color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 72%,var(--ql-text,var(--SmartThemeBodyColor,#333)))!important;
+}
+#qinghui-lite-panel .ql-preset-compact.ql-preset-selectable.is-selected .ql-preset-compact-info>strong:after{
+ color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 28%,var(--ql-card,var(--SmartThemeBlurTintColor,transparent)))!important;
+}
