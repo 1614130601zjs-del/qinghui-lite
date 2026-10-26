@@ -2065,3 +2065,52 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel [data-page-panel="library"] > .ql-subpage > .ql-card:first-child{
  margin:8px 0 10px!important;
 }
+
+
+/* 提示词库：筛选、编辑、批量删除三项控件同高对齐，删除无用的导出按钮后不再挤成两行。 */
+#qinghui-lite-panel .ql-prompt-toolbar{
+ display:grid!important;
+ grid-template-columns:1.2fr 1fr 1fr;
+ align-items:stretch;
+ gap:6px!important;
+}
+#qinghui-lite-panel .ql-prompt-toolbar>#ql-prompt-filter,
+#qinghui-lite-panel .ql-prompt-toolbar>#ql-library-edit-mode,
+#qinghui-lite-panel .ql-prompt-toolbar>#ql-prompt-bulk-delete{
+ box-sizing:border-box;
+ width:100%;
+ min-width:0!important;
+ min-height:36px;
+ height:36px;
+ margin:0!important;
+ padding:5px 6px!important;
+ border-radius:9px!important;
+ text-align:center;
+ font-size:12px;
+}
+#qinghui-lite-panel .ql-prompt-toolbar>#ql-prompt-filter{flex:none!important;}
+#qinghui-lite-panel .ql-prompt-tags{
+ display:flex;
+ flex-flow:row wrap;
+ align-items:center;
+ gap:4px;
+ min-height:22px;
+ margin-top:4px;
+}
+#qinghui-lite-panel .ql-prompt-tag{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ min-height:20px;
+ max-width:100%;
+ box-sizing:border-box;
+ padding:2px 7px;
+ border:1px solid color-mix(in srgb,var(--ql-border,#cbd1cf) 75%,var(--ql-muted,#778187));
+ border-radius:999px;
+ background:color-mix(in srgb,var(--ql-card,#f6f7f5) 86%,var(--ql-muted,#778187));
+ color:var(--ql-muted,#65716f);
+ font-size:10px;
+ line-height:1.25;
+ overflow-wrap:anywhere;
+}
+#qinghui-lite-panel .ql-prompt-tag-fallback{opacity:.7;}
