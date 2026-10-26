@@ -768,12 +768,11 @@ async function persistImageToTavern(src,taskKey='image'){
  const format=String(mime||'image/png').split('/')[1].toLowerCase().replace('jpeg','jpg');
  const allowed=new Set(['png','jpg','webp','gif','bmp','jfif']);
  if(!allowed.has(format))throw new Error('酒馆图片目录暂不支持此格式：'+format);
- const base64=src.slice(comma+1).replace(/\s/g,'');
  const safe=String(taskKey||'image').replace(/[^a-z0-9_-]/gi,'').slice(-32)||'image';
  const response=await fetch('/api/images/upload',{
   method:'POST',
   headers:{'Content-Type':'application/json',...getRequestHeaders(window.token)},
-  body:JSON.stringify({image:base64,format,filename:'qinghui-'+safe+'-'+Date.now()})
+  body:JSON.stringify({image:src,format,filename:'qinghui-'+safe+'-'+Date.now()})
  });
  if(!response.ok)throw new Error('酒馆图片保存失败（HTTP '+response.status+'）。');
  const result=await response.json();
