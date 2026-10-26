@@ -52,27 +52,49 @@ const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
 function hideMarkersInTextNode(root,entries=[]){
  if(!root)return;
- let entryCursor=0;
+ // 先把正文中的文本节点拼成一条逻辑文本，再按全局偏移替换标记。
+ // 酒馆的 Markdown 可能把 image###...### 拆到多个 text node；逐节点正则会漏掉它。
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
- const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue?.includes('image###'))nodes.push(walker.currentNode);
- let ordinal=0;
- for(const node of nodes){
-  const value=node.nodeValue||'',re=/image###([\s\S]*?)###/g;
-  if(!re.test(value))continue;
-  re.lastIndex=0;
-  const fragment=document.createDocumentFragment();let last=0,match;
-  while((match=re.exec(value))!==null){
-   fragment.append(document.createTextNode(value.slice(last,match.index)));
-   const entry=entries[entryCursor++],prompt=match[1].trim();
-   if(!prompt){last=re.lastIndex;continue;}
-   const button=document.createElement('button');
-   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='定格此刻：生成图片并收录到当前消息';
-   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
-   button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
-   const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);fragment.append(buttonWrap);ordinal++;last=re.lastIndex;
+ const nodes=[];
+ while(walker.nextNode()){
+  const node=walker.currentNode;
+  if(node.parentElement?.closest('button,.ql-inline-image-trigger-wrap,.ql-chat-image,.ql-statusbar-card'))continue;
+  if(node.nodeValue)nodes.push({node,start:0,end:0});
+ }
+ let fullText='';
+ for(const item of nodes){item.start=fullText.length;fullText+=item.node.nodeValue||'';item.end=fullText.length;}
+ const found=markers(fullText);
+ if(!found.length)return;
+ const pointAt=(offset,isEnd)=>{
+  for(const item of nodes){
+   if(offset<item.end)return {node:item.node,offset:Math.max(0,offset-item.start)};
+   if(isEnd&&offset===item.end)return {node:item.node,offset:(item.node.nodeValue||'').length};
   }
-  fragment.append(document.createTextNode(value.slice(last)));
-  node.parentNode?.replaceChild(fragment,node);
+  const last=nodes[nodes.length-1];
+  return last?{node:last.node,offset:(last.node.nodeValue||'').length}:null;
+ };
+ // 从后往前改 DOM，避免前面的全局偏移被后续替换影响。
+ for(let i=found.length-1;i>=0;i--){
+  const marker=found[i];
+  const start=pointAt(marker.index,false),end=pointAt(marker.index+marker.raw.length,true);
+  if(!start||!end||!start.node.isConnected||!end.node.isConnected)continue;
+  const entry=entries[i],prompt=marker.prompt;
+  if(!prompt)continue;
+  const button=document.createElement('button');
+  button.type='button';button.className='menu_button ql-inline-image-trigger';
+  button.textContent='定格此刻';button.title='定格此刻：生成图片并收录到当前消息';
+  button.dataset.qlTrigger=entry?.taskKey||('marker-'+i);
+  button.dataset.qlPrompt=prompt;
+  applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
+  button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
+  const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);
+  try{
+   const range=document.createRange();
+   range.setStart(start.node,start.offset);range.setEnd(end.node,end.offset);
+   range.deleteContents();range.insertNode(buttonWrap);
+  }catch(error){
+   console.warn('[拾帧] 正文标记替换失败，稍后重扫',error);
+  }
  }
 }
 let qlImageRequestQueue=Promise.resolve();
@@ -805,9 +827,22 @@ async function processLatestAssistantMessage(){
  for(let messageIndex=0;messageIndex<chat.length;messageIndex++){
   const message=chat[messageIndex];
   if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
-  const found=markers(message.mes);
-  const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
+  let found=markers(message.mes);
+  let host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
+  const visibleHosts=Array.from(document.querySelectorAll('#chat .mes .mes_text, .mes .mes_text'));
+  const containsMarker=(candidate,marker)=>String(candidate?.textContent||'').includes(marker.raw);
+  // DOM 消息编号偶尔会在酒馆重绘后短暂不同步：先按实际 mesid 兜底，再按标记内容定位。
+  if(!host){
+   host=visibleHosts.find(candidate=>Number(candidate.closest('.mes')?.getAttribute('mesid'))===messageIndex)||null;
+  }
+  if(found.length&&(!host||!found.some(marker=>containsMarker(host,marker)))){
+   const matchedHost=visibleHosts.find(candidate=>found.some(marker=>containsMarker(candidate,marker)));
+   if(matchedHost)host=matchedHost;
+  }
   if(!host)continue;
+  // 若原始 chat 数据暂时没有标记，尝试从当前可见正文恢复。
+  if(!found.length)found=markers(String(host.textContent||''));
+  if(!found.length)found=markers(String(host.innerText||''));
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
   const messageElement=host.closest('.mes');
   if(messageElement?.querySelector('textarea, [contenteditable="true"]'))continue;
