@@ -932,8 +932,9 @@ async function processLatestAssistantMessage(){
      }else{
       waitingCard.hidden=true;waitingCard.dataset.qlWaitingForAnchor='1';
      }
+     continue;
     }
-    continue;
+    // 没有旧图片卡片时，不要提前跳过；让下方兜底逻辑创建按钮。
    }
    const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
