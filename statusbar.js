@@ -210,7 +210,5 @@ function observeStatusbarFrames(){
  processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
 }
 
-const themePalettes={mist:{accent:'#7f98ad',panel:'rgba(239,244,248,.98)',card:'rgba(250,252,254,.98)',text:'#344653',muted:'#657784',border:'rgba(127,152,173,.30)',field:'rgba(255,255,255,.98)'},sage:{accent:'#849b8c',panel:'rgba(239,246,239,.98)',card:'rgba(251,253,249,.98)',text:'#3c5044',muted:'#687a6d',border:'rgba(132,155,140,.30)',field:'rgba(255,255,252,.98)'},lavender:{accent:'#9a91b0',panel:'rgba(246,242,250,.98)',card:'rgba(253,251,255,.98)',text:'#4c465b',muted:'#777083',border:'rgba(154,145,176,.30)',field:'rgba(255,255,255,.98)'},oat:{accent:'#b09c82',panel:'rgba(249,245,237,.98)',card:'rgba(255,252,246,.98)',text:'#554b3e',muted:'#817565',border:'rgba(176,156,130,.32)',field:'rgba(255,255,252,.98)'}};
-
  return { observeStatusbarFrames, processStatusbarFrames };
 }
