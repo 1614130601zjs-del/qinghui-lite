@@ -57,7 +57,7 @@ function hideMarkersInTextNode(root,entries=[]){
  // 先在整段正文的纯文本中找标记，再把文本偏移映射回 DOM Range。
  const doc=root.ownerDocument||document;
  const fullText=String(root.textContent||'');
- const re=/image###([\\s\\S]*?)###/g;
+ const re=/image###([\s\S]*?)###/g;
  const matches=[];
  let match;
  while((match=re.exec(fullText))!==null){
