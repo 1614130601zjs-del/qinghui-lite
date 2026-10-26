@@ -852,8 +852,30 @@ async function processLatestAssistantMessage(){
   host.querySelectorAll('.ql-chat-image').forEach(card=>{
    if(!validTaskKeys.has(card.dataset.qlTask||''))card.remove();
   });
+  // 兼容升级前已经被替换成按钮的 marker：原始 image### 文本此时已不在 DOM，
+  // 不能先删旧按钮，否则 hideMarkersInTextNode 无法再从 DOM 里生成新按钮。
+  const claimedEntries=new Set();
   host.querySelectorAll('[data-ql-trigger]').forEach(button=>{
-   if(!validTaskKeys.has(button.dataset.qlTrigger||''))button.closest('.ql-inline-image-trigger-wrap')?.remove()||button.remove();
+   const currentKey=button.dataset.qlTrigger||'';
+   if(validTaskKeys.has(currentKey)){
+    const matched=entries.find(entry=>entry.taskKey===currentKey);
+    if(matched)claimedEntries.add(matched.taskKey);
+    return;
+   }
+   const oldPrompt=String(button.dataset.qlPrompt||'').trim();
+   const replacement=entries.find(entry=>!claimedEntries.has(entry.taskKey)&&String(entry.prompt||'').trim()===oldPrompt);
+   if(!replacement){
+    button.closest('.ql-inline-image-trigger-wrap')?.remove();
+    if(button.isConnected)button.remove();
+    return;
+   }
+   claimedEntries.add(replacement.taskKey);
+   const repaired=button.cloneNode(true);
+   repaired.dataset.qlTrigger=replacement.taskKey;
+   repaired.dataset.qlPrompt=replacement.prompt;
+   repaired.addEventListener('click',()=>runInlineImageTrigger(repaired,replacement));
+   repaired._qlClickBound=true;
+   button.replaceWith(repaired);
   });
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
   hideMarkersInTextNode(host,entries);
