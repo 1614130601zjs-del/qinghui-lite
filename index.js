@@ -1155,7 +1155,7 @@ function observeStatusbarFrames(){
   const target=doc.body||doc.documentElement;if(!target)return;
   statusbarObservedDocs.add(doc);
   const observer=new MutationObserver(()=>{attachFrames();processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));});
-  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
+  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class','data-tag']});
   if(doc===document)statusbarObserver=observer;
  };
  const attachFrames=()=>{
@@ -1747,7 +1747,7 @@ jQuery(()=>{
   processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
  },120);};
  // 生成结束与 swipe 是稳定兜底；如果当前酒馆版本提供流式事件，则在完整 marker 到达时提前触发。
- for(const name of ['STREAM_TOKEN_RECEIVED','MESSAGE_UPDATED','GENERATION_ENDED','MESSAGE_SWIPED']){
+ for(const name of ['STREAM_TOKEN_RECEIVED','MESSAGE_UPDATED','GENERATION_ENDED','MESSAGE_SWIPED','MESSAGE_EDITED']){
   const eventName=event_types[name];
   if(eventName)eventSource.on(eventName,scheduleScan);
  }
