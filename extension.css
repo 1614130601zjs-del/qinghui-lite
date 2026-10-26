@@ -2128,13 +2128,39 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel .ql-prompt-gallery-paging button{min-width:36px;min-height:28px;margin:0;padding:3px 8px;}
 
 
-/* Dedicated prompt gallery page */
-#qinghui-lite-panel .ql-prompt-gallery-page-head{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-#qinghui-lite-panel .ql-prompt-gallery-page-head h3{margin:0 0 4px}
-#qinghui-lite-panel .ql-prompt-gallery-page-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
-#qinghui-lite-panel .ql-prompt-gallery-page-photo{display:flex;flex-direction:column;gap:5px;min-width:0;padding:5px;border:1px solid var(--SmartThemeBorderColor, #ddd);border-radius:10px;background:var(--SmartThemeBlurTintColor, rgba(255,255,255,.65));cursor:pointer;overflow:hidden}
-#qinghui-lite-panel .ql-prompt-gallery-page-photo img{display:block;width:100%;height:auto;object-fit:contain;border-radius:6px}
-#qinghui-lite-panel .ql-prompt-gallery-page-photo span{font-size:11px;opacity:.72}
-#qinghui-lite-panel .ql-prompt-gallery-paging{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
-#qinghui-lite-panel .ql-prompt-gallery-paging span{font-size:12px;opacity:.75;text-align:center}
-@media(max-width:420px){#qinghui-lite-panel .ql-prompt-gallery-page-grid{gap:6px}#qinghui-lite-panel .ql-prompt-gallery-page-photo{padding:3px;border-radius:8px}}
+/* 提示词图集复用角色相册的纸页、翻页和铺开布局。按钮仅使用拾帧自身主题变量，不读取酒馆主题色。 */
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar-title{flex:1 1 120px;min-width:0;text-align:center;}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar-title strong{display:block;overflow-wrap:anywhere;color:var(--ql-text,#51434b);}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar-title small,
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar-count{font-size:11px;color:var(--ql-muted,#81727a);}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar button,
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-mode button,
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-page-arrow{
+ color:var(--ql-accent,#a86f8b)!important;
+ background:color-mix(in srgb,var(--ql-accent,#a86f8b) 11%,var(--ql-card,#fffafc))!important;
+ border:1px solid color-mix(in srgb,var(--ql-accent,#a86f8b) 42%,var(--ql-border,#d8cbd1))!important;
+ box-shadow:none!important;
+}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-mode button.active{
+ color:#fff!important;background:var(--ql-accent,#a86f8b)!important;
+ border-color:var(--ql-accent,#a86f8b)!important;
+}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar button:disabled,
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-mode button:disabled,
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-page-arrow:disabled{opacity:.32!important;}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-page-number{
+ color:var(--ql-muted,#81727a);font-size:12px;text-align:center;
+}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-paper{
+ border-color:color-mix(in srgb,var(--ql-accent,#a86f8b) 18%,#d8c7b8);
+}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-empty-cover{
+ border-color:color-mix(in srgb,var(--ql-accent,#a86f8b) 30%,#d8c7b8);
+}
+@media(max-width:420px){
+ #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar{gap:6px;}
+ #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar-title{order:3;flex-basis:100%;}
+}
