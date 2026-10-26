@@ -1474,15 +1474,15 @@ function syncViewfinderActions(){
  const img=result.querySelector('img');
  favorite.disabled=!img;enlarge.disabled=!img;
  if(!img){favorite.textContent='收藏到角色相册';favorite.classList.remove('is-favorite');return;}
- const record=(cfg().records||[]).find(item=>item&&item.dataUrl===img.src);
+ const rawUrl=img.getAttribute('src')||img.src;const record=(cfg().records||[]).find(item=>item&&(item.dataUrl===rawUrl||item.dataUrl===img.src));
  const saved=!!record?.albumCharacterName;
  favorite.textContent=saved?'取消角色相册收藏':'收藏到角色相册';
  favorite.classList.toggle('is-favorite',saved);
 }
 function toggleViewfinderFavorite(){
  const img=$('#ql-result img');if(!img)return;
- const settings=cfg(),records=settings.records||[];
- const matches=records.filter(item=>item&&item.dataUrl===img.src);
+ const settings=cfg(),records=settings.records||[],rawUrl=img.getAttribute('src')||img.src;
+ const matches=records.filter(item=>item&&(item.dataUrl===rawUrl||item.dataUrl===img.src));
  if(!matches.length){status('暂时找不到这张图片的缓存记录。');return;}
  if(matches.some(item=>item.albumCharacterName)){
   for(const item of matches){delete item.albumCharacterName;delete item.albumCharacterKey;}
