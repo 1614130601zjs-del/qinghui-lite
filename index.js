@@ -816,11 +816,16 @@ async function processLatestAssistantMessage(){
   const message=chat[messageIndex];
   if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
   const found=markers(message.mes);
-  const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
+  // 优先按酒馆标准 mesid 定位；部分主题/旧版本重绘后的 DOM 不一定保留可匹配的 mesid，
+  // 此时按聊天消息顺序兜底定位，避免原始 image### 标记留在正文却一直没有按钮。
+  const messageElement=document.querySelector('.mes[mesid="'+messageIndex+'"]')
+   ||document.querySelectorAll('.mes')[messageIndex]
+   ||null;
+  const host=messageElement?.querySelector('.mes_text')
+   ||document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
   if(!host)continue;
-  // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
-  const messageElement=host.closest('.mes');
-  if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input), [contenteditable="true"]'))continue;
+  // 编辑消息时不改写原始正文；只检查真正的编辑器，避免消息内其他 contenteditable 控件误跳过整条消息。
+  if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input)')||host.querySelector('[contenteditable="true"]'))continue;
   // 先校验 swipe_id 是否真的指向当前正文。部分重 Roll 事件里，正文已切换但 swipe_id 仍短暂停留在旧值。
   const swipes=Array.isArray(message.swipes)?message.swipes:[];
   const reportedSwipeId=Number.isInteger(message.swipe_id)?message.swipe_id:-1;
