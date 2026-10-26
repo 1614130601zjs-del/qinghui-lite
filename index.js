@@ -873,12 +873,13 @@ async function processLatestAssistantMessage(){
 }
 let statusbarObserver=null;
 const statusbarObservedDocs=new WeakSet();
-function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);return match?.[1]?.trim()||'';}
+function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);const prompt=match?.[1]?.trim()||'';return !prompt||/^[.…⋯\s]+$/.test(prompt)?'':prompt;}
 function statusbarPromptForTarget(target){
+ // 显式 tag 属性是原始数据；textContent 可能只是酒馆渲染出的“……”占位内容，必须优先读取 data-tag。
  const direct=[
-  target?.textContent,
   target?.getAttribute?.('data-tag'),
-  ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
+  ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag')),
+  target?.textContent
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
  let ancestor=target?.parentElement;
