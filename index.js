@@ -1107,20 +1107,22 @@ async function processStatusbarFrames(){
   if(frame.dataset.qlPrompt!==prompt){
    frame.dataset.qlPrompt=prompt;
    frame.dataset.qlDone='';
-   frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading').forEach(el=>el.remove());
+   frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading,.ql-statusbar-generate-button').forEach(el=>el.remove());
   }
   if(frame.dataset.qlBusy==='1')continue;
-   // 酒馆编辑/重绘消息时，旧卡片可能消失；完成标记不能阻止从缓存恢复图片。
-   if(frame.dataset.qlDone==='1'&&frame.querySelector('.ql-statusbar-card'))continue;
+  if(frame.dataset.qlDone==='1'&&frame.querySelector('.ql-statusbar-card'))continue;
+  // 生成期间只识别提示词，不发请求、不插入图片或按钮；结束后再显示操作入口。
+  if(qlAssistantGenerationActive&&!qlStatusbarForceRestore){
+   frame.querySelectorAll('.ql-statusbar-generate-button').forEach(el=>el.remove());
+   continue;
+  }
   frame.dataset.qlBusy='1';
   const taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
-  // 恢复已缓存的状态栏图片：DOM 重绘/重新打开消息时不应自动重新请求 NAI。
   const savedStatusbar=(cfg().records||[])
    .filter(item=>item&&item.dataUrl&&item.taskKey===taskKey&&(item.source||'chat')==='statusbar')
    .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
   if(savedStatusbar.length){
-   // 正文流式生成期间只允许后台保存结果，不把图片卡片提前插进状态栏。
-   if(qlAssistantGenerationActive&&!qlStatusbarForceRestore){frame.dataset.qlBusy='0';continue;}
+   frame.querySelectorAll('.ql-statusbar-generate-button').forEach(el=>el.remove());
    const latest=savedStatusbar[savedStatusbar.length-1];
    renderStatusbarCard(frame,prompt,latest.dataUrl,taskKey);
    const card=frame.querySelector('.ql-statusbar-card');
@@ -1133,30 +1135,42 @@ async function processStatusbarFrames(){
    frame.dataset.qlBusy='0';
    continue;
   }
-  const accepted=triggerRegistry.begin(taskKey,{prompt,source:'statusbar'});
-  if(!accepted.accepted){frame.dataset.qlBusy='0';continue;}
-  triggerRegistry.markRunning(taskKey);
-  const loading=(frame.ownerDocument||document).createElement('div');
-  loading.className='ql-statusbar-loading';
-  loading.textContent='轻绘：正在生成画面…';
-  loading.style.cssText='position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);color:#fff;font-size:13px;';
-  // 流式输出期间不显示加载遮罩，避免状态栏 DOM 被酒馆反复刷新时闪烁。
-  if(!qlAssistantGenerationActive){
-   if(getComputedStyle(frame).position==='static')frame.style.position='relative';
-   frame.append(loading);
+  // 没有缓存时只放置按钮；用户明确点击后才真正请求生图。
+  let button=frame.querySelector('.ql-statusbar-generate-button');
+  if(!button){
+   button=(frame.ownerDocument||document).createElement('button');
+   button.type='button';
+   button.className='menu_button ql-statusbar-generate-button';
+   button.textContent='生成图片';
+   button.style.cssText='display:inline-flex;align-items:center;justify-content:center;position:relative;z-index:8;margin:6px 0;padding:7px 14px;border:1px solid rgba(255,255,255,.55);border-radius:9px;background:rgba(40,30,45,.88);color:#fff;font-size:13px;line-height:1.4;cursor:pointer;touch-action:manipulation;';
+   button.dataset.qlPrompt=prompt;
+   button.addEventListener('click',async event=>{
+    event.preventDefault();event.stopPropagation();
+    if(button.dataset.busy==='1')return;
+    const currentPrompt=button.dataset.qlPrompt||prompt;
+    const currentKey=statusbarTaskKey(frame,currentPrompt,frame.ownerDocument||document);
+    const accepted=triggerRegistry.begin(currentKey+':manual:'+Date.now(),{prompt:currentPrompt,source:'statusbar-manual'});
+    if(!accepted.accepted)return;
+    const manualKey=accepted.task?.taskKey||currentKey+':manual';
+    triggerRegistry.markRunning(manualKey);
+    button.dataset.busy='1';button.disabled=true;button.textContent='正在生成…';
+    try{
+     const url=await requestWithActiveSettings(currentPrompt);
+     await storeChatRecord(url,currentPrompt,currentKey,{source:'statusbar'});
+     if(frame.isConnected&&statusbarPromptForTarget(frame)===currentPrompt)renderStatusbarCard(frame,currentPrompt,url,currentKey);
+     button.remove();
+     triggerRegistry.markSucceeded(manualKey,manualKey+':candidate:'+Date.now());
+    }catch(error){
+     triggerRegistry.markFailed(manualKey,error?.message||String(error));
+     button.disabled=false;button.dataset.busy='0';button.textContent='重新生成图片';
+     alert('轻绘生成失败：'+(error?.message||String(error)));
+    }finally{
+     frame.dataset.qlBusy='0';
+    }
+   });
+   frame.append(button);
   }
-  try{
-   const url=await requestWithActiveSettings(prompt);
-   loading.remove();
-   await storeChatRecord(url,prompt,taskKey,{source:'statusbar'});
-   // 图片已在后台生成并入库；只有正文结束后才允许实际渲染。
-   if(!qlAssistantGenerationActive&&frame.isConnected)renderStatusbarCard(frame,prompt,url,taskKey);
-   triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());
-  }catch(e){
-   triggerRegistry.markFailed(taskKey,e?.message||String(e));
-   loading.remove();
-   statusbarError(frame,prompt,taskKey,e);
-  }finally{frame.dataset.qlBusy='0';}
+  frame.dataset.qlBusy='0';
  }
 }
 function observeStatusbarFrames(){
