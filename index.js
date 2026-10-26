@@ -795,6 +795,7 @@ async function storeChatRecord(url,prompt,taskKey,meta={}){
  for(const card of document.querySelectorAll('.ql-chat-image,.ql-statusbar-card')){
   if(card.dataset.qlTask!==taskKey||!Array.isArray(card._qlCandidates))continue;
   for(const candidate of card._qlCandidates)if(candidate.url===url)candidate.url=storedUrl;
+  if(card.classList.contains('ql-chat-image')&&card._qlCandidates[card._qlIndex]?.url===storedUrl){const image=card.querySelector('img');if(image)image.src=storedUrl;}
   card._qlRender?.();
  }
  return c.records.find(item=>item.taskKey===taskKey&&item.dataUrl===storedUrl)||null;
@@ -819,7 +820,7 @@ async function migrateLegacyImageRecords(){
      card._qlRender?.();
     }
     migrated++;save();
-    if(migrated%3===0){history();console.info('[轻绘 Lite] 图片缓存迁移进度：'+migrated+'/'+pending.length);}
+    if(migrated%5===0){status('正在迁移旧图片缓存：'+migrated+'/'+pending.length+' 张。');console.info('[轻绘 Lite] 图片缓存迁移进度：'+migrated+'/'+pending.length);}
    }catch(error){
     save();history();
     console.error('[轻绘 Lite] 图片缓存迁移暂停；未成功的原图仍保留在设置中。',error);
