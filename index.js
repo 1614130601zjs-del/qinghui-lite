@@ -820,8 +820,15 @@ async function processLatestAssistantMessage(){
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
   const messageElement=host.closest('.mes');
   if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input), [contenteditable="true"]'))continue;
+  // 有些酒馆版本的 chat 消息没有暴露 swipe_id，但会保留 swipes 数组。
+  // 不能一律回退到 0，否则同一消息重 Roll 后会命中上一版的缓存图片。
+  const activeSwipeId=Number.isInteger(message.swipe_id)
+   ? message.swipe_id
+   : (Array.isArray(message.swipes)&&message.swipes.length
+      ? Math.max(0,message.swipes.findIndex(swipe=>swipe===message.mes))
+      : 0);
   const entries=found.map((marker,markerOrdinal)=>{
-   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
+   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(activeSwipeId),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
   });
   // 重 Roll/切换 swipe 后，酒馆有时会保留扩展插入的旧图片 DOM。
@@ -842,7 +849,7 @@ async function processLatestAssistantMessage(){
      // 没有 marker 锚点时仍要恢复旧卡片的事件监听；以旧卡片的下一个兄弟节点作为锚点，
      // 让新卡片原位替换旧 HTML，不把它追加到消息末尾，也不需要用户先点小铅笔。
      const nextSibling=waitingCard.nextSibling;
-     const records=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+     const records=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&String(item.basePrompt??item.prompt??'').trim()===entry.prompt&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
      if(!waitingCard._qlRender&&records.length){
       const latest=records[records.length-1];
       addMessageImage(host,latest.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},nextSibling);
@@ -854,7 +861,7 @@ async function processLatestAssistantMessage(){
     }
     continue;
    }
-   const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+   const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&String(item.basePrompt??item.prompt??'').trim()===entry.prompt&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
     const latest=savedRecords[savedRecords.length-1];
     for(const record of savedRecords)addMessageImage(host,record.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},markerButton);
