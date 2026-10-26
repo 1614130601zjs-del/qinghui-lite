@@ -2056,3 +2056,12 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel [data-page-panel="library"] > .ql-subpage > .ql-card:first-child{
  margin-top:12px!important;
 }
+
+
+/* 修正子页切换时的垂直跳动：三个子页容器不额外增加顶部内边距，首卡片统一使用同一外边距。 */
+#qinghui-lite-panel [data-page-panel="library"] > .ql-subpage{
+ padding-top:0!important;
+}
+#qinghui-lite-panel [data-page-panel="library"] > .ql-subpage > .ql-card:first-child{
+ margin:8px 0 10px!important;
+}
