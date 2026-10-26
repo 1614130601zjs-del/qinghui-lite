@@ -1096,7 +1096,7 @@ function statusbarError(frame,prompt,taskKey,error){
 async function processStatusbarFrames(){
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
- const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
+ const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"], [data-qlPrompt]')).filter(frame=>{
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)return false;
   return !Array.from(frame.querySelectorAll('[class~="scanning"]')).some(child=>statusbarPromptForTarget(child)===prompt);
@@ -1109,7 +1109,9 @@ async function processStatusbarFrames(){
    frame.dataset.qlDone='';
    frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading').forEach(el=>el.remove());
   }
-  if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
+  if(frame.dataset.qlBusy==='1')continue;
+   // 酒馆编辑/重绘消息时，旧卡片可能消失；完成标记不能阻止从缓存恢复图片。
+   if(frame.dataset.qlDone==='1'&&frame.querySelector('.ql-statusbar-card'))continue;
   frame.dataset.qlBusy='1';
   const taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
   // 恢复已缓存的状态栏图片：DOM 重绘/重新打开消息时不应自动重新请求 NAI。
