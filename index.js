@@ -89,66 +89,27 @@ function findRenderedMarkerRange(text,raw,startTag='image###',endTag='###',from=
 }
 function hideMarkersInTextNode(root,entries=[]){
  if(!root)return;
- const doc=root.ownerDocument||document;
- const fullText=String(root.textContent||'');
- const sourceEntries=Array.isArray(entries)?entries:[];
- const matches=[];
- let searchFrom=0;
- for(let i=0;i<sourceEntries.length;i++){
-  const entry=sourceEntries[i];
-  if(!entry?.raw||!entry?.prompt)continue;
-  const range=findRenderedMarkerRange(fullText,entry.raw,'image###','###',searchFrom);
-  if(!range)continue;
-  matches.push({...range,prompt:entry.prompt,entry});
-  searchFrom=range.end;
- }
- if(!matches.length&&!sourceEntries.length){
-  const re=/image###([\s\S]*?)###/g;
-  let match;
-  while((match=re.exec(fullText))!==null){
-   const prompt=String(match[1]||'').trim();
-   if(prompt)matches.push({start:match.index,end:re.lastIndex,prompt,entry:null});
+ let entryCursor=0;
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+ const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue?.includes('image###'))nodes.push(walker.currentNode);
+ let ordinal=0;
+ for(const node of nodes){
+  const value=node.nodeValue||'',re=/image###([\s\S]*?)###/g;
+  if(!re.test(value))continue;
+  re.lastIndex=0;
+  const fragment=document.createDocumentFragment();let last=0,match;
+  while((match=re.exec(value))!==null){
+   fragment.append(document.createTextNode(value.slice(last,match.index)));
+   const entry=entries[entryCursor++],prompt=match[1].trim();
+   if(!prompt){last=re.lastIndex;continue;}
+   const button=document.createElement('button');
+   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='定格此刻：生成图片并收录到当前消息';
+   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
+   button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
+   const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);fragment.append(buttonWrap);ordinal++;last=re.lastIndex;
   }
- }
- if(!matches.length)return;
- const walker=doc.createTreeWalker(root,NodeFilter.SHOW_TEXT);
- const nodes=[];
- let offset=0,node;
- while((node=walker.nextNode())){
-  const value=node.nodeValue||'';
-  nodes.push({node,start:offset,end:offset+value.length});
-  offset+=value.length;
- }
- const locate=position=>{
-  for(const item of nodes){
-   if(position>=item.start&&position<=item.end)return {node:item.node,offset:position-item.start};
-  }
-  return null;
- };
- matches.sort((a,b)=>a.start-b.start);
- for(let i=matches.length-1;i>=0;i--){
-  const item=matches[i];
-  const startPoint=locate(item.start),endPoint=locate(item.end);
-  if(!startPoint||!endPoint)continue;
-  const range=doc.createRange();
-  range.setStart(startPoint.node,startPoint.offset);
-  range.setEnd(endPoint.node,endPoint.offset);
-  const entry=item.entry;
-  const button=doc.createElement('button');
-  button.type='button';
-  button.className='menu_button ql-inline-image-trigger';
-  button.textContent='定格此刻';
-  button.title='定格此刻：生成图片并收录到当前消息';
-  button.dataset.qlTrigger=entry?.taskKey||('marker-'+i);
-  button.dataset.qlPrompt=item.prompt;
-  applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');
-  applyChatTheme(button);
-  button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt:item.prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
-  const wrap=doc.createElement('span');
-  wrap.className='ql-inline-image-trigger-wrap';
-  wrap.append(button);
-  range.deleteContents();
-  range.insertNode(wrap);
+  fragment.append(document.createTextNode(value.slice(last)));
+  node.parentNode?.replaceChild(fragment,node);
  }
 }
 let qlImageRequestQueue=Promise.resolve();
