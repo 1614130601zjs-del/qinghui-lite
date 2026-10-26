@@ -2047,3 +2047,12 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  background:color-mix(in srgb,var(--ql-card,#f6f7f5) 94%,var(--ql-muted,#778187))!important;
  color:var(--ql-muted,#778187)!important;
 }
+
+
+/* 预设分区三页统一间距：画师串、Vibe、预设的首张卡片与上方三枚子 Tab 保持相同距离。 */
+#qinghui-lite-panel [data-page-panel="library"] > .ql-subpage{
+ padding-top:4px!important;
+}
+#qinghui-lite-panel [data-page-panel="library"] > .ql-subpage > .ql-card:first-child{
+ margin-top:12px!important;
+}
