@@ -75,8 +75,6 @@ function hideMarkersInTextNode(root,entries=[]){
   node.parentNode?.replaceChild(fragment,node);
  }
 }
-let qlAssistantGenerationActive=false;
-let qlStatusbarForceRestore=false;
 let qlImageRequestQueue=Promise.resolve();
 async function requestImage(prompt, negativeOverride, vibeItem=null){
  const queued=qlImageRequestQueue.then(()=>requestImageUnlocked(prompt,negativeOverride,vibeItem));
@@ -1096,7 +1094,7 @@ function statusbarError(frame,prompt,taskKey,error){
 async function processStatusbarFrames(){
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
- const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"], [data-qlPrompt]')).filter(frame=>{
+ const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)return false;
   return !Array.from(frame.querySelectorAll('[class~="scanning"]')).some(child=>statusbarPromptForTarget(child)===prompt);
@@ -1109,9 +1107,7 @@ async function processStatusbarFrames(){
    frame.dataset.qlDone='';
    frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading').forEach(el=>el.remove());
   }
-  if(frame.dataset.qlBusy==='1')continue;
-   // 酒馆编辑/重绘消息时，旧卡片可能消失；完成标记不能阻止从缓存恢复图片。
-   if(frame.dataset.qlDone==='1'&&frame.querySelector('.ql-statusbar-card'))continue;
+  if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
   frame.dataset.qlBusy='1';
   const taskKey=statusbarTaskKey(frame,prompt,frame.ownerDocument||document);
   // 恢复已缓存的状态栏图片：DOM 重绘/重新打开消息时不应自动重新请求 NAI。
@@ -1119,8 +1115,6 @@ async function processStatusbarFrames(){
    .filter(item=>item&&item.dataUrl&&item.taskKey===taskKey&&(item.source||'chat')==='statusbar')
    .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
   if(savedStatusbar.length){
-   // 正文流式生成期间只允许后台保存结果，不把图片卡片提前插进状态栏。
-   if(qlAssistantGenerationActive&&!qlStatusbarForceRestore){frame.dataset.qlBusy='0';continue;}
    const latest=savedStatusbar[savedStatusbar.length-1];
    renderStatusbarCard(frame,prompt,latest.dataUrl,taskKey);
    const card=frame.querySelector('.ql-statusbar-card');
@@ -1140,17 +1134,13 @@ async function processStatusbarFrames(){
   loading.className='ql-statusbar-loading';
   loading.textContent='轻绘：正在生成画面…';
   loading.style.cssText='position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.72);color:#fff;font-size:13px;';
-  // 流式输出期间不显示加载遮罩，避免状态栏 DOM 被酒馆反复刷新时闪烁。
-  if(!qlAssistantGenerationActive){
-   if(getComputedStyle(frame).position==='static')frame.style.position='relative';
-   frame.append(loading);
-  }
+  if(getComputedStyle(frame).position==='static')frame.style.position='relative';
+  frame.append(loading);
   try{
    const url=await requestWithActiveSettings(prompt);
    loading.remove();
+   renderStatusbarCard(frame,prompt,url,taskKey);
    await storeChatRecord(url,prompt,taskKey,{source:'statusbar'});
-   // 图片已在后台生成并入库；只有正文结束后才允许实际渲染。
-   if(!qlAssistantGenerationActive&&frame.isConnected)renderStatusbarCard(frame,prompt,url,taskKey);
    triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());
   }catch(e){
    triggerRegistry.markFailed(taskKey,e?.message||String(e));
@@ -1757,23 +1747,10 @@ jQuery(()=>{
   processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
  },120);};
  // 生成结束与 swipe 是稳定兜底；如果当前酒馆版本提供流式事件，则在完整 marker 到达时提前触发。
- for(const name of ['STREAM_TOKEN_RECEIVED','MESSAGE_UPDATED','GENERATION_ENDED','MESSAGE_SWIPED']){
+ for(const name of ['STREAM_TOKEN_RECEIVED','MESSAGE_UPDATED','GENERATION_ENDED','MESSAGE_SWIPED','MESSAGE_EDITED']){
   const eventName=event_types[name];
   if(eventName)eventSource.on(eventName,scheduleScan);
  }
- // 点击酒馆原生消息编辑铅笔后，允许恢复已经缓存的状态栏图片；不触发重新生图。
- document.addEventListener('click',event=>{
-  const target=event.target instanceof Element?event.target:null;
-  if(!target?.closest('.mes_edit, .mes_edit_button, [data-action="edit"]'))return;
-  qlStatusbarForceRestore=true;
-  scheduleScan();
-  setTimeout(()=>{qlStatusbarForceRestore=false;},1800);
- },true);
- if(event_types.MESSAGE_EDITED)eventSource.on(event_types.MESSAGE_EDITED,()=>{qlStatusbarForceRestore=true;scheduleScan();setTimeout(()=>{qlStatusbarForceRestore=false;},1800);});
- if(event_types.GENERATION_STARTED)eventSource.on(event_types.GENERATION_STARTED,()=>{qlAssistantGenerationActive=true;});
- const finishAssistantGeneration=()=>{qlAssistantGenerationActive=false;scheduleScan();};
- if(event_types.GENERATION_ENDED)eventSource.on(event_types.GENERATION_ENDED,finishAssistantGeneration);
- if(event_types.GENERATION_STOPPED)eventSource.on(event_types.GENERATION_STOPPED,finishAssistantGeneration);
  if(event_types.CHAT_CHANGED)eventSource.on(event_types.CHAT_CHANGED,()=>{autoTasks.clear();renderBindings();applyCurrentBinding();});
  if(event_types.CHARACTER_SELECTED)eventSource.on(event_types.CHARACTER_SELECTED,()=>{renderBindings();applyCurrentBinding();});
  applyCurrentBinding();
