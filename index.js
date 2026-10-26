@@ -1039,7 +1039,7 @@ function statusbarError(frame,prompt,taskKey,error){
  const existing=frame.querySelector('.ql-statusbar-error');if(existing)existing.remove();
  alert('轻绘生成失败：'+(error?.message||String(error)));
 }
-async async function processStatusbarFrames(){
+async function processStatusbarFrames(){
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
  const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
