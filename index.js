@@ -851,19 +851,29 @@ async function processLatestAssistantMessage(){
   const message=chat[messageIndex];
   if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
   let found=markers(message.mes);
-  // 优先按酒馆消息 ID 定位正文；若消息数据与渲染 DOM 不同步，
-  // 也直接从实际可见的正文文本恢复标记，避免只因数据源暂时缺失而不生成按钮。
+  // 先按酒馆消息 ID 定位；不同版本/重绘时 mesid 可能暂时对不上 DOM。
   let host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
   const visibleHosts=Array.from(document.querySelectorAll('#chat .mes .mes_text, .mes .mes_text'));
   const containsMarker=(candidate,marker)=>String(candidate?.textContent||'').includes(marker.raw)
    ||!!findRenderedMarkerRange(String(candidate?.textContent||''),marker.raw);
+  // 若原始消息未包含标记或 mesid 定位失败，不能直接跳过：优先尝试同索引正文，
+  // 再从可见正文中找出确实含有 image###...### 的节点。
+  if(!host){
+   host=visibleHosts.find(candidate=>Number(candidate.closest('.mes')?.getAttribute('mesid'))===messageIndex)
+    ||visibleHosts[messageIndex]
+    ||null;
+  }
   if(found.length&&(!host||!found.some(marker=>containsMarker(host,marker)))){
    const matchedHost=visibleHosts.find(candidate=>found.some(marker=>containsMarker(candidate,marker)));
    if(matchedHost)host=matchedHost;
   }
-  // 如果原始聊天对象尚未同步，但正文 DOM 已经显示完整 image###...###，
-  // 以 DOM 文本作为兜底来源继续渲染按钮。
+  // 有些酒馆渲染版本的 chat 对象和 DOM 会短暂不同步；
+  // 以当前消息对应的可见正文为兜底来源重新解析标记。
   if(host&&!found.length)found=markers(String(host.textContent||''));
+  if(host&&!found.length){
+   const visibleMarkers=markers(String(host.textContent||''));
+   if(visibleMarkers.length)found=visibleMarkers;
+  }
   if(!host)continue;
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
   const messageElement=host.closest('.mes');
