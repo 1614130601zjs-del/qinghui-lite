@@ -1655,3 +1655,59 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  #qinghui-lite-panel .ql-album-page-arrow svg{width:18px!important;height:18px!important;}
  .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;padding:7px!important;}
 }
+
+
+/* 取景页：标题右侧三枚简约 SVG 操作键；大图使用浏览器 Top Layer，避免被拾帧面板遮挡。 */
+#qinghui-lite-panel .ql-viewfinder-heading{
+ display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:0;margin-bottom:4px;
+}
+#qinghui-lite-panel .ql-viewfinder-heading h3{margin:0;min-width:0;}
+#qinghui-lite-panel .ql-viewfinder-actions{
+ display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto;gap:8px;margin:0;
+}
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button{
+ display:inline-flex;align-items:center;justify-content:center;flex:0 0 40px;
+ width:40px;height:40px;min-width:40px;min-height:40px;padding:9px;margin:0;
+ border:1px solid var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.35)));
+ border-radius:11px;background:color-mix(in srgb,var(--ql-card,transparent) 88%,var(--ql-accent,transparent));
+ color:var(--ql-text,var(--SmartThemeBodyColor));box-shadow:none;touch-action:manipulation;
+}
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button svg{
+ display:block;width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+}
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:disabled{opacity:.36;cursor:default;}
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):active{transform:scale(.96);}
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate{width:40px;min-width:40px;max-width:40px;margin:0;background:color-mix(in srgb,var(--ql-accent) 20%,var(--ql-card));color:var(--ql-text);border-color:var(--ql-accent);}
+#qinghui-lite-panel #ql-result-favorite.is-favorite{color:#c99b35;border-color:color-mix(in srgb,#c99b35 55%,var(--ql-border));}
+#qinghui-lite-panel .ql-viewfinder-card>p.ql-muted{margin:8px 0 10px;}
+#qinghui-lite-panel .ql-viewfinder-layout{display:block;min-width:0;}
+#qinghui-lite-panel .ql-viewfinder-card .ql-image-stage{width:100%;box-sizing:border-box;min-height:150px;max-height:42dvh;}
+#qinghui-lite-panel #ql-result img{max-width:100%;max-height:40dvh;object-fit:contain;}
+dialog.ql-viewfinder-lightbox{
+ box-sizing:border-box;position:fixed;margin:auto;padding:42px 12px 12px;
+ width:max-content;max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);
+ overflow:hidden;border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.35));
+ border-radius:14px;background:var(--SmartThemeBlurTintColor,#fff);
+ color:var(--SmartThemeBodyColor,#333);box-shadow:0 16px 52px rgba(0,0,0,.35);
+}
+dialog.ql-viewfinder-lightbox::backdrop{background:rgba(0,0,0,.68);backdrop-filter:blur(3px);}
+dialog.ql-viewfinder-lightbox img{
+ display:block;width:auto;height:auto;max-width:min(88vw,720px);max-height:82dvh;
+ object-fit:contain;border-radius:8px;
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
+ position:absolute;top:7px;right:7px;display:flex;align-items:center;justify-content:center;
+ width:32px;height:32px;min-width:32px;min-height:32px;margin:0;padding:0;
+ border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.35));border-radius:50%;
+ background:var(--SmartThemeQuoteColor,rgba(127,127,127,.12));color:var(--SmartThemeBodyColor,#333);
+ font-size:23px;line-height:1;cursor:pointer;
+}
+@media(max-width:420px){
+ #qinghui-lite-panel .ql-viewfinder-heading{gap:8px;}
+ #qinghui-lite-panel .ql-viewfinder-actions{gap:6px;}
+ #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button,
+ #qinghui-lite-panel .ql-viewfinder-actions #ql-generate{flex-basis:36px;width:36px;min-width:36px;max-width:36px;height:36px;min-height:36px;padding:8px;}
+ #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button svg{width:19px;height:19px;}
+ dialog.ql-viewfinder-lightbox{max-width:calc(100vw - 12px);max-height:calc(100dvh - 12px);padding:38px 6px 6px;}
+ dialog.ql-viewfinder-lightbox img{max-width:calc(100vw - 28px);max-height:80dvh;}
+}
