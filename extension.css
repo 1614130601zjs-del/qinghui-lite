@@ -1711,3 +1711,43 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  dialog.ql-viewfinder-lightbox{max-width:calc(100vw - 12px);max-height:calc(100dvh - 12px);padding:38px 6px 6px;}
  dialog.ql-viewfinder-lightbox img{max-width:calc(100vw - 28px);max-height:80dvh;}
 }
+
+
+/* 取景区三个操作键统一为圆润的图标气泡；隐藏可能被通用按钮样式放大的文字，只保留 SVG 图标。 */
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 40px!important;width:40px!important;min-width:40px!important;max-width:40px!important;
+ height:40px!important;min-height:40px!important;padding:9px!important;margin:0!important;
+ box-sizing:border-box!important;overflow:hidden!important;font-size:0!important;line-height:0!important;
+ border:1px solid var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.35)))!important;
+ border-radius:12px!important;
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)) 17%,var(--ql-card,var(--SmartThemeBlurTintColor,transparent)))!important;
+ color:var(--ql-text,var(--SmartThemeBodyColor))!important;
+ box-shadow:0 1px 3px rgba(0,0,0,.08)!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button svg,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate svg{
+ display:block!important;visibility:visible!important;flex:0 0 21px!important;
+ width:21px!important;height:21px!important;min-width:21px!important;min-height:21px!important;
+ margin:0!important;overflow:visible!important;fill:none!important;stroke:currentColor!important;
+ stroke-width:1.7!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:disabled,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:disabled{opacity:.4!important;}
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:not(:disabled):hover{
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)) 28%,var(--ql-card,var(--SmartThemeBlurTintColor,transparent)))!important;
+ border-color:var(--ql-accent,var(--SmartThemeBorderColor))!important;
+}
+@media(max-width:420px){
+ #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button,
+ #qinghui-lite-panel .ql-viewfinder-actions #ql-generate{
+  flex-basis:36px!important;width:36px!important;min-width:36px!important;max-width:36px!important;
+  height:36px!important;min-height:36px!important;padding:8px!important;border-radius:11px!important;
+ }
+ #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button svg,
+ #qinghui-lite-panel .ql-viewfinder-actions #ql-generate svg{
+  flex-basis:19px!important;width:19px!important;height:19px!important;min-width:19px!important;min-height:19px!important;
+ }
+}
