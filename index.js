@@ -842,7 +842,7 @@ async function processLatestAssistantMessage(){
  for(let messageIndex=0;messageIndex<chat.length;messageIndex++){
   const message=chat[messageIndex];
   if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
-  let found=markers(message.mes);
+  const found=markers(message.mes);
   // 优先按酒馆标准 mesid 定位；部分主题/旧版本重绘后的 DOM 不一定保留可匹配的 mesid，
   // 此时按聊天消息顺序兜底定位，避免原始 image### 标记留在正文却一直没有按钮。
   const messageElement=document.querySelector('.mes[mesid="'+messageIndex+'"]')
@@ -850,38 +850,12 @@ async function processLatestAssistantMessage(){
    ||null;
   let host=messageElement?.querySelector('.mes_text')
    ||document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
-  const visibleHosts=[...document.querySelectorAll('#chat .mes .mes_text, .mes .mes_text')];
-  // 第一优先：在当前消息的正文节点就地查找。数据和 DOM 对不上时，再按原始 marker 反查。
-  if(found.length&&(!host||!found.every(marker=>(host.textContent||'').includes(marker.raw)))){
-   // 一条消息可能有多个生图标记；优先定位完整匹配的正文，否则选匹配数量最多的正文。
-   let matchedHost=null,bestScore=0,bestComplete=false;
-   for(const candidate of visibleHosts){
-    const text=candidate.textContent||'';
-    const score=found.reduce((count,marker)=>count+(text.includes(marker.raw)?1:0),0);
-    const complete=score===found.length;
-    if(score>bestScore||(score===bestScore&&complete&&!bestComplete)){
-     matchedHost=candidate;bestScore=score;bestComplete=complete;
-    }
-   }
-   if(matchedHost)host=matchedHost;
-  }
-  // 关键兜底：聊天数据可能已经被酒馆改写/切换 swipe，但页面正文仍保留 image### 标记。
-  // 此时不能因为 message.mes 解析不到就直接跳过；以实际显示的正文为准恢复所有 marker。
-  if(host&&found.length===0&&(host.textContent||'').includes('image###')){
-   found=markers(host.textContent).map(({index,prompt,marker})=>({index,prompt,raw:marker}));
-  }
-  // 当前索引对应的节点也不含标记时，扫描尚未处理的可见正文，找到真正显示 marker 的节点。
+  // 有些酒馆主题/重绘会让聊天数据索引与可见 .mes 顺序短暂不一致。
+  // 如果当前节点不含聊天数据中的 marker，按 marker 原文反查真正显示它的正文容器。
   if(found.length&&(!host||!found.some(marker=>(host.textContent||'').includes(marker.raw)))){
-   const matchedHost=visibleHosts.find(candidate=>
-    (candidate.textContent||'').includes('image###')&&found.every(marker=>(candidate.textContent||'').includes(marker.raw))
-   )||visibleHosts.find(candidate=>
-    (candidate.textContent||'').includes('image###')&&found.some(marker=>(candidate.textContent||'').includes(marker.raw))
-   );
-   if(matchedHost){
-    host=matchedHost;
-    // 以真实 DOM 中的标记为准，避免把其他消息的 entries 按顺序错配给当前正文。
-    found=markers(host.textContent).map(({index,prompt,marker})=>({index,prompt,raw:marker}));
-   }
+   const visibleHosts=[...document.querySelectorAll('#chat .mes .mes_text, .mes .mes_text')];
+   const matchedHost=visibleHosts.find(candidate=>found.some(marker=>(candidate.textContent||'').includes(marker.raw)));
+   if(matchedHost)host=matchedHost;
   }
   if(!host)continue;
   // 编辑消息时不改写原始正文；只检查真正的编辑器，避免消息内其他 contenteditable 控件误跳过整条消息。
