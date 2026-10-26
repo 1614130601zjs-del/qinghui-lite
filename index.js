@@ -829,24 +829,35 @@ async function processLatestAssistantMessage(){
   for(const entry of entries){
    // 只有正文中真正存在的 marker 按钮才是可靠锚点。
    // 酒馆刷新时可能先恢复到一份尚未完成渲染的正文；此时不能把图片/按钮追加到末尾。
-   const markerButton=host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
+   let markerButton=host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
    if(!markerButton){
     const waitingCard=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===entry.taskKey);
     if(waitingCard){
-     // 没有 marker 锚点时仍要恢复旧卡片的事件监听；以旧卡片的下一个兄弟节点作为锚点，
-     // 让新卡片原位替换旧 HTML，不把它追加到消息末尾，也不需要用户先点小铅笔。
-     const nextSibling=waitingCard.nextSibling;
+     // 图片卡片存在但正文锚点尚未恢复：先隐藏旧卡片，等待下一次扫描重新定位。
      const records=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
      if(!waitingCard._qlRender&&records.length){
       const latest=records[records.length-1];
-      addMessageImage(host,latest.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},nextSibling);
+      addMessageImage(host,latest.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},waitingCard);
       const rebuilt=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===entry.taskKey);
       if(rebuilt){rebuilt.hidden=false;delete rebuilt.dataset.qlWaitingForAnchor;}
      }else{
       waitingCard.hidden=true;waitingCard.dataset.qlWaitingForAnchor='1';
      }
+     continue;
     }
-    continue;
+    // 酒馆重绘后，原始消息仍有 marker，但 marker 文本节点可能被 Markdown/HTML 拆开，
+    // 导致无法在原位生成按钮。使用 taskKey 幂等兜底，至少保证按钮重新出现。
+    markerButton=host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
+    if(!markerButton){
+     markerButton=document.createElement('button');
+     markerButton.type='button';markerButton.className='menu_button ql-inline-image-trigger';
+     markerButton.textContent='定格此刻';
+     markerButton.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
+     markerButton.dataset.qlTrigger=entry.taskKey;markerButton.dataset.qlPrompt=entry.prompt;
+     applyChatAlbumButtonStyle(markerButton,cfg().chatAlbumStyle||'classic');applyChatTheme(markerButton);
+     markerButton.addEventListener('click',()=>runInlineImageTrigger(markerButton,entry));
+     const wrap=document.createElement('span');wrap.className='ql-inline-image-trigger-wrap';wrap.append(markerButton);host.append(wrap);
+    }
    }
    const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
