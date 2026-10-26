@@ -2,21 +2,43 @@
 export function createStatusbarModule({cfg,getContext,triggerRegistry,requestWithActiveSettings,storeChatRecord,currentCharacter,save,history,status,saveCleanImage}) {
 let statusbarObserver=null;
 const statusbarObservedDocs=new WeakSet();
-function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);return match?.[1]?.trim()||'';}
+const statusbarObservedFrames=new WeakSet();
+function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);const prompt=match?.[1]?.trim()||'';return !prompt||/^[.…⋯\s]+$/.test(prompt)?'':prompt;}
+function plainStatusbarTag(text){return String(text||'').replace(/^image###\s*/i,'').replace(/\s*###$/,'').trim();}
 function statusbarPromptForTarget(target){
  const direct=[
   target?.textContent,
   target?.getAttribute?.('data-tag'),
-  ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
+  ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag')),
+  target?.dataset?.qlPrompt
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
+ const savedPrompt=String(target?.getAttribute?.('data-ql-prompt')||target?.dataset?.qlPrompt||'').trim();
+ if(savedPrompt)return savedPrompt;
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
-  const prompt=parseStatusbarMarker(ancestor.getAttribute?.('data-tag'));
-  if(prompt)return prompt;
+  const raw=ancestor.getAttribute?.('data-tag');
+  const marked=parseStatusbarMarker(raw);
+  if(marked)return marked;
+  if(raw&&ancestor.querySelector?.('.shot-frame, [id="frame"], [id$="-frame"]')){
+   const plain=plainStatusbarTag(raw);
+   if(plain)return plain;
+  }
   ancestor=ancestor.parentElement;
  }
  return '';
+}
+function statusbarTargetsForDoc(doc){
+ const candidates=new Set(Array.from(doc.querySelectorAll('[class~="scanning"], [data-ql-prompt]')));
+ for(const tagged of Array.from(doc.querySelectorAll('[data-tag]'))){
+  const frame=tagged.querySelector('.shot-frame, [id="frame"], [id$="-frame"]');
+  if(!frame)continue;
+  const raw=tagged.getAttribute('data-tag');
+  if(!parseStatusbarMarker(raw)&&!plainStatusbarTag(raw))continue;
+  candidates.add(frame);
+ }
+ const all=Array.from(candidates).filter(el=>statusbarPromptForTarget(el)||el.dataset.qlPrompt);
+ return all.filter(el=>!all.some(child=>child!==el&&el.contains(child)&&statusbarPromptForTarget(child)===statusbarPromptForTarget(el)));
 }
 function statusbarTaskKey(target,prompt,doc){
  const message=target.closest('.mes[mesid]')||target.closest('.mes');
@@ -28,7 +50,17 @@ function statusbarTaskKey(target,prompt,doc){
  for(let i=0;i<prompt.length;i++){hash^=prompt.charCodeAt(i);hash=Math.imul(hash,16777619);}
  return 'statusbar:'+String(getContext()?.chatId||'chat')+':'+messageId+':'+ordinal+':'+(hash>>>0).toString(36);
 }
+function revealStatusbarFrame(frame){
+ if(!frame)return;
+ frame.classList.remove('scanning');
+ if(getComputedStyle(frame).position==='static')frame.style.position='relative';
+ const screen=frame.closest('.screen, .dy-screen');
+ if(screen)screen.classList.add('has-image');
+ frame.style.display='block';
+ frame.style.visibility='visible';
+}
 function renderStatusbarCard(frame,prompt,url,taskKey){
+ revealStatusbarFrame(frame);
  let card=frame.querySelector('.ql-statusbar-card');
  // 酒馆刷新后可能只留下卡片 HTML；HTML 不会保留事件监听和轮播状态，必须重建。
  if(!card||card.dataset.qlTask!==taskKey||!card._qlRender){
@@ -138,11 +170,7 @@ async function processStatusbarFrames(){
  if(cfg().enabled===false)return;
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
- const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
-  const prompt=statusbarPromptForTarget(frame);
-  if(!prompt)return false;
-  return !Array.from(frame.querySelectorAll('[class~="scanning"]')).some(child=>statusbarPromptForTarget(child)===prompt);
- }));
+ const frames=docs.flatMap(doc=>statusbarTargetsForDoc(doc));
  for(const frame of frames){
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)continue;
@@ -196,15 +224,24 @@ async function processStatusbarFrames(){
 function observeStatusbarFrames(){
  const attach=doc=>{
   if(!doc||statusbarObservedDocs.has(doc))return;
-  const target=doc.body||doc.documentElement;if(!target)return;
+  const target=doc.documentElement||doc.body;if(!target)return;
   statusbarObservedDocs.add(doc);
   const observer=new MutationObserver(()=>{attachFrames();processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));});
-  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
+  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class','data-tag','data-ql-prompt','id']});
   if(doc===document)statusbarObserver=observer;
  };
  const attachFrames=()=>{
   attach(document);
-  document.querySelectorAll('iframe').forEach(frame=>{try{attach(frame.contentDocument);}catch{}});
+  document.querySelectorAll('iframe').forEach(frame=>{
+   if(!statusbarObservedFrames.has(frame)){
+    statusbarObservedFrames.add(frame);
+    frame.addEventListener('load',()=>{
+     try{attach(frame.contentDocument);}catch{}
+     processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
+    });
+   }
+   try{attach(frame.contentDocument);}catch{}
+  });
  };
  attachFrames();
  processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
