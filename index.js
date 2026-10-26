@@ -1220,7 +1220,7 @@ function history(){
    spreadGrid?.addEventListener('click',handleRemove);
    albums.querySelectorAll('[data-spread-step]').forEach(button=>button.addEventListener('click',()=>{spreadPage=Math.max(0,Math.min(Math.max(0,Math.ceil(items.length/6)-1),spreadPage+Number(button.dataset.spreadStep)));paintSpread();}));
    const spreadArea=albums.querySelector('.ql-album-spread-grid');let spreadStartX=0;spreadArea?.addEventListener('touchstart',event=>{spreadStartX=event.changedTouches[0].clientX;},{passive:true});spreadArea?.addEventListener('touchend',event=>{const dx=event.changedTouches[0].clientX-spreadStartX;if(Math.abs(dx)>40){spreadPage=Math.max(0,Math.min(Math.max(0,Math.ceil(items.length/6)-1),spreadPage+(dx<0?1:-1)));paintSpread();}},{passive:true});
-   if(flipButton)flipButton.addEventListener('click',event=>{if(albums.dataset.albumMoveMode==='select'){handlePhotoClick(event);}});
+
    let startX=0;const flipArea=albums.querySelector('.ql-album-single-page');flipArea?.addEventListener('touchstart',event=>{startX=event.changedTouches[0].clientX;},{passive:true});flipArea?.addEventListener('touchend',event=>{const dx=event.changedTouches[0].clientX-startX;if(Math.abs(dx)>40){pageIndex=Math.max(0,Math.min(items.length-1,pageIndex+(dx<0?1:-1)));paintFlip();}},{passive:true});
    paintFlip();paintSpread();return;
   }
