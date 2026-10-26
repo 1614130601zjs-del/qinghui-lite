@@ -51,6 +51,7 @@ function cfg(){
 const triggerRegistry = new TriggerRegistry();
 const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状态以 triggerRegistry 为准。
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
+const qlInlineBoundButtons = new WeakSet();
 function hideMarkersInTextNode(root,entries=[]){
  if(!root)return;
  let entryCursor=0;
@@ -69,6 +70,7 @@ function hideMarkersInTextNode(root,entries=[]){
    const button=document.createElement('button');
    button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='定格此刻：生成图片并收录到当前消息';
    button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
+   qlInlineBoundButtons.add(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
    const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);fragment.append(buttonWrap);ordinal++;last=re.lastIndex;
   }
@@ -803,6 +805,26 @@ async function runInlineImageTrigger(button,entry){
   alert('拾帧生图失败：'+(error?.message||String(error)));
  }finally{if(button.isConnected)button.dataset.qlBusy='0';}
 }
+// 刷新后若正文只恢复了按钮 HTML，原生 addEventListener 不会随 HTML 一起保存；用委托点击兜底。
+// 当前代码创建的按钮仍走自己的监听器，避免一次点击触发两次生图。
+if(!document.documentElement.dataset.qlInlineClickDelegate){
+ document.documentElement.dataset.qlInlineClickDelegate='1';
+ document.addEventListener('click',event=>{
+  const button=event.target?.closest?.('.ql-inline-image-trigger[data-ql-trigger]');
+  if(!button||qlInlineBoundButtons.has(button))return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  const host=button.closest('.mes_text');
+  const messageId=host?.closest('.mes[mesid]')?.getAttribute('mesid');
+  runInlineImageTrigger(button,{
+   prompt:button.dataset.qlPrompt||'',
+   taskKey:button.dataset.qlTrigger||'',
+   messageIndex:messageId!==null&&messageId!==undefined&&messageId!==''?Number(messageId):-1,
+   markerOrdinal:0
+  });
+ },true);
+}
+
 async function processLatestAssistantMessage(){
  if(cfg().enabled===false)return;
  // 清理旧版本遗留在正文图片下方的失败提示；当前失败统一用弹窗，不在图片卡片内留错。
@@ -864,6 +886,7 @@ async function processLatestAssistantMessage(){
    button.textContent='定格此刻';
    button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
    button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
+   qlInlineBoundButtons.add(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
    const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);host.append(buttonWrap);
   }
