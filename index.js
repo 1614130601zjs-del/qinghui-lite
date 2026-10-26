@@ -51,8 +51,8 @@ function cfg(){
 const triggerRegistry = new TriggerRegistry();
 const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状态以 triggerRegistry 为准。
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
-function findRenderedMarkerRange(text,raw,startTag='image###',endTag='###'){
- const exact=text.indexOf(raw);
+function findRenderedMarkerRange(text,raw,startTag='image###',endTag='###',from=0){
+ const exact=text.indexOf(raw,from);
  if(exact>=0)return {start:exact,end:exact+raw.length};
  const stripMarkdown=value=>String(value)
   .replace(/!\[([^\]]*)\]\([^)]*\)/g,'$1')
@@ -69,7 +69,8 @@ function findRenderedMarkerRange(text,raw,startTag='image###',endTag='###'){
   for(const candidate of [String(value),stripMarkdown(value)]){
    const needle=candidate.replace(/\s/g,'');
    if(!needle)continue;
-   const at=compact.indexOf(needle);
+   const first=offsets.findIndex(offset=>offset>=from);
+   const at=compact.indexOf(needle,first<0?compact.length:first);
    if(at>=0)return {start:offsets[at],end:offsets[at+needle.length-1]+1};
   }
   return null;
@@ -92,15 +93,14 @@ function hideMarkersInTextNode(root,entries=[]){
  const fullText=String(root.textContent||'');
  const sourceEntries=Array.isArray(entries)?entries:[];
  const matches=[];
- const used=[];
+ let searchFrom=0;
  for(let i=0;i<sourceEntries.length;i++){
   const entry=sourceEntries[i];
   if(!entry?.raw||!entry?.prompt)continue;
-  const range=findRenderedMarkerRange(fullText,entry.raw);
+  const range=findRenderedMarkerRange(fullText,entry.raw,'image###','###',searchFrom);
   if(!range)continue;
-  if(used.some(r=>range.start<r.end&&range.end>r.start))continue;
   matches.push({...range,prompt:entry.prompt,entry});
-  used.push(range);
+  searchFrom=range.end;
  }
  if(!matches.length&&!sourceEntries.length){
   const re=/image###([\s\S]*?)###/g;
