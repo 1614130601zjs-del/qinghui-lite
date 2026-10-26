@@ -51,18 +51,64 @@ function cfg(){
 const triggerRegistry = new TriggerRegistry();
 const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状态以 triggerRegistry 为准。
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
+function findRenderedMarkerRange(text,raw,startTag='image###',endTag='###'){
+ const exact=text.indexOf(raw);
+ if(exact>=0)return {start:exact,end:exact+raw.length};
+ const stripMarkdown=value=>String(value)
+  .replace(/!\[([^\]]*)\]\([^)]*\)/g,'$1')
+  .replace(/\[([^\]]+)\]\([^)]*\)/g,'$1')
+  .replace(/<!--[\s\S]*?-->/g,'')
+  .replace(/<\/?[A-Za-z][^>]*>/g,'')
+  .replace(/\`{1,3}|\*{2}|_{2}|~~/g,'');
+ const compactText=[],offsets=[];
+ for(let i=0;i<text.length;i++){
+  if(!/\s/.test(text[i])){compactText.push(text[i]);offsets.push(i);}
+ }
+ const compact=compactText.join('');
+ const find=value=>{
+  for(const candidate of [String(value),stripMarkdown(value)]){
+   const needle=candidate.replace(/\s/g,'');
+   if(!needle)continue;
+   const at=compact.indexOf(needle);
+   if(at>=0)return {start:offsets[at],end:offsets[at+needle.length-1]+1};
+  }
+  return null;
+ };
+ const full=find(raw);
+ if(full)return full;
+ if(raw.startsWith(startTag)&&raw.endsWith(endTag)){
+  const body=find(raw.slice(0,-endTag.length));
+  if(body){
+   const tail=text.slice(body.end).match(/^\s*(#{1,6})(?=\s|$)/);
+   if(tail&&tail[1].length<=endTag.length)body.end+=tail[0].length;
+   return body;
+  }
+ }
+ return null;
+}
 function hideMarkersInTextNode(root,entries=[]){
  if(!root)return;
- // 正则/Markdown 渲染可能把一个 image###...### 标记拆到相邻多个文本节点。
- // 先在整段正文的纯文本中找标记，再把文本偏移映射回 DOM Range。
  const doc=root.ownerDocument||document;
  const fullText=String(root.textContent||'');
- const re=/image###([\s\S]*?)###/g;
+ const sourceEntries=Array.isArray(entries)?entries:[];
  const matches=[];
- let match;
- while((match=re.exec(fullText))!==null){
-  const prompt=String(match[1]||'').trim();
-  if(prompt)matches.push({start:match.index,end:re.lastIndex,prompt,raw:match[0]});
+ const used=[];
+ for(let i=0;i<sourceEntries.length;i++){
+  const entry=sourceEntries[i];
+  if(!entry?.raw||!entry?.prompt)continue;
+  const range=findRenderedMarkerRange(fullText,entry.raw);
+  if(!range)continue;
+  if(used.some(r=>range.start<r.end&&range.end>r.start))continue;
+  matches.push({...range,prompt:entry.prompt,entry});
+  used.push(range);
+ }
+ if(!matches.length&&!sourceEntries.length){
+  const re=/image###([\s\S]*?)###/g;
+  let match;
+  while((match=re.exec(fullText))!==null){
+   const prompt=String(match[1]||'').trim();
+   if(prompt)matches.push({start:match.index,end:re.lastIndex,prompt,entry:null});
+  }
  }
  if(!matches.length)return;
  const walker=doc.createTreeWalker(root,NodeFilter.SHOW_TEXT);
@@ -79,15 +125,15 @@ function hideMarkersInTextNode(root,entries=[]){
   }
   return null;
  };
- // 从后往前修改 DOM，避免删除前面的标记后改变后续文本偏移。
+ matches.sort((a,b)=>a.start-b.start);
  for(let i=matches.length-1;i>=0;i--){
   const item=matches[i];
-  const start=locate(item.start),end=locate(item.end);
-  if(!start||!end)continue;
+  const startPoint=locate(item.start),endPoint=locate(item.end);
+  if(!startPoint||!endPoint)continue;
   const range=doc.createRange();
-  range.setStart(start.node,start.offset);
-  range.setEnd(end.node,end.offset);
-  const entry=entries[i];
+  range.setStart(startPoint.node,startPoint.offset);
+  range.setEnd(endPoint.node,endPoint.offset);
+  const entry=item.entry;
   const button=doc.createElement('button');
   button.type='button';
   button.className='menu_button ql-inline-image-trigger';
