@@ -824,6 +824,12 @@ async function processLatestAssistantMessage(){
    const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
   });
+  // 重 Roll/切换 swipe 后，酒馆有时会保留扩展插入的旧图片 DOM。
+  // 只保留当前正文 marker 对应的任务卡片；旧图记录仍留在缓存与角色相册中。
+  const validTaskKeys=new Set(entries.map(entry=>entry.taskKey));
+  host.querySelectorAll('.ql-chat-image').forEach(card=>{
+   if(!validTaskKeys.has(card.dataset.qlTask||''))card.remove();
+  });
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
   hideMarkersInTextNode(host,entries);
   for(const entry of entries){
