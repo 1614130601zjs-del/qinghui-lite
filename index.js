@@ -821,21 +821,61 @@ async function processLatestAssistantMessage(){
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
   const messageElement=host.closest('.mes');
   if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input), [contenteditable="true"]'))continue;
-  // 旧版/定制版若未暴露 swipe_id，再由 swipes 与当前正文推导当前版本。
-  const activeSwipeId=Number.isInteger(message.swipe_id)
-   ? message.swipe_id
-   : (Array.isArray(message.swipes)&&message.swipes.length
-      ? Math.max(0,message.swipes.findIndex(swipe=>swipe===message.mes))
-      : 0);
+  // 先校验 swipe_id 是否真的指向当前正文。部分重 Roll 事件里，正文已切换但 swipe_id 仍短暂停留在旧值。
+  const swipes=Array.isArray(message.swipes)?message.swipes:[];
+  const reportedSwipeId=Number.isInteger(message.swipe_id)?message.swipe_id:-1;
+  const reportedSwipe=reportedSwipeId>=0?swipes[reportedSwipeId]:undefined;
+  let activeSwipeId=reportedSwipeId>=0?reportedSwipeId:0;
+  if(swipes.length){
+   if(reportedSwipe===message.mes){
+    activeSwipeId=reportedSwipeId;
+   }else{
+    // 以当前正文反查真实 swipe；优先最后一个匹配项，避免相同文本的旧 swipe 抢先命中。
+    const matchedSwipeId=swipes.findLastIndex
+     ? swipes.findLastIndex(swipe=>swipe===message.mes)
+     : (()=>{for(let i=swipes.length-1;i>=0;i--)if(swipes[i]===message.mes)return i;return -1;})();
+    if(matchedSwipeId>=0)activeSwipeId=matchedSwipeId;
+   }
+  }
+  // 将完整正文指纹纳入任务 ID。即使旧版酒馆没有可靠的 swipe_id，
+  // 只要重 Roll 后正文变化，就不能复用上一版的按钮/图片任务。
+  let bodyHash=2166136261;
+  for(let i=0;i<message.mes.length;i++){bodyHash^=message.mes.charCodeAt(i);bodyHash=Math.imul(bodyHash,16777619);}
+  const messageVersion=String(messageIndex)+':'+String(activeSwipeId)+':'+(bodyHash>>>0).toString(36);
   const entries=found.map((marker,markerOrdinal)=>{
-   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(activeSwipeId),markerIndex:markerOrdinal});
+   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:messageVersion,markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
   });
-  // 重 Roll/切换 swipe 后，酒馆有时会保留扩展插入的旧图片 DOM。
-  // 只保留当前正文 marker 对应的任务卡片；旧图记录仍留在缓存与角色相册中。
+  // 旧 swipe 的图片卡片和按钮都必须清理；否则旧按钮可能占用新任务的位置，
+  // 让新 marker 无法生成按钮，并使旧图看起来像是新 tag 的结果。
   const validTaskKeys=new Set(entries.map(entry=>entry.taskKey));
   host.querySelectorAll('.ql-chat-image').forEach(card=>{
    if(!validTaskKeys.has(card.dataset.qlTask||''))card.remove();
+  });
+  // 兼容升级前已经被替换成按钮的 marker：原始 image### 文本此时已不在 DOM，
+  // 不能先删旧按钮，否则 hideMarkersInTextNode 无法再从 DOM 里生成新按钮。
+  const claimedEntries=new Set();
+  host.querySelectorAll('[data-ql-trigger]').forEach(button=>{
+   const currentKey=button.dataset.qlTrigger||'';
+   if(validTaskKeys.has(currentKey)){
+    const matched=entries.find(entry=>entry.taskKey===currentKey);
+    if(matched)claimedEntries.add(matched.taskKey);
+    return;
+   }
+   const oldPrompt=String(button.dataset.qlPrompt||'').trim();
+   const replacement=entries.find(entry=>!claimedEntries.has(entry.taskKey)&&String(entry.prompt||'').trim()===oldPrompt);
+   if(!replacement){
+    button.closest('.ql-inline-image-trigger-wrap')?.remove();
+    if(button.isConnected)button.remove();
+    return;
+   }
+   claimedEntries.add(replacement.taskKey);
+   const repaired=button.cloneNode(true);
+   repaired.dataset.qlTrigger=replacement.taskKey;
+   repaired.dataset.qlPrompt=replacement.prompt;
+   repaired.addEventListener('click',()=>runInlineImageTrigger(repaired,replacement));
+   repaired._qlClickBound=true;
+   button.replaceWith(repaired);
   });
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
   hideMarkersInTextNode(host,entries);
@@ -869,14 +909,14 @@ async function processLatestAssistantMessage(){
     }
     continue;
    }
-   const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+   const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&(!item.basePrompt||String(item.basePrompt).trim()===entry.prompt)&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
     const latest=savedRecords[savedRecords.length-1];
     for(const record of savedRecords)addMessageImage(host,record.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},markerButton);
     host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]').forEach(button=>button.remove());
     continue;
    }
-   const removedFromBody=(cfg().records||[]).some(item=>item&&item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat');
+   const removedFromBody=(cfg().records||[]).some(item=>item&&item.hiddenInChat&&item.taskKey===entry.taskKey&&(!item.basePrompt||String(item.basePrompt).trim()===entry.prompt)&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat');
    if(removedFromBody){host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]').forEach(button=>button.remove());continue;}
    if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
    if([...host.querySelectorAll('[data-ql-prompt]')].some(button=>button.dataset.qlPrompt===entry.prompt&&button.dataset.qlTrigger===entry.taskKey))continue;
@@ -906,6 +946,8 @@ function statusbarPromptForTarget(target){
   target?.dataset?.qlPrompt
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
+ const savedPrompt=String(target?.getAttribute?.('data-ql-prompt')||target?.dataset?.qlPrompt||'').trim();
+ if(savedPrompt)return savedPrompt;
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
   const raw=ancestor.getAttribute?.('data-tag');
