@@ -1751,3 +1751,79 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
   flex-basis:19px!important;width:19px!important;height:19px!important;min-width:19px!important;min-height:19px!important;
  }
 }
+
+
+/* 画师串页：顶部名称/新建/迁移控件统一对齐，列表卡片化，批量选择状态清晰。 */
+#qinghui-lite-panel .ql-artist-toolbar{
+ display:grid!important;grid-template-columns:minmax(0,1.65fr) minmax(68px,.65fr) minmax(88px,1fr)!important;
+ align-items:stretch!important;gap:7px!important;margin:10px 0 12px!important;
+}
+#qinghui-lite-panel .ql-artist-toolbar>*{
+ width:100%!important;min-width:0!important;height:38px!important;min-height:38px!important;
+ margin:0!important;box-sizing:border-box!important;
+}
+#qinghui-lite-panel .ql-artist-toolbar select{
+ padding:7px 9px!important;font-size:13px!important;line-height:1.2!important;
+}
+#qinghui-lite-panel .ql-artist-toolbar .ql-artist-toolbar-button{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ padding:6px 8px!important;white-space:nowrap!important;font-size:13px!important;
+ border:1px solid var(--SmartThemeBorderColor)!important;border-radius:9px!important;
+ background:color-mix(in srgb,var(--SmartThemeQuoteColor,#8999aa) 9%,var(--SmartThemeBlurTintColor,transparent))!important;
+}
+#qinghui-lite-panel #ql-preset-editor{
+ margin-top:10px;padding:10px;border:1px solid var(--SmartThemeBorderColor);
+ border-radius:10px;background:color-mix(in srgb,var(--SmartThemeQuoteColor,#8999aa) 5%,transparent);
+}
+#qinghui-lite-panel #ql-preset-batch-toggle{margin:8px 0 10px!important;min-height:36px;padding:7px 13px!important;border-radius:9px!important;}
+#qinghui-lite-panel #ql-presets-batch .ql-preset-bulk-tools{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ gap:6px!important;margin:8px 0!important;align-items:stretch!important;
+}
+#qinghui-lite-panel #ql-presets-batch .ql-preset-bulk-tools button{
+ min-width:0!important;width:100%!important;min-height:36px!important;height:auto!important;
+ margin:0!important;padding:6px 3px!important;font-size:12px!important;line-height:1.25!important;
+ border-radius:9px!important;white-space:normal!important;
+}
+#qinghui-lite-panel .ql-preset-compact{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:10px!important;min-width:0!important;margin:7px 0!important;padding:11px 10px!important;
+ border:1px solid var(--SmartThemeBorderColor)!important;border-radius:11px!important;
+ background:color-mix(in srgb,var(--SmartThemeQuoteColor,#8999aa) 4%,var(--SmartThemeBlurTintColor,transparent))!important;
+ transition:background .12s ease,border-color .12s ease,transform .12s ease;
+}
+#qinghui-lite-panel .ql-preset-compact-info{flex:1 1 auto!important;min-width:0!important;}
+#qinghui-lite-panel .ql-preset-compact-info>strong{display:block!important;overflow-wrap:anywhere!important;font-size:13px!important;}
+#qinghui-lite-panel .ql-preset-compact-info>p{margin:4px 0 0!important;font-size:11px!important;line-height:1.35!important;}
+#qinghui-lite-panel .ql-preset-compact-actions{display:flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:flex-end!important;gap:5px!important;flex-wrap:nowrap!important;}
+#qinghui-lite-panel .ql-preset-compact-actions button{min-height:30px!important;margin:0!important;padding:5px 8px!important;font-size:12px!important;border-radius:8px!important;}
+#qinghui-lite-panel .ql-preset-compact.ql-preset-selectable{
+ cursor:pointer!important;user-select:none;-webkit-tap-highlight-color:transparent;
+}
+#qinghui-lite-panel .ql-preset-compact.ql-preset-selectable:active{transform:scale(.995);}
+#qinghui-lite-panel .ql-preset-compact.ql-preset-selectable.is-selected{
+ background:color-mix(in srgb,var(--SmartThemeQuoteColor,#8999aa) 22%,var(--SmartThemeBlurTintColor,transparent))!important;
+ border-color:color-mix(in srgb,var(--SmartThemeQuoteColor,#8999aa) 62%,var(--SmartThemeBorderColor))!important;
+ box-shadow:inset 3px 0 0 color-mix(in srgb,var(--SmartThemeQuoteColor,#8999aa) 72%,var(--SmartThemeBodyColor))!important;
+}
+#qinghui-lite-panel .ql-preset-compact.ql-preset-selectable.is-selected .ql-preset-compact-info>strong:after{
+ content:"已选";display:inline-block;margin-left:7px;padding:2px 6px;border-radius:999px;
+ background:color-mix(in srgb,var(--SmartThemeQuoteColor,#8999aa) 28%,transparent);
+ font-size:10px;font-weight:500;vertical-align:middle;opacity:.9;
+}
+#qinghui-lite-panel #ql-presets-list:empty:after{content:"暂无画师串";display:block;padding:12px;color:var(--SmartThemeEmColor);opacity:.75;font-size:12px;}
+@media(max-width:480px){
+ #qinghui-lite-panel .ql-artist-toolbar{grid-template-columns:minmax(0,1.4fr) minmax(54px,.55fr) minmax(78px,.9fr)!important;gap:5px!important;}
+ #qinghui-lite-panel .ql-artist-toolbar>*{height:36px!important;min-height:36px!important;font-size:12px!important;}
+ #qinghui-lite-panel .ql-artist-toolbar select{padding:6px!important;}
+ #qinghui-lite-panel .ql-artist-toolbar .ql-artist-toolbar-button{padding:5px 4px!important;font-size:12px!important;}
+ #qinghui-lite-panel .ql-preset-compact{flex-direction:row!important;align-items:center!important;padding:10px 8px!important;gap:7px!important;}
+ #qinghui-lite-panel .ql-preset-compact-actions{width:auto!important;justify-content:flex-end!important;gap:4px!important;}
+ #qinghui-lite-panel .ql-preset-compact-actions button{padding:5px 6px!important;font-size:11px!important;}
+ #qinghui-lite-panel #ql-presets-batch .ql-preset-bulk-tools{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important;}
+ #qinghui-lite-panel #ql-presets-batch .ql-preset-bulk-tools button{font-size:11px!important;padding:5px 2px!important;}
+}
+@media(max-width:350px){
+ #qinghui-lite-panel .ql-artist-toolbar{grid-template-columns:minmax(0,1fr) minmax(48px,.5fr) minmax(70px,.8fr)!important;}
+ #qinghui-lite-panel .ql-preset-compact-actions button{padding:4px!important;font-size:10px!important;}
+}
