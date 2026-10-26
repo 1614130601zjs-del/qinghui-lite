@@ -1478,11 +1478,13 @@ function syncViewfinderActions(){
  if(!result||!favorite||!enlarge)return;
  const img=result.querySelector('img');
  favorite.disabled=!img;enlarge.disabled=!img;
- if(!img){favorite.textContent='收藏到角色相册';favorite.classList.remove('is-favorite');return;}
- const record=(cfg().records||[]).find(item=>item&&item.dataUrl===img.src);
+ const record=img?(cfg().records||[]).find(item=>item&&item.dataUrl===img.src):null;
  const saved=!!record?.albumCharacterName;
- favorite.textContent=saved?'取消角色相册收藏':'收藏到角色相册';
+ const label=saved?'取消角色相册收藏':'收藏到角色相册';
+ favorite.setAttribute('aria-label',label);favorite.title=label;
  favorite.classList.toggle('is-favorite',saved);
+ const star=favorite.querySelector('svg path');
+ if(star){star.style.fill=saved?'currentColor':'none';star.style.stroke='currentColor';}
 }
 function toggleViewfinderFavorite(){
  const img=$('#ql-result img');if(!img)return;
