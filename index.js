@@ -867,22 +867,8 @@ async function processLatestAssistantMessage(){
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
    const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);host.append(buttonWrap);
   }
-  // 即使编辑消息后原始 image### 标记被酒馆改写/截断，也从已保存的记录恢复图片卡片。
-  // 这一步同时重建刷新后只剩 HTML、丢失事件监听的旧卡片。
-  const restoredKeys=new Set(entries.map(entry=>entry.taskKey));
-  const savedForMessage=(cfg().records||[])
-   .filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat'&&item.taskKey)
-   .sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
-  for(const record of savedForMessage){
-   // 当前消息仍包含 image### 标记时，不能把未匹配到锚点的记录作为兜底追加到正文末尾。
-   // 等正文锚点可用后，由上面的定点恢复分支重新放回原位。
-   if(entries.length)continue;
-   if(restoredKeys.has(record.taskKey))continue;
-   restoredKeys.add(record.taskKey);
-   addMessageImage(host,record.dataUrl,record.basePrompt||record.prompt||'',record.taskKey,{
-    messageIndex,source:'chat',character:record.character||context.name||null,chatId:context.chatId||null
-   });
-  }
+  // 只有当前消息正文仍含 image### 标记时，才在上面的对应锚点分支恢复缓存图片。
+  // 正文标记被重新生成、删除或改写后，不再按 messageIndex 把旧图片硬塞回正文。
  }
 }
 let statusbarObserver=null;
