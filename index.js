@@ -53,28 +53,56 @@ const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
 function hideMarkersInTextNode(root,entries=[]){
  if(!root)return;
- let entryCursor=0;
- const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
- const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue?.includes('image###'))nodes.push(walker.currentNode);
- let ordinal=0;
- for(const node of nodes){
-  const value=node.nodeValue||'',re=/image###([\s\S]*?)###/g;
-  if(!re.test(value))continue;
-  re.lastIndex=0;
-  const fragment=document.createDocumentFragment();let last=0,match;
-  while((match=re.exec(value))!==null){
-   fragment.append(document.createTextNode(value.slice(last,match.index)));
-   const entry=entries[entryCursor++],prompt=match[1].trim();
-   if(!prompt){last=re.lastIndex;continue;}
-   const button=document.createElement('button');
-   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='定格此刻：生成图片并收录到当前消息';
-   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
-   button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
-   button._qlClickBound=true;
-   const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);fragment.append(buttonWrap);ordinal++;last=re.lastIndex;
+ // 酒馆/主题可能把同一个 image###...### 标记拆到多个相邻文本节点中。
+ // 先按正文整体文本定位，再用 Range 替换，避免逐个文本节点扫描时漏掉按钮。
+ const fullText=root.textContent||'';
+ const re=/image###([\\s\\S]*?)###/g;
+ const replacements=[];
+ let match,ordinal=0;
+ while((match=re.exec(fullText))!==null){
+  const prompt=match[1].trim();
+  if(!prompt)continue;
+  replacements.push({start:match.index,end:re.lastIndex,prompt,entry:entries[ordinal],ordinal});
+  ordinal++;
+ }
+ if(!replacements.length)return;
+ const locate=(offset,preferPrevious=false)=>{
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+  let cursor=0,last=null;
+  while(walker.nextNode()){
+   const node=walker.currentNode;
+   const length=(node.nodeValue||'').length;
+   const end=cursor+length;
+   last={node,offset:length};
+   if(offset<end||(preferPrevious&&offset===end))return {node,offset:offset-cursor};
+   cursor=end;
   }
-  fragment.append(document.createTextNode(value.slice(last)));
-  node.parentNode?.replaceChild(fragment,node);
+  return last;
+ };
+ for(let i=replacements.length-1;i>=0;i--){
+  const item=replacements[i];
+  const startPos=locate(item.start,false);
+  const endPos=locate(item.end,true);
+  if(!startPos||!endPos)continue;
+  const range=document.createRange();
+  range.setStart(startPos.node,startPos.offset);
+  range.setEnd(endPos.node,endPos.offset);
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='menu_button ql-inline-image-trigger';
+  button.textContent='定格此刻';
+  button.title='定格此刻：生成图片并收录到当前消息';
+  button.dataset.qlTrigger=item.entry?.taskKey||('marker-'+item.ordinal);
+  button.dataset.qlPrompt=item.prompt;
+  applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');
+  applyChatTheme(button);
+  button.addEventListener('click',()=>runInlineImageTrigger(button,item.entry||{prompt:item.prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
+  button._qlClickBound=true;
+  const wrap=document.createElement('span');
+  wrap.className='ql-inline-image-trigger-wrap';
+  wrap.append(button);
+  range.deleteContents();
+  range.insertNode(wrap);
  }
 }
 let qlImageRequestQueue=Promise.resolve();
