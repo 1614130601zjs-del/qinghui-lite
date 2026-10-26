@@ -70,6 +70,7 @@ function hideMarkersInTextNode(root,entries=[]){
    button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='定格此刻：生成图片并收录到当前消息';
    button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
+   button._qlClickBound=true;
    const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);fragment.append(buttonWrap);ordinal++;last=re.lastIndex;
   }
   fragment.append(document.createTextNode(value.slice(last)));
@@ -820,8 +821,14 @@ async function processLatestAssistantMessage(){
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
   const messageElement=host.closest('.mes');
   if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input), [contenteditable="true"]'))continue;
+  // 旧版/定制版若未暴露 swipe_id，再由 swipes 与当前正文推导当前版本。
+  const activeSwipeId=Number.isInteger(message.swipe_id)
+   ? message.swipe_id
+   : (Array.isArray(message.swipes)&&message.swipes.length
+      ? Math.max(0,message.swipes.findIndex(swipe=>swipe===message.mes))
+      : 0);
   const entries=found.map((marker,markerOrdinal)=>{
-   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
+   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(activeSwipeId),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
   });
   // 重 Roll/切换 swipe 后，酒馆有时会保留扩展插入的旧图片 DOM。
@@ -835,14 +842,22 @@ async function processLatestAssistantMessage(){
   for(const entry of entries){
    // 只有正文中真正存在的 marker 按钮才是可靠锚点。
    // 酒馆刷新时可能先恢复到一份尚未完成渲染的正文；此时不能把图片/按钮追加到末尾。
-   const markerButton=host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
+   let markerButton=host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
+   // 酒馆可能保留按钮 HTML、却丢掉运行时 click 监听；克隆后重新绑定。
+   if(markerButton&&!markerButton._qlClickBound&&markerButton.dataset.qlBusy!=='1'){
+    const repaired=markerButton.cloneNode(true);
+    repaired.addEventListener('click',()=>runInlineImageTrigger(repaired,entry));
+    repaired._qlClickBound=true;
+    markerButton.replaceWith(repaired);
+    markerButton=repaired;
+   }
    if(!markerButton){
     const waitingCard=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===entry.taskKey);
     if(waitingCard){
      // 没有 marker 锚点时仍要恢复旧卡片的事件监听；以旧卡片的下一个兄弟节点作为锚点，
      // 让新卡片原位替换旧 HTML，不把它追加到消息末尾，也不需要用户先点小铅笔。
      const nextSibling=waitingCard.nextSibling;
-     const records=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+     const records=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&(!item.basePrompt||String(item.basePrompt).trim()===entry.prompt)&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
      if(!waitingCard._qlRender&&records.length){
       const latest=records[records.length-1];
       addMessageImage(host,latest.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},nextSibling);
@@ -871,6 +886,7 @@ async function processLatestAssistantMessage(){
    button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
    button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
+   button._qlClickBound=true;
    const buttonWrap=document.createElement('span');buttonWrap.className='ql-inline-image-trigger-wrap';buttonWrap.append(button);host.append(buttonWrap);
   }
   // 只有当前消息正文仍含 image### 标记时，才在上面的对应锚点分支恢复缓存图片。
@@ -879,22 +895,41 @@ async function processLatestAssistantMessage(){
 }
 let statusbarObserver=null;
 const statusbarObservedDocs=new WeakSet();
+const statusbarObservedFrames=new WeakSet();
 function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);const prompt=match?.[1]?.trim()||'';return !prompt||/^[.…⋯\s]+$/.test(prompt)?'':prompt;}
+function plainStatusbarTag(text){return String(text||'').replace(/^image###\s*/i,'').replace(/\s*###$/,'').trim();}
 function statusbarPromptForTarget(target){
- // 显式 tag 属性是原始数据；textContent 可能只是酒馆渲染出的“……”占位内容，必须优先读取 data-tag。
  const direct=[
+  target?.textContent,
   target?.getAttribute?.('data-tag'),
   ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag')),
-  target?.textContent
+  target?.dataset?.qlPrompt
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
-  const prompt=parseStatusbarMarker(ancestor.getAttribute?.('data-tag'));
-  if(prompt)return prompt;
+  const raw=ancestor.getAttribute?.('data-tag');
+  const marked=parseStatusbarMarker(raw);
+  if(marked)return marked;
+  if(raw&&ancestor.querySelector?.('.shot-frame, [id="frame"], [id$="-frame"]')){
+   const plain=plainStatusbarTag(raw);
+   if(plain)return plain;
+  }
   ancestor=ancestor.parentElement;
  }
  return '';
+}
+function statusbarTargetsForDoc(doc){
+ const candidates=new Set(Array.from(doc.querySelectorAll('[class~="scanning"], [data-ql-prompt]')));
+ for(const tagged of Array.from(doc.querySelectorAll('[data-tag]'))){
+  const frame=tagged.querySelector('.shot-frame, [id="frame"], [id$="-frame"]');
+  if(!frame)continue;
+  const raw=tagged.getAttribute('data-tag');
+  if(!parseStatusbarMarker(raw)&&!plainStatusbarTag(raw))continue;
+  candidates.add(frame);
+ }
+ const all=Array.from(candidates).filter(el=>statusbarPromptForTarget(el)||el.dataset.qlPrompt);
+ return all.filter(el=>!all.some(child=>child!==el&&el.contains(child)&&statusbarPromptForTarget(child)===statusbarPromptForTarget(el)));
 }
 function statusbarTaskKey(target,prompt,doc){
  const message=target.closest('.mes[mesid]')||target.closest('.mes');
@@ -906,7 +941,17 @@ function statusbarTaskKey(target,prompt,doc){
  for(let i=0;i<prompt.length;i++){hash^=prompt.charCodeAt(i);hash=Math.imul(hash,16777619);}
  return 'statusbar:'+String(getContext()?.chatId||'chat')+':'+messageId+':'+ordinal+':'+(hash>>>0).toString(36);
 }
+function revealStatusbarFrame(frame){
+ if(!frame)return;
+ frame.classList.remove('scanning');
+ if(getComputedStyle(frame).position==='static')frame.style.position='relative';
+ const screen=frame.closest('.screen, .dy-screen');
+ if(screen)screen.classList.add('has-image');
+ frame.style.display='block';
+ frame.style.visibility='visible';
+}
 function renderStatusbarCard(frame,prompt,url,taskKey){
+ revealStatusbarFrame(frame);
  let card=frame.querySelector('.ql-statusbar-card');
  // 酒馆刷新后可能只留下卡片 HTML；HTML 不会保留事件监听和轮播状态，必须重建。
  if(!card||card.dataset.qlTask!==taskKey||!card._qlRender){
@@ -1016,11 +1061,7 @@ async function processStatusbarFrames(){
  if(cfg().enabled===false)return;
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
- const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
-  const prompt=statusbarPromptForTarget(frame);
-  if(!prompt)return false;
-  return !Array.from(frame.querySelectorAll('[class~="scanning"]')).some(child=>statusbarPromptForTarget(child)===prompt);
- }));
+ const frames=docs.flatMap(doc=>statusbarTargetsForDoc(doc));
  for(const frame of frames){
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)continue;
@@ -1074,15 +1115,24 @@ async function processStatusbarFrames(){
 function observeStatusbarFrames(){
  const attach=doc=>{
   if(!doc||statusbarObservedDocs.has(doc))return;
-  const target=doc.body||doc.documentElement;if(!target)return;
+  const target=doc.documentElement||doc.body;if(!target)return;
   statusbarObservedDocs.add(doc);
   const observer=new MutationObserver(()=>{attachFrames();processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));});
-  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
+  observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class','data-tag','data-ql-prompt','id']});
   if(doc===document)statusbarObserver=observer;
  };
  const attachFrames=()=>{
   attach(document);
-  document.querySelectorAll('iframe').forEach(frame=>{try{attach(frame.contentDocument);}catch{}});
+  document.querySelectorAll('iframe').forEach(frame=>{
+   if(!statusbarObservedFrames.has(frame)){
+    statusbarObservedFrames.add(frame);
+    frame.addEventListener('load',()=>{
+     try{attach(frame.contentDocument);}catch{}
+     processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
+    });
+   }
+   try{attach(frame.contentDocument);}catch{}
+  });
  };
  attachFrames();
  processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
