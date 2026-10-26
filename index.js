@@ -815,15 +815,13 @@ async function processLatestAssistantMessage(){
   const message=chat[messageIndex];
   if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
   const found=markers(message.mes);
-  // 同一条消息的不同 swipe 即使 swipe_id 未及时更新，也用当前正文指纹隔离缓存。
-  const messageFingerprint=Array.from(message.mes).reduce((hash,char)=>Math.imul(hash^char.charCodeAt(0),16777619),2166136261)>>>0;
   const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
   if(!host)continue;
   // 编辑消息时不改写原始正文；编辑器关闭后由延迟重扫恢复按钮。
   const messageElement=host.closest('.mes');
   if(messageElement?.querySelector('textarea:not(.ql-chat-image-tag-input), [contenteditable="true"]'))continue;
   const entries=found.map((marker,markerOrdinal)=>{
-   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0)+':'+messageFingerprint.toString(36),markerIndex:markerOrdinal});
+   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal};
   });
   // 重 Roll/切换 swipe 后，酒馆有时会保留扩展插入的旧图片 DOM。
