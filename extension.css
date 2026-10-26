@@ -2033,3 +2033,17 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  #qinghui-lite-panel [data-subpage-panel="bindings"] .ql-combo-materials{gap:5px!important;}
  #qinghui-lite-panel [data-subpage-panel="bindings"] .ql-combo-material{padding:7px!important;font-size:11px!important;}
 }
+
+
+/* 预设页编号徽标与前两页保持一致：顶部留白统一，避免贴近子导航；编号使用中性灰绿而非偏蓝强调色。 */
+#qinghui-lite-panel [data-subpage-panel="bindings"]{
+ padding-top:4px!important;
+}
+#qinghui-lite-panel [data-subpage-panel="bindings"]>.ql-card:first-child{
+ margin-top:12px!important;
+}
+#qinghui-lite-panel [data-subpage-panel="bindings"] .ql-section-index{
+ border-color:color-mix(in srgb,var(--ql-border,#cbd1cf) 82%,var(--ql-muted,#778187))!important;
+ background:color-mix(in srgb,var(--ql-card,#f6f7f5) 94%,var(--ql-muted,#778187))!important;
+ color:var(--ql-muted,#778187)!important;
+}
