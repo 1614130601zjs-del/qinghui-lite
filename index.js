@@ -1326,7 +1326,7 @@ jQuery(()=>{
  let scanTimer=null;
  const scheduleScan=()=>{if(scanTimer)clearTimeout(scanTimer);scanTimer=setTimeout(()=>{
   scanTimer=null;
-  processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 自动触发失败',e));
+  bodyModule.processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 自动触发失败',e));
   statusbarModule.processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
  },120);};
  // 生成结束与 swipe 是稳定兜底；如果当前酒馆版本提供流式事件，则在完整 marker 到达时提前触发。
