@@ -54,19 +54,19 @@ function findRenderedMarkerRange(text,raw,startTag='image###',endTag='###',from=
  const exact=text.indexOf(raw,from);
  if(exact>=0)return {start:exact,end:exact+raw.length};
  const stripMarkdown=value=>String(value)
-  .replace(/!\\[([^\\]]*)\\]\\([^)]*\\)/g,'$1')
-  .replace(/\\[([^\\]]+)\\]\\([^)]*\\)/g,'$1')
-  .replace(/<!--[\\s\\S]*?-->/g,'')
-  .replace(/<\\/?[A-Za-z][^>]*>/g,'')
-  .replace(/\\`{1,3}|\\*{2}|_{2}|~~/g,'');
+  .replace(/!\[([^\]]*)\]\([^)]*\)/g,'$1')
+  .replace(/\[([^\]]+)\]\([^)]*\)/g,'$1')
+  .replace(/<!--[\s\S]*?-->/g,'')
+  .replace(/<\/?[A-Za-z][^>]*>/g,'')
+  .replace(/\`{1,3}|\*{2}|_{2}|~~/g,'');
  const compactText=[],offsets=[];
  for(let i=0;i<text.length;i++){
-  if(!/\\s/.test(text[i])){compactText.push(text[i]);offsets.push(i);}
+  if(!/\s/.test(text[i])){compactText.push(text[i]);offsets.push(i);}
  }
  const compact=compactText.join('');
  const find=value=>{
   for(const candidate of [String(value),stripMarkdown(value)]){
-   const needle=candidate.replace(/\\s/g,'');
+   const needle=candidate.replace(/\s/g,'');
    if(!needle)continue;
    const first=offsets.findIndex(offset=>offset>=from);
    const at=compact.indexOf(needle,first<0?compact.length:first);
@@ -79,7 +79,7 @@ function findRenderedMarkerRange(text,raw,startTag='image###',endTag='###',from=
  if(raw.startsWith(startTag)&&raw.endsWith(endTag)){
   const body=find(raw.slice(0,-endTag.length));
   if(body){
-   const tail=text.slice(body.end).match(/^\\s*(#{1,6})(?=\\s|$)/);
+   const tail=text.slice(body.end).match(/^\s*(#{1,6})(?=\s|$)/);
    if(tail&&tail[1].length<=endTag.length)body.end+=tail[0].length;
    return body;
   }
