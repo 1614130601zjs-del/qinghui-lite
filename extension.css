@@ -3481,3 +3481,5 @@ r. */
 }
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-favorite.is-favorite{color:#ffe18a!important;}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-favorite.is-favorite svg path{fill:currentColor!important;}
+/* 0.5.95: remove the internal prompt-gallery tab from the top navigation. */
+#qinghui-lite-panel .ql-tabs > .ql-tab[data-page="prompt-gallery"]{display:none!important;}
