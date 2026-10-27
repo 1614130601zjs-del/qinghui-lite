@@ -3576,3 +3576,65 @@ dialog.ql-viewfinder-lightbox img{
   dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-shell{max-width:calc(100vw - 22px)!important;max-height:calc(100dvh - 22px)!important;padding:8px!important;}
   dialog.ql-viewfinder-lightbox img{max-width:calc(100vw - 42px)!important;max-height:calc(100dvh - 120px)!important;}
 }
+
+
+/* 0.5.97: persistent favorite contrast, dark generate control, and album-page image viewer */
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
+#qinghui-lite-panel #ql-result-favorite.is-favorite{
+  color:#6f4c00!important;background:#ffe08a!important;border:2px solid #b98516!important;
+  box-shadow:0 0 0 3px rgba(255,204,74,.30),0 2px 10px rgba(80,55,0,.28)!important;
+  opacity:1!important;filter:none!important;transform:none!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg path,
+#qinghui-lite-panel #ql-result-favorite.is-favorite svg path{
+  fill:currentColor!important;stroke:currentColor!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus-visible{
+  background:#38424b!important;border-color:#26313a!important;color:#fff!important;
+  box-shadow:0 2px 6px rgba(20,28,35,.24)!important;filter:none!important;opacity:1!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate svg{color:#fff!important;stroke:#fff!important;}
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:disabled{opacity:.45!important;}
+/* Reuse the album flip-page look in the viewer, without arrows or page number. */
+dialog.ql-viewfinder-lightbox[open]{
+  position:fixed!important;inset:0!important;margin:auto!important;box-sizing:border-box!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:max-content!important;height:max-content!important;max-width:calc(100vw - 16px)!important;
+  max-height:calc(100dvh - 16px)!important;padding:0!important;overflow:visible!important;transform:none!important;
+  border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+dialog.ql-viewfinder-lightbox::backdrop{background:rgba(12,12,14,.78)!important;backdrop-filter:blur(3px);}
+dialog.ql-viewfinder-lightbox .ql-lightbox-album-paper{
+  box-sizing:border-box!important;position:relative!important;display:block!important;width:max-content!important;
+  max-width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;padding:clamp(10px,3vw,20px)!important;
+  border:1px solid #d8c7b8!important;border-radius:5px 13px 13px 5px!important;
+  background:repeating-linear-gradient(0deg,rgba(143,113,91,.025) 0,rgba(143,113,91,.025) 1px,transparent 1px,transparent 5px),linear-gradient(100deg,#e8ddcd,#fffaf0 6%,#f8f0e4 95%,#e6d8c8)!important;
+  box-shadow:inset 7px 0 12px rgba(99,70,47,.10),0 10px 32px rgba(0,0,0,.32)!important;
+}
+dialog.ql-viewfinder-lightbox .ql-lightbox-album-page{
+  box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  width:fit-content!important;max-width:100%!important;max-height:calc(100dvh - 52px)!important;min-width:0!important;
+  margin:0!important;padding:clamp(8px,2.5vw,14px)!important;background:#fffdf8!important;
+  border:1px solid rgba(117,91,69,.18)!important;box-shadow:0 3px 10px rgba(64,44,29,.12)!important;transform:rotate(-.5deg);
+}
+dialog.ql-viewfinder-lightbox .ql-lightbox-album-image{
+  display:block!important;width:auto!important;height:auto!important;max-width:calc(100vw - 64px)!important;
+  max-height:calc(100dvh - 76px)!important;object-fit:contain!important;margin:0!important;border:0!important;
+  border-radius:0!important;background:#eee5da!important;box-shadow:none!important;
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
+  position:fixed!important;top:max(8px,env(safe-area-inset-top))!important;right:max(8px,env(safe-area-inset-right))!important;
+  z-index:2!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;
+  border:1px solid rgba(255,255,255,.55)!important;border-radius:50%!important;background:rgba(25,25,27,.82)!important;
+  color:#fff!important;font-size:24px!important;
+}
+@media(max-width:480px){
+  dialog.ql-viewfinder-lightbox[open]{max-width:calc(100vw - 10px)!important;max-height:calc(100dvh - 10px)!important;}
+  dialog.ql-viewfinder-lightbox .ql-lightbox-album-paper{max-width:calc(100vw - 10px)!important;max-height:calc(100dvh - 10px)!important;padding:8px!important;}
+  dialog.ql-viewfinder-lightbox .ql-lightbox-album-page{max-height:calc(100dvh - 38px)!important;padding:6px!important;}
+  dialog.ql-viewfinder-lightbox .ql-lightbox-album-image{max-width:calc(100vw - 36px)!important;max-height:calc(100dvh - 48px)!important;}
+}
