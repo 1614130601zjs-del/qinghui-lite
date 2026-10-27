@@ -3369,3 +3369,117 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-book > button.ql-album-page-arrow[data-prompt-gallery-step="-1"]{left:-16px!important;}
  #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-book > button.ql-album-page-arrow[data-prompt-gallery-step="1"]{right:-16px!important;}
 }
+
+
+/* 0.5.92: separate viewfinder actions and make tap feedback obvious. */
+#qinghui-lite-panel .ql-viewfinder-actions{
+  gap:12px!important;
+  padding:4px 2px!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate{
+  flex:0 0 42px!important;width:42px!important;height:42px!important;
+  min-width:42px!important;min-height:42px!important;
+  border-radius:13px!important;
+  box-shadow:0 2px 7px rgba(35,45,55,.08)!important;
+  transition:transform .14s ease,background .14s ease,border-color .14s ease,box-shadow .14s ease!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:not(:disabled):active{
+  transform:translateY(1px) scale(.93)!important;
+  box-shadow:inset 0 1px 3px rgba(35,45,55,.16)!important;
+}
+#qinghui-lite-panel #ql-result-favorite.is-favorite{
+  background:color-mix(in srgb,#c99b35 18%,var(--ql-card,#fff))!important;
+  color:#b48720!important;
+  border-color:#c99b35!important;
+  box-shadow:0 0 0 2px color-mix(in srgb,#c99b35 14%,transparent)!important;
+}
+#qinghui-lite-panel #ql-result-favorite.is-favorite svg path{fill:currentColor!important;}
+dialog.ql-viewfinder-lightbox{
+  padding:0!important;
+  border:0!important;
+  border-radius:22px!important;
+  background:transparent!important;
+  overflow:visible!important;
+  box-shadow:0 22px 72px rgba(0,0,0,.42)!important;
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-shell{
+  box-sizing:border-box;
+  width:max-content;max-width:calc(100vw - 20px);
+  max-height:calc(100dvh - 18px);
+  padding:13px;
+  border:1px solid color-mix(in srgb,var(--SmartThemeBorderColor,#cbd1cf) 82%,white);
+  border-radius:22px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--SmartThemeBlurTintColor,#fff) 96%,white),var(--SmartThemeBlurTintColor,#f8f8f8));
+  color:var(--SmartThemeBodyColor,#333);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 8px 28px rgba(0,0,0,.12);
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-topline,
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-caption{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  color:var(--SmartThemeBodyColor,#333);
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-topline{margin:0 44px 10px 2px;}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-mark{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:4px 9px;border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.35));
+  border-radius:999px;font-size:12px;letter-spacing:.12em;
+  background:color-mix(in srgb,var(--SmartThemeQuoteColor,rgba(127,127,127,.12)) 50%,transparent);
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-kicker{
+  font-size:10px;letter-spacing:.18em;opacity:.62;
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame{
+  display:flex;align-items:center;justify-content:center;
+  padding:7px;border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.35));
+  border-radius:15px;background:color-mix(in srgb,var(--SmartThemeQuoteColor,rgba(127,127,127,.12)) 36%,transparent);
+  box-shadow:inset 0 1px 4px rgba(0,0,0,.08);
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame img{
+  display:block;width:auto;height:auto;max-width:min(84vw,720px);
+  max-height:calc(100dvh - 135px);object-fit:contain;border-radius:9px;
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-caption{
+  margin:10px 3px 1px;font-size:11px;letter-spacing:.04em;opacity:.72;
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
+  z-index:2;top:11px;right:11px;
+  border-color:var(--SmartThemeBorderColor,rgba(127,127,127,.35));
+  background:var(--SmartThemeQuoteColor,rgba(127,127,127,.18));
+  box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+@media(max-width:420px){
+  #qinghui-lite-panel .ql-viewfinder-actions{gap:8px!important;}
+  #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button,
+  #qinghui-lite-panel .ql-viewfinder-actions #ql-generate{
+    flex-basis:38px!important;width:38px!important;height:38px!important;
+    min-width:38px!important;min-height:38px!important;
+  }
+  dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-shell{max-width:calc(100vw - 12px);padding:8px;border-radius:17px;}
+  dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame{padding:5px;border-radius:12px;}
+  dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame img{max-width:calc(100vw - 40px);max-height:calc(100dvh - 120px);}
+}
+/* Reapply the previously working action-bar placement: favorite/delete together at bottom center. */
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar{
+  position:absolute!important;left:50%!important;right:auto!important;top:auto!important;
+  bottom:12px!important;transform:translateX(-50%)!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  gap:8px!important;width:max-content!important;max-width:96%!important;
+  pointer-events:auto!important;z-index:2147483647!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-action{
+  position:static!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  display:flex!important;visibility:visible!important;opacity:1!important;
+  flex:0 0 40px!important;width:40px!important;height:40px!important;
+  min-width:40px!important;min-height:40px!important;margin:0!important;padding:8px!important;
+  border:1px solid rgba(255,255,255,.72)!important;border-radius:50%!important;
+  background:rgba(20,16,22,.76)!important;color:#fff!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.24)!important;
+  pointer-events:auto!important;touch-action:manipulation!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-action:active{
+  transform:scale(.92)!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-favorite.is-favorite{color:#ffe18a!important;}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-favorite.is-favorite svg path{fill:currentColor!important;}
