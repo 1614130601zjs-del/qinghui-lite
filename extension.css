@@ -3526,3 +3526,53 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
   background:rgba(255,255,255,.1)!important;color:#fff!important;
   box-shadow:0 3px 12px rgba(0,0,0,.2);
 }
+
+
+/* 0.5.96: persistent, unmistakable favorite state and centered lightbox on mobile */
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
+#qinghui-lite-panel #ql-result-favorite.is-favorite{
+  color:#7b5700!important;
+  background:#ffe08a!important;
+  border:2px solid #b98516!important;
+  box-shadow:0 0 0 3px rgba(255,204,74,.28),0 2px 10px rgba(80,55,0,.28)!important;
+  opacity:1!important;
+  transform:none!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg path,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg path,
+#qinghui-lite-panel #ql-result-favorite.is-favorite svg path{
+  fill:currentColor!important;
+  stroke:currentColor!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-favorite:not(.is-favorite) svg path,
+#qinghui-lite-panel #ql-result-favorite:not(.is-favorite) svg path{fill:none!important;}
+/* Native dialog remains centered in the viewport; constrain the complete frame, not just the image. */
+dialog.ql-viewfinder-lightbox[open]{
+  position:fixed!important;inset:0!important;margin:auto!important;
+  box-sizing:border-box!important;display:grid!important;place-items:center!important;
+  width:max-content!important;height:max-content!important;
+  max-width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;
+  padding:8px!important;overflow:auto!important;
+  transform:none!important;
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-shell{
+  box-sizing:border-box!important;width:fit-content!important;
+  max-width:calc(100vw - 32px)!important;max-height:calc(100dvh - 32px)!important;
+  margin:0 auto!important;overflow:auto!important;
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-topline{box-sizing:border-box!important;max-width:100%!important;}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame{
+  box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  max-width:100%!important;max-height:calc(100dvh - 100px)!important;margin:0 auto!important;
+}
+dialog.ql-viewfinder-lightbox img{
+  display:block!important;box-sizing:border-box!important;width:auto!important;height:auto!important;
+  max-width:calc(100vw - 56px)!important;max-height:calc(100dvh - 140px)!important;
+  object-fit:contain!important;margin:0 auto!important;
+}
+@media(max-width:480px){
+  dialog.ql-viewfinder-lightbox[open]{max-width:calc(100vw - 12px)!important;max-height:calc(100dvh - 12px)!important;padding:5px!important;}
+  dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-shell{max-width:calc(100vw - 22px)!important;max-height:calc(100dvh - 22px)!important;padding:8px!important;}
+  dialog.ql-viewfinder-lightbox img{max-width:calc(100vw - 42px)!important;max-height:calc(100dvh - 120px)!important;}
+}
