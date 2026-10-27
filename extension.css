@@ -3238,3 +3238,14 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel .ql-album-shelf-pager .ql-album-card-caption{
  border-radius:0 0 13px 13px!important;
 }
+
+
+/* Fix: the create-album tile has no popup menu, so clip its own content to keep all four corners rounded. */
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-card.ql-album-create-card{
+ overflow:hidden!important;
+ border-radius:14px!important;
+}
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-card.ql-album-create-card .ql-album-create-open{
+ overflow:hidden!important;
+ border-radius:inherit!important;
+}
