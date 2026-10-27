@@ -2213,3 +2213,44 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  outline:2px solid var(--ql-accent,#a86f8b)!important;
  outline-offset:2px!important;
 }
+
+
+/* 影像详情：复制画面提示词按钮放在标题右侧，移除提示性文字，提示词正文不再为按钮预留顶部空间。 */
+#ql-image-cache-modal .ql-cache-section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+#ql-image-cache-modal .ql-cache-section-title>div{min-width:0;}
+#ql-image-cache-modal .ql-cache-section-title h4{margin:2px 0 0;}
+#ql-image-cache-modal .ql-cache-prompt-box{padding-top:10px!important;}
+#ql-image-cache-modal .ql-cache-copy-pill{
+ position:static!important;flex:0 0 auto!important;width:auto!important;height:30px!important;
+ min-width:0!important;margin:0!important;padding:0 11px!important;border-radius:999px!important;
+ background:color-mix(in srgb,var(--ql-cache-accent) 13%,var(--ql-cache-card))!important;
+ border:1px solid color-mix(in srgb,var(--ql-cache-accent) 24%,var(--ql-cache-border))!important;
+ color:var(--ql-cache-text)!important;font-size:11px!important;line-height:1!important;
+ white-space:nowrap!important;box-shadow:none!important;
+}
+#ql-image-cache-modal .ql-cache-copy-pill:hover,
+#ql-image-cache-modal .ql-cache-copy-pill:focus-visible{
+ background:color-mix(in srgb,var(--ql-cache-accent) 20%,var(--ql-cache-card))!important;
+}
+#ql-image-cache-modal .ql-cache-copy-pill.is-copied{
+ background:color-mix(in srgb,var(--ql-cache-accent) 25%,var(--ql-cache-card))!important;
+ border-color:color-mix(in srgb,var(--ql-cache-accent) 48%,var(--ql-cache-border))!important;
+}
+@media(max-width:420px){
+ #ql-image-cache-modal .ql-cache-copy-pill{padding:0 8px!important;font-size:10px!important;}
+}
+
+/* 取景区生图键保持固定的深色强调；点击、聚焦后不再被通用按钮状态洗浅。 */
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus-visible{
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)) 34%,var(--ql-card,var(--SmartThemeBlurTintColor,#fff)))!important;
+ border-color:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)) 65%,var(--ql-border,var(--SmartThemeBorderColor,#cbd1cf)))!important;
+ color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;
+ filter:none!important;opacity:1!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:disabled{
+ opacity:.4!important;
+}
