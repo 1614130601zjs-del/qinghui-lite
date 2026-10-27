@@ -2604,3 +2604,54 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  #qinghui-lite-panel .ql-album-grid .ql-album-card-caption{min-height:49px!important;}
  #qinghui-lite-panel .ql-album-grid .ql-album-card{border-radius:11px!important;}
 }
+
+
+/* 拾帧相册顶栏与整组气泡容器 */
+#qinghui-lite-panel .ql-album-library-shell{
+  padding:12px!important;
+  border:1px solid var(--SmartThemeBorderColor)!important;
+  border-radius:16px!important;
+  background:var(--SmartThemeBlurTintColor)!important;
+  box-shadow:0 5px 16px rgba(0,0,0,.14)!important;
+}
+#qinghui-lite-panel .ql-album-library-heading{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:8px!important;margin:0 0 13px!important;padding:10px 12px!important;
+  border:1px solid var(--SmartThemeBorderColor)!important;border-radius:11px!important;
+  background:transparent!important;box-shadow:inset 0 -1px 0 rgba(127,127,127,.08)!important;
+}
+#qinghui-lite-panel .ql-album-library-heading h3{
+  margin:0!important;padding:0!important;font-size:15px!important;font-weight:700!important;
+  line-height:1.35!important;letter-spacing:.02em!important;color:var(--SmartThemeBodyColor)!important;
+}
+#qinghui-lite-panel .ql-album-library-heading>span{font-size:11px!important;opacity:.65!important;white-space:nowrap!important}
+#qinghui-lite-panel .ql-album-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-cover{aspect-ratio:5/3!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-caption{min-height:43px!important;padding:7px 6px 7px 9px!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-caption-text{gap:2px!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-caption strong{font-size:12px!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-caption span{font-size:10px!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-create-card{align-self:stretch!important;min-height:0!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-create-open{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;height:100%!important;min-height:0!important;padding:0!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-create-cover{width:100%!important;aspect-ratio:5/3!important;min-height:0!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-create-combined{width:100%!important;height:100%!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:7px!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-create-combined .ql-album-placeholder-mark{font-size:34px!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-create-combined .ql-album-create-label{font-size:12px!important}
+#qinghui-lite-panel .ql-album-grid .ql-album-card{box-shadow:0 5px 13px rgba(0,0,0,.17)!important}
+#qinghui-lite-panel .ql-album-crop-viewport{
+  position:relative!important;width:100%!important;aspect-ratio:5/3!important;height:auto!important;
+  overflow:hidden!important;isolation:isolate!important;background:var(--SmartThemeBlurTintColor)!important;
+}
+#qinghui-lite-panel .ql-album-crop-viewport::after{
+  content:"";position:absolute!important;inset:0!important;z-index:3!important;pointer-events:none!important;
+  border:2px solid var(--SmartThemeQuoteColor)!important;box-shadow:0 0 0 999px rgba(0,0,0,.16)!important;
+}
+#qinghui-lite-panel .ql-album-crop-viewport img[data-crop-image]{
+  position:absolute!important;display:block!important;max-width:none!important;max-height:none!important;
+  object-fit:fill!important;transform:none!important;user-select:none!important;-webkit-user-drag:none!important;
+}
+@media(max-width:380px){
+ #qinghui-lite-panel .ql-album-library-shell{padding:9px!important}
+ #qinghui-lite-panel .ql-album-grid{gap:9px!important}
+ #qinghui-lite-panel .ql-album-grid .ql-album-card-caption{min-height:40px!important;padding:6px 4px 6px 7px!important}
+}
