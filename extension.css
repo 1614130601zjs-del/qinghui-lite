@@ -3638,3 +3638,32 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
   dialog.ql-viewfinder-lightbox .ql-lightbox-album-page{max-height:calc(100dvh - 38px)!important;padding:6px!important;}
   dialog.ql-viewfinder-lightbox .ql-lightbox-album-image{max-width:calc(100vw - 36px)!important;max-height:calc(100dvh - 48px)!important;}
 }
+
+
+/* 0.5.98: all three viewfinder actions share the exact same idle surface, including disabled actions. */
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:focus,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:focus,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus-visible,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:focus-visible,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:focus-visible{
+  background:color-mix(in srgb,var(--ql-card,var(--SmartThemeBlurTintColor,transparent)) 88%,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)))!important;
+  border-color:var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.35)))!important;
+  color:var(--ql-text,var(--SmartThemeBodyColor,#30313a))!important;
+  box-shadow:none!important;filter:none!important;transform:none!important;
+  opacity:1!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate svg,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite svg,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge svg{
+  color:currentColor!important;stroke:currentColor!important;
+}
