@@ -1610,6 +1610,28 @@ jQuery(()=>{
   return true;
  };
  ensureLiteLauncher();
+ // 紧急关闭兜底：热重载时若 #ql-overlay 已存在，初始化块会跳过，
+ // 旧弹窗可能没有关闭监听。委托处理关闭按钮、遮罩点击和 Esc，确保随时能退出。
+ if(!document.documentElement.dataset.qlEmergencyCloseWatch){
+  document.documentElement.dataset.qlEmergencyCloseWatch='1';
+  const emergencyClose=()=>{
+   const overlay=document.querySelector('#ql-overlay');
+   if(overlay)overlay.hidden=true;
+   document.body.classList.remove('ql-modal-open');
+  };
+  document.addEventListener('click',event=>{
+   const target=event.target instanceof Element?event.target:null;
+   if(target?.closest('#ql-close')){emergencyClose();return;}
+   const overlay=document.querySelector('#ql-overlay');
+   if(overlay&&event.target===overlay)emergencyClose();
+  },true);
+  document.addEventListener('keydown',event=>{
+   if(event.key==='Escape'){
+    const overlay=document.querySelector('#ql-overlay');
+    if(overlay&&!overlay.hidden)emergencyClose();
+   }
+  },true);
+ }
  if(!document.documentElement.dataset.qlLiteMenuWatch){
   document.documentElement.dataset.qlLiteMenuWatch='1';
   new MutationObserver(()=>ensureLiteLauncher()).observe(document.documentElement,{childList:true,subtree:true});
