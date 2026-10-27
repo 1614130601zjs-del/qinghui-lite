@@ -1716,7 +1716,7 @@ function openViewfinderImage(url){
   overlay=document.createElement('dialog');overlay.className='ql-viewfinder-lightbox';overlay.setAttribute('aria-label','放大查看图片');
   overlay.innerHTML='<div class="ql-album-paper is-flip ql-lightbox-album-paper"><div class="ql-album-single-page ql-lightbox-album-page"><img class="ql-lightbox-album-image" alt="放大查看的生成图片"></div></div><button type="button" class="ql-viewfinder-lightbox-close" aria-label="关闭图片" title="关闭">×</button>';
   overlay.addEventListener('click',event=>{if(event.target===overlay||event.target.closest('.ql-viewfinder-lightbox-close')){if(overlay.open)overlay.close();}});
-  overlay.addEventListener('close',()=>{overlay.querySelector('img')?.removeAttribute('src');});
+  overlay.addEventListener('close',()=>{overlay.querySelector('img')?.removeAttribute('src');$('#ql-result-enlarge')?.classList.remove('is-enlarged');});
   document.body.append(overlay);
  }
  overlay.querySelector('img').src=url;
@@ -1724,6 +1724,7 @@ function openViewfinderImage(url){
   if(typeof overlay.showModal==='function')overlay.showModal();
   else{overlay.setAttribute('open','');overlay.style.position='fixed';}
  }
+ $('#ql-result-enlarge')?.classList.add('is-enlarged');
 }
 function syncViewfinderActions(){
  const result=$('#ql-result'),favorite=$('#ql-result-favorite'),enlarge=$('#ql-result-enlarge');
@@ -1758,14 +1759,14 @@ $('#ql-generate').onclick=async()=>{
  if(busy)return;try{read();}catch(error){status('读取生图参数失败：'+(error?.message||String(error)));return;}const conf=cfg();
  if(!conf.prompt.trim()){status('请填写正向提示词。');return;}
  if(conf.provider==='novelai'&&!conf.naiApiKey){status('请在接口设置中填写 NovelAI 官网 Key。');return;}if(conf.provider==='novelai-thirdparty'&&(!conf.naiThirdEndpoint||!conf.naiThirdKey)){status('请填写 NAI 第三方接口地址和 Key。');return;}
- busy=true;$('#ql-generate').disabled=true;$('#ql-result').replaceChildren();status('正在请求生图接口……');
+ busy=true;$('#ql-generate').disabled=true;$('#ql-generate').classList.add('is-generating');$('#ql-result').replaceChildren();status('正在请求生图接口……');
  try{
   const activeIndex=Number(conf.activeVibeIndex??-1);const activeVibe=activeIndex>=0?conf.vibes[activeIndex]:null;const activePresetIndex=Number(conf.activePresetIndex??-1);const activePreset=activePresetIndex>=0?conf.presets[activePresetIndex]:null;const finalPrompt=[conf.prompt.trim(),activePreset?.positive].filter(Boolean).join(', ');const finalNegative=[conf.negative.trim(),activePreset?.negative].filter(Boolean).join(', ');const normalizePromptEntry=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();const normalizedBasePrompt=normalizePromptEntry(conf.prompt);const selectedPrompt=(conf.prompts||[]).find(item=>item&&item.id&&item.id===conf.activePromptEntryId);const matchedPrompt=normalizedBasePrompt?(conf.prompts||[]).find(item=>item&&normalizePromptEntry(item.promptEn||item.prompt||'')===normalizedBasePrompt):null;const promptEntryId=selectedPrompt?.id||matchedPrompt?.id||null;const url=await requestImage(finalPrompt,finalNegative,activeVibe);const storedUrl=await persistImageToTavern(url,'manual-'+Date.now());
   const img=document.createElement('img');img.alt='轻绘生成结果';img.src=url;$('#ql-result').append(img);
   conf.records.unshift({at:Date.now(),prompt:finalPrompt,basePrompt:conf.prompt.trim(),negative:finalNegative,provider:conf.provider,model:conf.provider!=='openai'?conf.naiModel:conf.model,size:conf.provider!=='openai'?(conf.naiWidth+'x'+conf.naiHeight):conf.size,quality:conf.quality,dataUrl:storedUrl,preset:activePreset?{name:activePreset.name||'',positive:activePreset.positive||'',negative:activePreset.negative||'',index:activePresetIndex,source:activePreset.source||'local'}:null,vibe:activeVibe?{name:activeVibe.name||'',entries:(activeVibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,config:snapshotConfig(finalPrompt,finalNegative),promptEntryId,sourcePromptEntryId:promptEntryId,sourcePromptEntryAppliedAt:conf.activePromptEntryAppliedAt||null});
   save();history();renderLibrary();status('生成完成。记录已保存在酒馆扩展设置中。');
  }catch(e){console.error('[轻绘 Lite] 生图失败',e);status('生成失败：'+(e?.message||String(e))+'。请检查接口地址、Key、模型名和网络连接。')}
- finally{busy=false;$('#ql-generate').disabled=false;}
+ finally{busy=false;$('#ql-generate').disabled=false;$('#ql-generate').classList.remove('is-generating');}
 }
 $('#ql-prompt-category').onchange=()=>{$('#ql-prompt-category-custom').hidden=$('#ql-prompt-category').value!=='自定义';};
 $('#ql-preset-batch-toggle').onclick=()=>{presetBatchMode=!presetBatchMode;selectedPresets.clear();$('#ql-preset-batch-toggle').textContent=presetBatchMode?'退出批量编辑':'批量编辑';renderLibrary();};
