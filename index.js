@@ -1711,7 +1711,7 @@ $('#ql-character-analyze').onclick=async()=>{
  const seenNames=new Set();
  const addName=value=>{
   const name=String(value||'').replace(/<[^>]*>/g,' ').replace(/^[\s*#>*_【】「」『』"'“”]+|[\s*#>*_【】「」『』"'“”]+$/g,'').trim();
-  if(!name||name.length>40||/[：:]/.test(name)||/^(未知|无|暂无|待定|未填写|姓名|名字|角色名|unknown|n\/a|none)$/i.test(name))return;
+  if(!name||name.length>40||/[：:]/.test(name)||/(节目|作品|视频|频道|直播|栏目|标题|主题|活动|策划|流程|介绍|推荐|预告|播出)/i.test(name)||/^(未知|无|暂无|待定|未填写|姓名|名字|角色名|unknown|n\/a|none)$/i.test(name))return;
   const normalized=name.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'');
   if(!normalized||seenNames.has(normalized))return;
   seenNames.add(normalized);names.push(name);
