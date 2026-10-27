@@ -1721,23 +1721,23 @@ $('#ql-character-analyze').onclick=async()=>{
    if(!entry||entry.disable===true||entry.enabled===false)continue;
    const content=String(entry.content||'').replace(/\\r\\n?/g,'\n');
    // 先确认条目确实包含人设资料特征，再提取姓名，避免把节目名、作品名等普通标题误当角色。
-   const attributePattern=/(?:年龄|性别|gender|sex|身份|职业|外貌|发色|瞳色|身高|性格|关系|生日|种族|年龄段)\\s*[:：]/gi;
+   const attributePattern=/(?:年龄|性别|gender|sex|身份|职业|外貌|发色|瞳色|身高|性格|关系|生日|种族|年龄段)\s*[:：]/gi;
    const attributes=[...content.matchAll(attributePattern)];
    const hasProfileSignals=attributes.length>=1;
    if(!hasProfileSignals)continue;
 
    // 明确姓名字段：支持姓名/名字/name/角色名/人物名等写法，但要求同一条目还含有人设属性。
-   const fieldPattern=/(?:^|[\\n\\r，,；;|])\\s*(?:[-*•]\\s*)?(?:\\*\\*)?(?:姓名|名字|name|character\\s*name|角色名|角色名称|人物名|人物名称|人物姓名|角色姓名)(?:\\*\\*)?\\s*[:：]\\s*([^\\n\\r，,；;|。]{1,24}?)(?=\\s*[,，;；|。]\\s*(?:年龄|性别|gender|sex|身份|职业|外貌|发色|瞳色|身高|性格|关系|生日|种族|年龄段)\\s*[:：]|[\\n\\r，,；;|。]|$)/gim;
+   const fieldPattern=/(?:^|[\n\r，,；;|])\s*(?:[-*•]\s*)?(?:\*\*)?(?:姓名|名字|name|character\s*name|角色名|角色名称|人物名|人物名称|人物姓名|角色姓名)(?:\*\*)?\s*[:：]\s*([^\n\r，,；;|。]{1,24}?)(?=\s*[,，;；|。]\s*(?:年龄|性别|gender|sex|身份|职业|外貌|发色|瞳色|身高|性格|关系|生日|种族|年龄段)\s*[:：]|[\n\r，,；;|。]|$)/gim;
    let match;
    while((match=fieldPattern.exec(content))!==null)addName(match[1]);
 
    // 没有“姓名”标签时，只接受“名字，年龄：…，性别：…”这类至少出现两项人设属性的简介开头。
    if(attributes.length>=2){
-    const profilePattern=/(?:^|[\\n\\r])\\s*([^\\n\\r，,；;|。:：]{1,16})\\s*[,，;；|]\\s*(?=(?:(?:年龄|性别|gender|sex|身份|职业|外貌|发色|瞳色|身高|性格|关系|生日|种族|年龄段)\\s*[:：]?)[^\\n\\r]*)/gim;
+    const profilePattern=/(?:^|[\n\r])\s*([^\n\r，,；;|。:：]{1,16})\s*[,，;；|]\s*(?=(?:(?:年龄|性别|gender|sex|身份|职业|外貌|发色|瞳色|身高|性格|关系|生日|种族|年龄段)\s*[:：]?)[^\n\r]*)/gim;
     while((match=profilePattern.exec(content))!==null){
      const candidate=String(match[1]||'').trim();
      if(candidate&&!/^(?:世界书|人物设定|角色设定|基本信息|人设|简介|人物简介|角色简介|资料|信息|档案|姓名|名字|name|角色名|角色名称|人物名|人物名称|节目名称|节目名字|节目名|作品名称|作品名字|作品名|标题|名称)$/i.test(candidate)){
-      const line=content.slice(match.index,content.indexOf('\\n',match.index)<0?content.length:content.indexOf('\\n',match.index));
+      const line=content.slice(match.index,content.indexOf('\n',match.index)<0?content.length:content.indexOf('\n',match.index));
       const lineAttributes=[...line.matchAll(attributePattern)];
       if(lineAttributes.length>=2)addName(candidate);
      }
