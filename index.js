@@ -1722,19 +1722,19 @@ $('#ql-character-analyze').onclick=async()=>{
    const content=String(entry.content||'').replace(/\\r\\n?/g,'\n');
    // 从明显的人设资料字段中提取名称：字段名不局限于 name/姓名，也兼容角色名、人物名等。
    // 例如“陆沉，年龄：28，性别：男”“角色名称：陆沉”“人物设定\n姓名：陆沉”。
-   const nameField='(?:姓名|名字|name|character\\s*name|角色名|角色名称|人物名|人物名称|人物|角色)';
-   const fieldStart=new RegExp('(?:^|[\\\\n\\\\r，,；;|])\\\\s*(?:[-*•]\\\\s*)?(?:\\\\*\\\\*)?'+nameField+'(?:\\\\*\\\\*)?\\\\s*[:：]\\\\s*([^\\\\n\\\\r，,；;|。]+)','gim');
+   // 兼容多种明显的人设姓名字段，不要求统一使用某一个字段名。
+   const fieldPattern=/(?:^|[\n\r，,；;|])\s*(?:[-*•]\s*)?(?:\*\*)?(?:姓名|名字|name|character\s*name|角色名|角色名称|人物名|人物名称|人物姓名|角色姓名)(?:\*\*)?\s*[:：]?\s*([^\n\r，,；;|。]{1,40}?)(?=\s*[,，;；|。]\s*(?:年龄|性别|身份|职业|外貌|发色|瞳色|身高|性格|关系|简介|生日|种族|设定|年龄段)\s*[:：]?|[\n\r，,；;|。]|$)/gim;
    let match;
-   while((match=fieldStart.exec(content))!==null)addName(match[1]);
-   // 对“姓名 陆沉 / 角色名 陆沉”等省略冒号的清晰字段格式也进行兼容。
-   const noColon=new RegExp('(?:^|[\\\\n\\\\r，,；;|])\\\\s*(?:[-*•]\\\\s*)?(?:\\\\*\\\\*)?'+nameField+'(?:\\\\*\\\\*)?\\\\s+([^\\\\n\\\\r，,；;|。]+)','gim');
-   while((match=noColon.exec(content))!==null){
+   while((match=fieldPattern.exec(content))!==null)addName(match[1]);
+   // 有些资料会写成“姓名 陆沉”而不是“姓名：陆沉”，也兼容这种格式。
+   const noColonPattern=/(?:^|[\n\r，,；;|])\s*(?:[-*•]\s*)?(?:\*\*)?(?:姓名|名字|name|character\s*name|角色名|角色名称|人物名|人物名称|人物姓名|角色姓名)(?:\*\*)?\s+([^\n\r，,；;|。]{1,40}?)(?=\s*[,，;；|。]\s*(?:年龄|性别|身份|职业|外貌|发色|瞳色|身高|性格|关系|简介|生日|种族|设定|年龄段)\s*[:：]?|[\n\r，,；;|。]|$)/gim;
+   while((match=noColonPattern.exec(content))!==null)addName(match[1]);
+   // 人设简介若以“陆沉，年龄：28，性别：男”开头，尝试提取资料开头的人名。
+   const profilePattern=/(?:^|[\n\r])\s*([^\n\r，,；;|。:：]{1,20})\s*[,，;；|]\s*(?:年龄|性别|身份|职业|外貌|发色|瞳色|身高|性格|关系|简介|生日|种族|设定)\s*[:：]?/gim;
+   while((match=profilePattern.exec(content))!==null){
     const candidate=String(match[1]||'').trim();
-    if(candidate&&!/(?:[:：])/.test(candidate)&&!/(?:年龄|性别|身份|职业|外貌|发色|瞳色|身高|性格|关系|简介|生日|种族|设定)\\s*$/i.test(candidate))addName(candidate);
+    if(candidate&&!/^(?:世界书|人物设定|角色设定|基本信息|人设|简介|人物简介|角色简介|资料|信息|档案|姓名|名字|name|角色名|角色名称|人物名|人物名称)$/i.test(candidate))addName(candidate);
    }
-   // 常见角色卡人物简介经常是“陆沉，28岁，男性……”；若存在年龄/性别等明显人设特征，提取资料开头的人名。
-   const profileStart=/(?:^|[\\\\n\\\\r])\\\\s*(?:姓名|名字|角色名|角色名称|人物名|人物名称|name|character\\s*name)\\s*[:：]?\\s*([^\\\\n\\\\r，,；;|。]{1,40})(?=[，,；;|。]\\s*(?:年龄|性别|身份|职业|外貌|发色|瞳色|身高|性格|关系|简介|生日|种族|设定)\\s*[:：]?|$)/gim;
-   while((match=profileStart.exec(content))!==null)addName(match[1]);
   }
  }
  if(!names.length){
