@@ -3667,3 +3667,40 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge svg{
   color:currentColor!important;stroke:currentColor!important;
 }
+
+
+/* 0.5.99: unify viewfinder button borders and provide a clear pressed state on touch and mouse. */
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:focus,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:focus,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus-visible,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:focus-visible,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:focus-visible {
+  border:1px solid var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.35)))!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:not(:disabled):active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(:disabled):active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:not(:disabled):active {
+  background:color-mix(in srgb,#26313a 82%,var(--ql-card,var(--SmartThemeBlurTintColor,#fff)))!important;
+  border-color:color-mix(in srgb,#26313a 82%,var(--ql-border,var(--SmartThemeBorderColor,#cbd1cf)))!important;
+  color:#fff!important;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.24)!important;
+  transform:translateY(1px) scale(.97)!important;
+  transition:background-color .08s ease,border-color .08s ease,transform .08s ease,box-shadow .08s ease!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:not(:disabled):active svg,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(:disabled):active svg,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:not(:disabled):active svg {
+  color:#fff!important;
+  stroke:#fff!important;
+}
