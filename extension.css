@@ -2275,3 +2275,7 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 }
 #ql-image-cache-modal .ql-cache-copy-pill{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:30px!important;min-width:30px!important;height:30px!important;padding:0!important;}
 #ql-image-cache-modal .ql-cache-copy-pill svg{display:block!important;width:15px!important;height:15px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important;}
+
+
+/* Keep the in-chat image-generation action centered beneath its message text. */
+#chat .mes_text .ql-inline-image-trigger:not(:disabled){display:flex!important;width:max-content!important;max-width:calc(100% - 16px)!important;margin:10px auto!important;}
