@@ -2479,3 +2479,62 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel .ql-album-crop-actions [data-crop-save]{background:transparent!important;color:var(--SmartThemeBodyColor)!important;border:1px solid var(--SmartThemeBorderColor)!important;}
 #ql-image-cache-modal .ql-cache-modal-close,#ql-image-cache-modal button{color:var(--SmartThemeBodyColor)!important;}
 @media(max-width:380px){#qinghui-lite-panel .ql-album-grid{gap:7px!important}#qinghui-lite-panel .ql-album-card,#qinghui-lite-panel .ql-album-create-card{padding:3px!important;border-radius:10px!important}}
+
+
+/* 相册卡片：照片在上，名称/张数在下；菜单放在下方信息区右侧。只调整结构，不指定卡片填充色。 */
+#qinghui-lite-panel .ql-album-library-shell{background:transparent!important;box-shadow:none!important;}
+#qinghui-lite-panel .ql-album-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;align-items:start!important;}
+#qinghui-lite-panel .ql-album-card{
+  position:relative!important;display:flex!important;flex-direction:column!important;
+  min-width:0!important;aspect-ratio:auto!important;overflow:visible!important;
+  padding:0!important;border:1px solid var(--SmartThemeBorderColor)!important;
+  border-radius:12px!important;background:transparent!important;box-shadow:none!important;
+}
+#qinghui-lite-panel .ql-album-card-open{
+  display:block!important;width:100%!important;flex:0 0 auto!important;
+  margin:0!important;padding:0!important;border:0!important;border-radius:11px 11px 0 0!important;
+  overflow:hidden!important;background:transparent!important;box-shadow:none!important;
+}
+#qinghui-lite-panel .ql-album-card-cover{
+  display:flex!important;position:relative!important;align-items:center!important;justify-content:center!important;
+  width:100%!important;aspect-ratio:1/1!important;overflow:hidden!important;
+  border-radius:10px 10px 0 0!important;background:transparent!important;
+}
+#qinghui-lite-panel .ql-album-card-cover img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;}
+#qinghui-lite-panel .ql-album-cover-placeholder{background:transparent!important;color:inherit!important;border:0!important;}
+#qinghui-lite-panel .ql-album-card-caption{
+  position:relative!important;display:flex!important;flex-direction:row!important;align-items:center!important;
+  justify-content:space-between!important;gap:5px!important;min-height:51px!important;
+  padding:8px 6px 7px 9px!important;border-top:1px solid var(--SmartThemeBorderColor)!important;
+  border-radius:0 0 11px 11px!important;background:transparent!important;color:var(--SmartThemeBodyColor)!important;
+}
+#qinghui-lite-panel .ql-album-card-caption-text{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;gap:3px!important;min-width:0!important;padding-right:1px!important;}
+#qinghui-lite-panel .ql-album-card-caption strong{display:block!important;color:inherit!important;font-size:12px!important;font-weight:600!important;line-height:1.3!important;overflow-wrap:anywhere!important;}
+#qinghui-lite-panel .ql-album-card-caption span{display:block!important;color:inherit!important;opacity:.65!important;font-size:10px!important;line-height:1.25!important;}
+#qinghui-lite-panel .ql-album-more{
+  position:relative!important;inset:auto!important;z-index:4!important;display:grid!important;flex:0 0 27px!important;
+  width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important;
+  place-items:center!important;margin:0!important;padding:0!important;border:1px solid var(--SmartThemeBorderColor)!important;
+  border-radius:8px!important;background:transparent!important;color:var(--SmartThemeBodyColor)!important;
+  box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;font-size:20px!important;line-height:1!important;
+}
+#qinghui-lite-panel .ql-album-more-menu{
+  position:absolute!important;top:auto!important;right:4px!important;bottom:calc(100% - 2px)!important;z-index:12!important;
+  min-width:118px!important;background:var(--SmartThemeBlurTintColor)!important;color:var(--SmartThemeBodyColor)!important;
+  border:1px solid var(--SmartThemeBorderColor)!important;box-shadow:0 5px 18px rgba(0,0,0,.12)!important;
+}
+#qinghui-lite-panel .ql-album-more-menu button{color:var(--SmartThemeBodyColor)!important;}
+#qinghui-lite-panel .ql-album-create-card{cursor:default!important;}
+#qinghui-lite-panel .ql-album-create-open{cursor:pointer!important;}
+#qinghui-lite-panel .ql-album-create-cover{border-radius:10px 10px 0 0!important;border-bottom:1px dashed var(--SmartThemeBorderColor)!important;}
+#qinghui-lite-panel .ql-album-create-cover .ql-album-placeholder-mark{font-size:30px!important;opacity:.65!important;}
+#qinghui-lite-panel .ql-album-create-label{font-weight:600!important;opacity:1!important;}
+#qinghui-lite-panel .ql-album-card-count{opacity:.6!important;}
+#qinghui-lite-panel .ql-album-card-menu-spacer{flex:0 0 27px!important;width:27px!important;text-align:center!important;font-size:20px!important;opacity:.25!important;}
+#qinghui-lite-panel .ql-album-card.is-selected{border-color:var(--SmartThemeQuoteColor)!important;}
+@media(max-width:380px){
+ #qinghui-lite-panel .ql-album-grid{gap:7px!important}
+ #qinghui-lite-panel .ql-album-card-caption{min-height:47px!important;padding:7px 5px 6px 7px!important;gap:3px!important}
+ #qinghui-lite-panel .ql-album-card-caption strong{font-size:11px!important}
+ #qinghui-lite-panel .ql-album-more{flex-basis:24px!important;width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important}
+}
