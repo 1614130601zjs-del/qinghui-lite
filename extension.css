@@ -2254,3 +2254,24 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel .ql-viewfinder-actions #ql-generate:disabled{
  opacity:.4!important;
 }
+
+
+/* 取景区三个图标按钮统一浅色底；按下时再稍微加深。 */
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:hover,
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus-visible{
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)) 14%,var(--ql-card,var(--SmartThemeBlurTintColor,#fff)))!important;
+ border-color:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)) 28%,var(--ql-border,var(--SmartThemeBorderColor,#cbd1cf)))!important;
+ color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;
+ filter:none!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:not(:disabled):active{
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)) 30%,var(--ql-card,var(--SmartThemeBlurTintColor,#fff)))!important;
+ border-color:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)) 52%,var(--ql-border,var(--SmartThemeBorderColor,#cbd1cf)))!important;
+}
+#ql-image-cache-modal .ql-cache-copy-pill{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:30px!important;min-width:30px!important;height:30px!important;padding:0!important;}
+#ql-image-cache-modal .ql-cache-copy-pill svg{display:block!important;width:15px!important;height:15px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important;}
