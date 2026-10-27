@@ -647,7 +647,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   const reroll=document.createElement('button');reroll.type='button';reroll.className='menu_button ql-chat-image-reroll';reroll.setAttribute('aria-label','重 Roll');reroll.title='重 Roll';reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14 5l2-2"/><path d="M20 20v-4h-4"/></svg>';
   const remove=document.createElement('button');remove.type='button';remove.className='menu_button ql-chat-image-remove';remove.setAttribute('aria-label','删除当前图片');remove.title='仅从正文隐藏当前图片，缓存和相册中的原图保留';remove.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="m6 7 1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg>';
   const favorite=document.createElement('button');favorite.type='button';favorite.className='menu_button ql-chat-image-favorite';favorite.setAttribute('aria-label','收藏到角色相册');favorite.title='收藏到当前角色的相册';favorite.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>';
-  remove.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const current=card._qlCandidates?.[card._qlIndex];if(!current)return;const records=cfg().records||[];let changed=false;for(const item of records){if(item?.taskKey!==taskKey||item.dataUrl!==current.url)continue;if(card.dataset.qlMessageIndex!==''&&Number(item.messageIndex)!==Number(card.dataset.qlMessageIndex))continue;if(card.dataset.qlChatId&&item.chatId&&item.chatId!==card.dataset.qlChatId)continue;item.hiddenInChat=true;changed=true;}if(changed)save();card._qlCandidates=card._qlCandidates.filter(candidate=>candidate.url!==current.url);if(!card._qlCandidates.length){card.remove();return;}card._qlIndex=Math.min(card._qlIndex,card._qlCandidates.length-1);card._qlRender?.();});
+  remove.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const current=card._qlCandidates?.[card._qlIndex];if(!current)return;const records=cfg().records||[];let changed=false;for(const item of records){if(item?.taskKey!==taskKey||!sameImageSource(item.dataUrl,current.url))continue;if(card.dataset.qlMessageIndex!==''&&Number(item.messageIndex)!==Number(card.dataset.qlMessageIndex))continue;if(card.dataset.qlChatId&&item.chatId&&item.chatId!==card.dataset.qlChatId)continue;item.hiddenInChat=true;changed=true;}if(changed)save();card._qlCandidates=card._qlCandidates.filter(candidate=>!sameImageSource(candidate.url,current.url));if(!card._qlCandidates.length){card.remove();return;}card._qlIndex=Math.min(card._qlIndex,card._qlCandidates.length-1);card._qlRender?.();});
 
   const editor=document.createElement('div');editor.className='ql-chat-image-editor';editor.hidden=true;
   const tempConfig=document.createElement('div');tempConfig.className='ql-chat-image-temp-config';
@@ -808,9 +808,27 @@ let qlLegacyMigrationPromise=null;
 async function migrateLegacyImageRecords(){
  if(qlLegacyMigrationPromise)return qlLegacyMigrationPromise;
  qlLegacyMigrationPromise=(async()=>{
+  const settings=cfg();
+  settings.records=Array.isArray(settings.records)?settings.records:[];
+  settings.albumPhotos=Array.isArray(settings.albumPhotos)?settings.albumPhotos:[];
+  // 旧版本曾把角色相册照片单独放在 albumPhotos；当前相册读取 records。
+  // 迁移时把旧相册项并入 records，尽量合并到同图记录而不是制造重复底片。
+  for(const legacy of settings.albumPhotos){
+   if(!legacy||typeof legacy.dataUrl!=='string'||!legacy.dataUrl)continue;
+   const existing=settings.records.find(item=>item&&sameImageSource(item.dataUrl,legacy.dataUrl));
+   const favoriteName=String(legacy.albumCharacterName||legacy.characterName||legacy.character||'当前角色').trim();
+   const favoriteKey=legacy.albumCharacterKey||legacy.characterKey||'';
+   if(existing){
+    if(!existing.albumCharacterName)existing.albumCharacterName=favoriteName;
+    if(!existing.albumCharacterKey&&favoriteKey)existing.albumCharacterKey=favoriteKey;
+    for(const [key,value] of Object.entries(legacy))if(existing[key]==null&&value!=null)existing[key]=value;
+   }else{
+    settings.records.push({...legacy,albumCharacterName:favoriteName,albumCharacterKey:favoriteKey});
+   }
+  }
   const collections=[
-   {name:'影像缓存',records:cfg().records||[]},
-   {name:'角色相册',records:cfg().albumPhotos||[]}
+   {name:'影像缓存',records:settings.records},
+   {name:'角色相册',records:settings.albumPhotos}
   ];
   const pending=collections.flatMap(collection=>collection.records
    .filter(record=>typeof record?.dataUrl==='string'&&/^data:image\//i.test(record.dataUrl))
@@ -1085,7 +1103,7 @@ async function processStatusbarFrames(){
    const card=frame.querySelector('.ql-statusbar-card');
    if(card){
     card._qlCandidates=[];
-    for(const item of savedStatusbar){if(!card._qlCandidates.some(candidate=>candidate.url===item.dataUrl))card._qlCandidates.push({url:item.dataUrl,at:Number(item.at)||Date.now()});}
+    for(const item of savedStatusbar){if(!card._qlCandidates.some(candidate=>sameImageSource(candidate.url,item.dataUrl)))card._qlCandidates.push({url:item.dataUrl,at:Number(item.at)||Date.now()});}
     card._qlIndex=card._qlCandidates.length-1;
     card._qlRender?.();
    }
