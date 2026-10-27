@@ -746,11 +746,38 @@ function snapshotConfig(prompt, negativeOverride){
   nai:c.provider!=='openai'?{steps:c.naiSteps,scale:c.naiScale,width:c.naiWidth,height:c.naiHeight,sampler:c.naiSampler,scheduler:c.naiScheduler}:null
  };
 }
+
+function normalizeTavernImagePath(path){
+ const value=String(path||'').trim();
+ if(!value)throw new Error('酒馆图片上传接口没有返回文件路径。');
+ if(/^(?:https?:)?\/\//i.test(value)||/^data:image\//i.test(value))return value;
+ return value.startsWith('/')?value:'/'+value.replace(/^\.\//,'');
+}
+async function persistImageToTavern(src,taskKey='image'){
+ if(typeof src!=='string'||!/^data:image\//i.test(src))return src;
+ const comma=src.indexOf(',');
+ if(comma<0)throw new Error('图片缓存不是有效的 Data URL。');
+ const mime=(src.slice(0,comma).match(/^data:(image\/[a-z0-9.+-]+)/i)||[])[1];
+ const format=String(mime||'image/png').split('/')[1].toLowerCase().replace('jpeg','jpg');
+ const allowed=new Set(['png','jpg','webp','gif','bmp','jfif']);
+ if(!allowed.has(format))throw new Error('酒馆图片目录暂不支持此格式：'+format);
+ const base64=src.slice(comma+1).replace(/\s/g,'');
+ const safe=String(taskKey||'image').replace(/[^a-z0-9_-]/gi,'').slice(-32)||'image';
+ const response=await fetch('/api/images/upload',{
+  method:'POST',
+  headers:{'Content-Type':'application/json',...getRequestHeaders(window.token)},
+  body:JSON.stringify({image:base64,format,filename:'qinghui-'+safe+'-'+Date.now()})
+ });
+ if(!response.ok)throw new Error('酒馆图片保存失败（HTTP '+response.status+'）。');
+ const result=await response.json();
+ return normalizeTavernImagePath(result.path);
+}
+
 function storeChatRecord(url,prompt,taskKey,meta={}){
  const c=cfg(),resolved=resolveActiveGeneration(prompt);
  const presetIndex=Number(c.activePresetIndex??-1),preset=presetIndex>=0?c.presets[presetIndex]:null;
  const vibe=resolved.vibe;
- c.records.unshift({
+ const record={
   id:taskKey+':'+Date.now(),at:Date.now(),prompt:resolved.prompt,basePrompt:prompt,negative:resolved.negative||c.negative||'',
   provider:c.provider,model:c.provider!=='openai'?c.naiModel:c.model,
   size:c.provider!=='openai'?(c.naiWidth+'x'+c.naiHeight):c.size,
@@ -759,9 +786,70 @@ function storeChatRecord(url,prompt,taskKey,meta={}){
   vibe:vibe?{name:vibe.name||'',entries:(vibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,
   config:snapshotConfig(prompt,resolved.negative),source:meta.source||'chat',
   messageIndex:meta.messageIndex,taskKey,character:meta.character||null,chatId:getContext()?.chatId||null,promptEntryId:meta.promptEntryId||cfg().activePromptEntryId||null,sourcePromptEntryId:meta.sourcePromptEntryId||meta.promptEntryId||cfg().activePromptEntryId||null
- });
- c.records=c.records.slice(0,100);save();history();
+ };
+ c.records.unshift(record);save();history();
+ if(typeof url==='string'&&/^data:image\//i.test(url)){
+  persistImageToTavern(url,taskKey).then(path=>{
+   if(record.dataUrl!==url)return;
+   record.dataUrl=path;
+   for(const card of document.querySelectorAll('.ql-chat-image,.ql-statusbar-card')){
+    if(card.dataset.qlTask!==taskKey||!Array.isArray(card._qlCandidates))continue;
+    for(const candidate of card._qlCandidates)if(candidate.url===url)candidate.url=path;
+    card._qlRender?.();
+   }
+   save();history();
+  }).catch(error=>console.error('[拾帧] 新图片转存失败，原图仍保留在设置中。',error));
+ }
+ return record;
 }
+
+let qlLegacyMigrationPromise=null;
+async function migrateLegacyImageRecords(){
+ if(qlLegacyMigrationPromise)return qlLegacyMigrationPromise;
+ qlLegacyMigrationPromise=(async()=>{
+  const collections=[
+   {name:'影像缓存',records:cfg().records||[]},
+   {name:'角色相册',records:cfg().albumPhotos||[]}
+  ];
+  const pending=collections.flatMap(collection=>collection.records
+   .filter(record=>typeof record?.dataUrl==='string'&&/^data:image\//i.test(record.dataUrl))
+   .map(record=>({record,collection:collection.name})));
+  if(!pending.length){console.info('[拾帧] 没有需要迁移的旧图片。');return {migrated:0,remaining:0};}
+  console.info('[拾帧] 开始迁移 '+pending.length+' 张旧图片到酒馆图片目录。');
+  let migrated=0;
+  const migratedPaths=new Map();
+  for(const entry of pending){
+   const record=entry.record,oldUrl=record.dataUrl;
+   try{
+    let path=migratedPaths.get(oldUrl);
+    if(!path){path=await persistImageToTavern(oldUrl,record.taskKey||record.id||record.at);migratedPaths.set(oldUrl,path);}
+    if(record.dataUrl===oldUrl)record.dataUrl=path;
+    for(const card of document.querySelectorAll('.ql-chat-image,.ql-statusbar-card')){
+     if(card.dataset.qlTask!==record.taskKey||!Array.isArray(card._qlCandidates))continue;
+     for(const candidate of card._qlCandidates)if(candidate.url===oldUrl)candidate.url=path;
+     card._qlRender?.();
+    }
+    migrated++;
+    if(migrated%5===0){
+     save();
+     status('正在迁移旧图片：'+migrated+'/'+pending.length+' 张。');
+     console.info('[拾帧] 图片迁移进度：'+migrated+'/'+pending.length);
+    }
+   }catch(error){
+    save();history();
+    console.error('[拾帧] 图片迁移暂停；未成功的原图仍保留在设置中。',error);
+    status('图片迁移已暂停：已迁移 '+migrated+' 张，剩余图片保留原数据。请检查酒馆服务端后重试。');
+    return {migrated,remaining:pending.length-migrated,error};
+   }
+  }
+  save();history();
+  status('图片迁移完成：'+migrated+' 张图片已转存到酒馆图片目录。');
+  console.info('[拾帧] 图片迁移完成：'+migrated+' 张。');
+  return {migrated,remaining:0};
+ })();
+ return qlLegacyMigrationPromise;
+}
+
 async function runInlineImageTrigger(button,entry){
  if(!button||button.dataset.qlBusy==='1'||button.dataset.qlDone==='1')return;
  const prompt=String(entry?.prompt||button.dataset.qlPrompt||'').trim();
@@ -1646,10 +1734,10 @@ $('#ql-generate').onclick=async()=>{
  if(conf.provider==='novelai'&&!conf.naiApiKey){status('请在接口设置中填写 NovelAI 官网 Key。');return;}if(conf.provider==='novelai-thirdparty'&&(!conf.naiThirdEndpoint||!conf.naiThirdKey)){status('请填写 NAI 第三方接口地址和 Key。');return;}
  busy=true;$('#ql-generate').disabled=true;$('#ql-result').replaceChildren();status('正在请求生图接口……');
  try{
-  const activeIndex=Number(conf.activeVibeIndex??-1);const activeVibe=activeIndex>=0?conf.vibes[activeIndex]:null;const activePresetIndex=Number(conf.activePresetIndex??-1);const activePreset=activePresetIndex>=0?conf.presets[activePresetIndex]:null;const finalPrompt=[conf.prompt.trim(),activePreset?.positive].filter(Boolean).join(', ');const finalNegative=[conf.negative.trim(),activePreset?.negative].filter(Boolean).join(', ');const normalizePromptEntry=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();const normalizedBasePrompt=normalizePromptEntry(conf.prompt);const selectedPrompt=(conf.prompts||[]).find(item=>item&&item.id&&item.id===conf.activePromptEntryId);const matchedPrompt=normalizedBasePrompt?(conf.prompts||[]).find(item=>item&&normalizePromptEntry(item.promptEn||item.prompt||'')===normalizedBasePrompt):null;const promptEntryId=selectedPrompt?.id||matchedPrompt?.id||null;const url=await requestImage(finalPrompt,finalNegative,activeVibe);
+  const activeIndex=Number(conf.activeVibeIndex??-1);const activeVibe=activeIndex>=0?conf.vibes[activeIndex]:null;const activePresetIndex=Number(conf.activePresetIndex??-1);const activePreset=activePresetIndex>=0?conf.presets[activePresetIndex]:null;const finalPrompt=[conf.prompt.trim(),activePreset?.positive].filter(Boolean).join(', ');const finalNegative=[conf.negative.trim(),activePreset?.negative].filter(Boolean).join(', ');const normalizePromptEntry=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();const normalizedBasePrompt=normalizePromptEntry(conf.prompt);const selectedPrompt=(conf.prompts||[]).find(item=>item&&item.id&&item.id===conf.activePromptEntryId);const matchedPrompt=normalizedBasePrompt?(conf.prompts||[]).find(item=>item&&normalizePromptEntry(item.promptEn||item.prompt||'')===normalizedBasePrompt):null;const promptEntryId=selectedPrompt?.id||matchedPrompt?.id||null;const url=await requestImage(finalPrompt,finalNegative,activeVibe);const storedUrl=await persistImageToTavern(url,'manual-'+Date.now());
   const img=document.createElement('img');img.alt='轻绘生成结果';img.src=url;$('#ql-result').append(img);
-  conf.records.unshift({at:Date.now(),prompt:finalPrompt,basePrompt:conf.prompt.trim(),negative:finalNegative,provider:conf.provider,model:conf.provider!=='openai'?conf.naiModel:conf.model,size:conf.provider!=='openai'?(conf.naiWidth+'x'+conf.naiHeight):conf.size,quality:conf.quality,dataUrl:url,preset:activePreset?{name:activePreset.name||'',positive:activePreset.positive||'',negative:activePreset.negative||'',index:activePresetIndex,source:activePreset.source||'local'}:null,vibe:activeVibe?{name:activeVibe.name||'',entries:(activeVibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,config:snapshotConfig(finalPrompt,finalNegative),promptEntryId,sourcePromptEntryId:promptEntryId,sourcePromptEntryAppliedAt:conf.activePromptEntryAppliedAt||null});
-  conf.records=conf.records.slice(0,100);save();history();renderLibrary();status('生成完成。记录已保存在酒馆扩展设置中。');
+  conf.records.unshift({at:Date.now(),prompt:finalPrompt,basePrompt:conf.prompt.trim(),negative:finalNegative,provider:conf.provider,model:conf.provider!=='openai'?conf.naiModel:conf.model,size:conf.provider!=='openai'?(conf.naiWidth+'x'+conf.naiHeight):conf.size,quality:conf.quality,dataUrl:storedUrl,preset:activePreset?{name:activePreset.name||'',positive:activePreset.positive||'',negative:activePreset.negative||'',index:activePresetIndex,source:activePreset.source||'local'}:null,vibe:activeVibe?{name:activeVibe.name||'',entries:(activeVibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,config:snapshotConfig(finalPrompt,finalNegative),promptEntryId,sourcePromptEntryId:promptEntryId,sourcePromptEntryAppliedAt:conf.activePromptEntryAppliedAt||null});
+  save();history();renderLibrary();status('生成完成。记录已保存在酒馆扩展设置中。');
  }catch(e){console.error('[轻绘 Lite] 生图失败',e);status('生成失败：'+(e?.message||String(e))+'。请检查接口地址、Key、模型名和网络连接。')}
  finally{busy=false;$('#ql-generate').disabled=false;}
 }
@@ -1798,6 +1886,7 @@ jQuery(()=>{
     if(page)page.scrollTop=0;
    },true);
   init();
+  migrateLegacyImageRecords().catch(error=>console.error('[拾帧] 旧图片缓存迁移失败',error));
  }
  observeStatusbarFrames();
  // 扩展启用时先扫描现有聊天；再观察酒馆正文重绘，避免事件时序导致 marker 一直以原文显示。
