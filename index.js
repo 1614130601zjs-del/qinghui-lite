@@ -1180,7 +1180,7 @@ function history(){
   albums.querySelectorAll('[data-shelf-step]').forEach(button=>button.addEventListener('click',()=>{const total=Math.max(1,Math.ceil((books.length+1)/9));albums.dataset.albumShelfPage=String(Math.max(0,Math.min(total-1,Number(albums.dataset.albumShelfPage||0)+Number(button.dataset.shelfStep))));renderAlbums();}));
   const shelfPrev=albums.querySelector('[data-shelf-step="-1"]'),shelfNext=albums.querySelector('[data-shelf-step="1"]');if(shelfPrev)shelfPrev.disabled=shelfPage===0;if(shelfNext)shelfNext.disabled=shelfPage>=shelfPageCount-1;
   albums.querySelectorAll('[data-open-album]').forEach(button=>button.addEventListener('click',()=>{albums.dataset.albumKey=button.dataset.openAlbum;albums.dataset.albumMoveMode='';setSelectedPhotos([]);renderAlbums();}));
-  albums.querySelectorAll('[data-album-more]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const key=button.dataset.albumMore;albums.querySelectorAll('[data-album-menu]').forEach(menu=>{menu.hidden=menu.dataset.albumMenu!==key||!menu.hidden;});}));
+
   const cropModal=albums.querySelector('[data-album-crop-modal]'),cropImage=albums.querySelector('[data-crop-image]'),cropViewport=albums.querySelector('[data-crop-viewport]'),zoomControl=albums.querySelector('[data-crop-zoom]'),xControl=albums.querySelector('[data-crop-x]'),yControl=albums.querySelector('[data-crop-y]');
   let cropSource=null,cropKey='',cropNaturalW=0,cropNaturalH=0,dragPoint=null;
   const updateCropPreview=()=>{if(!cropImage||!cropViewport||!cropNaturalW||!cropNaturalH)return;const scale=Math.max(cropViewport.clientWidth/cropNaturalW,cropViewport.clientHeight/cropNaturalH)*Number(zoomControl.value||1),w=cropNaturalW*scale,h=cropNaturalH*scale;cropImage.style.width=w+'px';cropImage.style.height=h+'px';cropImage.style.maxWidth='none';cropImage.style.maxHeight='none';const maxX=Math.max(0,w-cropViewport.clientWidth),maxY=Math.max(0,h-cropViewport.clientHeight);cropImage.style.left=(-maxX*Number(xControl.value||50)/100)+'px';cropImage.style.top=(-maxY*Number(yControl.value||50)/100)+'px';};
@@ -1203,7 +1203,19 @@ function history(){
   albums.querySelectorAll('[data-album-rename]').forEach(button=>button.addEventListener('click',()=>{const key=button.dataset.albumRename,old=titleFor(key,groups.get(key)||[]),next=prompt('编辑相册名称',old);if(next==null)return;const clean=next.trim();if(!clean){status('相册名称不能为空。');return;}settings.albumNames[key]=clean;for(const record of settings.records||[])if(String(record.albumCharacterKey||record.albumCharacterName||'current')===key)record.albumCharacterName=clean;save();renderAlbums();status('相册名称已更新。');}));
   albums.querySelectorAll('[data-album-delete]').forEach(button=>button.addEventListener('click',()=>{const key=button.dataset.albumDelete,name=titleFor(key,groups.get(key)||[]);if(!confirm('删除相册「'+name+'」？照片仍会保留在影像缓存中。'))return;delete settings.albumNames[key];delete settings.albumCovers[key];for(const record of settings.records||[])if(String(record.albumCharacterKey||record.albumCharacterName||'current')===key){delete record.albumCharacterKey;delete record.albumCharacterName;}save();renderAlbums();status('相册已删除，照片仍保留在影像缓存中。');}));
   albums.querySelector('[data-album-new]')?.addEventListener('click',()=>{const next=prompt('新建相册名称');if(next==null)return;const clean=next.trim();if(!clean){status('相册名称不能为空。');return;}const key='album-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);settings.albumNames[key]=clean;save();renderAlbums();status('已新建相册。');});
-  albums.addEventListener('click',event=>{if(!event.target.closest('[data-album-more],[data-album-menu]'))albums.querySelectorAll('[data-album-menu]').forEach(menu=>menu.hidden=true);});
+  if(!albums.dataset.albumMenuDelegation){
+   albums.dataset.albumMenuDelegation='1';
+   albums.addEventListener('click',event=>{
+    const button=event.target.closest('[data-album-more]');
+    if(button&&albums.contains(button)){
+     event.preventDefault();event.stopPropagation();
+     const key=button.dataset.albumMore;
+     albums.querySelectorAll('[data-album-menu]').forEach(menu=>{menu.hidden=menu.dataset.albumMenu!==key||!menu.hidden;});
+     return;
+    }
+    if(!event.target.closest('[data-album-menu]'))albums.querySelectorAll('[data-album-menu]').forEach(menu=>menu.hidden=true);
+   },true);
+  }
  };
  const setAlbumView=view=>{const albumMode=view==='albums';if(cacheView)cacheView.hidden=albumMode;if(albums)albums.hidden=!albumMode;viewTabs.forEach(button=>{const active=button.dataset.albumView===view;button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active));});if(albumMode)renderAlbums();};
  viewTabs.forEach(button=>button.onclick=()=>setAlbumView(button.dataset.albumView));
