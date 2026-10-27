@@ -3280,3 +3280,41 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  #qinghui-lite-panel [data-page-panel="albums"] .ql-album-spread-book > button.ql-album-page-arrow[data-spread-step="-1"]{left:-16px!important;}
  #qinghui-lite-panel [data-page-panel="albums"] .ql-album-spread-book > button.ql-album-page-arrow[data-spread-step="1"]{right:-16px!important;}
 }
+
+
+/* 2026-10-27: keep the six visible main tabs evenly distributed on phone screens.
+   This final override intentionally supersedes older horizontal-scroll rules. */
+#qinghui-lite-panel .ql-tabs{
+ display:grid!important;
+ grid-template-columns:repeat(6,minmax(0,1fr))!important;
+ grid-auto-flow:row!important;
+ gap:4px!important;
+ width:100%!important;
+ min-width:0!important;
+ box-sizing:border-box!important;
+ overflow:hidden!important;
+ overflow-x:hidden!important;
+ overflow-y:hidden!important;
+ white-space:normal!important;
+}
+#qinghui-lite-panel .ql-tabs > .ql-tab{
+ display:flex!important;
+ flex:initial!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+ box-sizing:border-box!important;
+ align-items:center!important;
+ justify-content:center!important;
+ margin:0!important;
+ padding:9px 1px!important;
+ overflow:hidden!important;
+ white-space:nowrap!important;
+ text-overflow:clip!important;
+ font-size:clamp(10px,2.9vw,13px)!important;
+ line-height:1.25!important;
+}
+@media(max-width:380px){
+ #qinghui-lite-panel .ql-tabs{gap:2px!important;padding-inline:4px!important;}
+ #qinghui-lite-panel .ql-tabs > .ql-tab{padding:9px 0!important;font-size:10px!important;}
+}
