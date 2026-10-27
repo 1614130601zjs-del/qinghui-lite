@@ -1351,18 +1351,26 @@ function renderLibrary(){
   if(title)title.textContent=(promptEntry.name||'未命名提示词')+' · 图集';
   if(description)description.textContent='仅铺开显示当前提示词关联的全部照片；点击照片只放大预览，不跳转影像缓存。';
   if(content){
-   const photoButton=record=>'<article class="ql-album-photo ql-prompt-gallery-photo"><button type="button" class="ql-prompt-gallery-photo-button" data-prompt-record="'+record._cacheIndex+'" aria-label="放大预览照片"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="提示词图集照片"></button></article>';
-   content.innerHTML='<div class="ql-album-toolbar"><button type="button" class="menu_button" data-prompt-gallery-back>‹ 返回提示词库</button><div class="ql-album-toolbar-title"><span>PHOTO ALBUM</span><strong>'+esc(promptEntry.name||'未命名提示词')+' 图集</strong><small>'+items.length+' 张照片</small></div></div><div class="ql-album-paper is-spread">'+(items.length?'<div class="ql-album-spread-grid ql-prompt-gallery-spread" data-columns="2">'+items.map(photoButton).join('')+'</div>':'<div class="ql-album-empty-book"><div class="ql-album-empty-cover"><span>PHOTO ALBUM</span><strong>这本图集还没有照片</strong><small>应用该提示词生成图片后，关联的影像会自动收录在这里，不需要进入影像缓存。</small></div></div>')+'</div>';
-   content.querySelector('[data-prompt-gallery-back]')?.addEventListener('click',()=>{
-    root.querySelectorAll('button.ql-tab').forEach(item=>{const active=item.dataset.page==='wordbank';item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
-    root.querySelectorAll('[data-page-panel]').forEach(node=>{const active=node.dataset.pagePanel==='wordbank';node.hidden=!active;node.classList.toggle('active',active);});
-    const tab=root.querySelector('button.ql-subtab[data-subpage="prompt-library"]');
-    if(tab){const scope=tab.closest('.ql-page')||root;scope.querySelectorAll('button.ql-subtab').forEach(item=>{const active=item===tab;item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});scope.querySelectorAll('[data-subpage-panel]').forEach(node=>{const active=node.dataset.subpagePanel==='prompt-library';node.hidden=!active;node.classList.toggle('active',active);});}
-   });
-   content.querySelectorAll('[data-prompt-record]').forEach(photo=>photo.addEventListener('click',()=>{
-    const record=items.find(item=>item._cacheIndex===Number(photo.dataset.promptRecord));
-    if(record?.dataUrl)openViewfinderImage(record.dataUrl);
-   }));
+   const pageSize=6;
+   const pageCount=Math.max(1,Math.ceil(items.length/pageSize));
+   const renderPromptGalleryPage=page=>{
+    const safePage=Math.max(0,Math.min(pageCount-1,Number(page)||0));
+    const visibleItems=items.slice(safePage*pageSize,(safePage+1)*pageSize);
+    const photoButton=record=>'<article class="ql-album-photo ql-prompt-gallery-photo"><button type="button" class="ql-prompt-gallery-photo-button" data-prompt-record="'+record._cacheIndex+'" aria-label="放大预览照片"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="提示词图集照片"></button></article>';
+    content.innerHTML='<div class="ql-album-toolbar"><button type="button" class="menu_button" data-prompt-gallery-back>‹ 返回提示词库</button><div class="ql-album-toolbar-title"><span>PHOTO ALBUM</span><strong>'+esc(promptEntry.name||'未命名提示词')+' 图集</strong><small>'+items.length+' 张照片</small></div></div><div class="ql-album-paper is-spread">'+(items.length?'<div class="ql-album-spread-book"><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-prev ql-album-page-arrow" data-prompt-gallery-step="-1" aria-label="上一页" '+(safePage===0?'disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><div class="ql-album-spread-grid ql-prompt-gallery-spread" data-columns="2">'+visibleItems.map(photoButton).join('')+'</div><span class="ql-album-page-number">'+(safePage+1)+'/'+pageCount+'</span><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-next ql-album-page-arrow" data-prompt-gallery-step="1" aria-label="下一页" '+(safePage>=pageCount-1?'disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div>':'<div class="ql-album-empty-book"><div class="ql-album-empty-cover"><span>PHOTO ALBUM</span><strong>这本图集还没有照片</strong><small>应用该提示词生成图片后，关联的影像会自动收录在这里，不需要进入影像缓存。</small></div></div>')+'</div>';
+    content.querySelector('[data-prompt-gallery-back]')?.addEventListener('click',()=>{
+     root.querySelectorAll('button.ql-tab').forEach(item=>{const active=item.dataset.page==='wordbank';item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
+     root.querySelectorAll('[data-page-panel]').forEach(node=>{const active=node.dataset.pagePanel==='wordbank';node.hidden=!active;node.classList.toggle('active',active);});
+     const tab=root.querySelector('button.ql-subtab[data-subpage="prompt-library"]');
+     if(tab){const scope=tab.closest('.ql-page')||root;scope.querySelectorAll('button.ql-subtab').forEach(item=>{const active=item===tab;item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});scope.querySelectorAll('[data-subpage-panel]').forEach(node=>{const active=node.dataset.subpagePanel==='prompt-library';node.hidden=!active;node.classList.toggle('active',active);});}
+    });
+    content.querySelectorAll('[data-prompt-gallery-step]').forEach(button=>button.addEventListener('click',()=>renderPromptGalleryPage(safePage+Number(button.dataset.promptGalleryStep))));
+    content.querySelectorAll('[data-prompt-record]').forEach(photo=>photo.addEventListener('click',()=>{
+     const record=items.find(item=>item._cacheIndex===Number(photo.dataset.promptRecord));
+     if(record?.dataUrl)openViewfinderImage(record.dataUrl);
+    }));
+   };
+   renderPromptGalleryPage(0);
   }
   root.querySelectorAll('button.ql-tab').forEach(item=>{const active=item.dataset.page==='prompt-gallery';item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
   root.querySelectorAll('[data-page-panel]').forEach(node=>{const active=node.dataset.pagePanel==='prompt-gallery';node.hidden=!active;node.classList.toggle('active',active);});
