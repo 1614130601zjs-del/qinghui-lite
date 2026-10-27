@@ -3486,3 +3486,43 @@ r. */
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-favorite.is-favorite svg path{fill:currentColor!important;}
 /* 0.5.95: remove the internal prompt-gallery tab from the top navigation. */
 #qinghui-lite-panel .ql-tabs > .ql-tab[data-page="prompt-gallery"]{display:none!important;}
+
+
+/* 0.5.93: clearer favorite state and a more refined full-image viewer */
+#qinghui-lite-panel .ql-viewfinder-card #ql-result-favorite.is-favorite,
+#qinghui-lite-panel .ql-chat-image-favorite.is-favorite{
+  color:#9b7627!important;
+  background:linear-gradient(145deg,rgba(244,211,123,.34),rgba(212,165,57,.18))!important;
+  border:1px solid rgba(193,145,39,.82)!important;
+  box-shadow:0 0 0 2px rgba(211,170,65,.14),0 5px 16px rgba(160,119,31,.18)!important;
+  transform:translateY(-1px);
+}
+#qinghui-lite-panel .ql-chat-image-favorite.is-favorite svg,
+#qinghui-lite-panel #ql-result-favorite.is-favorite svg{filter:drop-shadow(0 1px 2px rgba(142,99,13,.28));}
+#qinghui-lite-panel .ql-album-more-menu button[data-album-edit-cover],
+#qinghui-lite-panel .ql-album-more-menu button[data-album-restore-cover]{font-weight:600;}
+dialog.ql-viewfinder-lightbox{
+  padding:12px!important;
+  border:1px solid rgba(255,255,255,.24)!important;
+  border-radius:22px!important;
+  background:linear-gradient(145deg,rgba(28,29,33,.97),rgba(12,13,16,.985))!important;
+  box-shadow:0 28px 90px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.1)!important;
+  backdrop-filter:blur(24px);
+}
+dialog.ql-viewfinder-lightbox::backdrop{background:rgba(5,7,11,.78);backdrop-filter:blur(8px);}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-shell{padding:0!important;gap:0!important;}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-topline{padding:8px 10px 12px!important;}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame{
+  overflow:hidden;border-radius:13px;background:rgba(0,0,0,.22);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);
+}
+dialog.ql-viewfinder-lightbox img{
+  max-width:min(92vw,900px)!important;max-height:calc(100dvh - 100px)!important;
+  border-radius:12px!important;box-shadow:0 12px 36px rgba(0,0,0,.3);
+}
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
+  top:8px!important;right:8px!important;width:34px;height:34px;
+  border:1px solid rgba(255,255,255,.18)!important;border-radius:50%!important;
+  background:rgba(255,255,255,.1)!important;color:#fff!important;
+  box-shadow:0 3px 12px rgba(0,0,0,.2);
+}
