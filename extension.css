@@ -2279,3 +2279,58 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 
 /* Keep the in-chat image-generation action centered beneath its message text. */
 #chat .mes_text .ql-inline-image-trigger:not(:disabled){display:flex!important;width:max-content!important;max-width:calc(100% - 16px)!important;margin:10px auto!important;}
+
+
+/* 拾帧相册翻页：参照正文影像的半透明毛玻璃控制，不显示正文影像操作栏。 */
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-toolbar-title>span{
+  font-size:11px!important;letter-spacing:.14em!important;font-weight:750!important;opacity:.76!important;
+}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-toolbar-title strong{
+  font-size:13px!important;letter-spacing:.12em!important;font-weight:650!important;
+}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book{
+  position:relative!important;display:block!important;margin:0!important;padding:0!important;overflow:visible!important;
+}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page{
+  position:relative!important;display:block!important;width:100%!important;min-width:0!important;
+  margin:0!important;padding:0!important;border:0!important;border-radius:12px!important;
+  background:transparent!important;box-shadow:none!important;transform:none!important;
+}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-photo{
+  display:block!important;width:100%!important;min-width:0!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:12px!important;overflow:hidden!important;background:transparent!important;box-shadow:none!important;
+}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-photo img{
+  display:block!important;width:100%!important;height:auto!important;max-height:78vh!important;
+  object-fit:contain!important;border-radius:12px!important;background:transparent!important;
+}
+/* 左右箭头固定在照片两侧的垂直中线，采用正文风格的白色半透明玻璃。 */
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-page-arrow{
+  position:absolute!important;top:50%!important;z-index:12!important;transform:translateY(-50%)!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;padding:7px!important;
+  border:1px solid rgba(255,255,255,.58)!important;border-radius:50%!important;
+  background:rgba(255,255,255,.34)!important;background-color:rgba(255,255,255,.34)!important;
+  color:var(--SmartThemeBodyColor,#51434b)!important;box-shadow:0 2px 8px rgba(0,0,0,.12)!important;
+  backdrop-filter:blur(8px)!important;-webkit-backdrop-filter:blur(8px)!important;
+}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-page-arrow[data-album-step="-1"]{left:8px!important;right:auto!important;}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-page-arrow[data-album-step="1"]{right:8px!important;left:auto!important;}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-page-arrow svg{
+  display:block!important;width:20px!important;height:20px!important;fill:none!important;stroke:currentColor!important;
+  stroke-width:2!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-page-arrow:disabled{opacity:.28!important;}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-page-number{
+  position:absolute!important;right:10px!important;bottom:10px!important;z-index:13!important;
+  min-width:48px!important;margin:0!important;padding:5px 10px!important;box-sizing:border-box!important;
+  border:1px solid rgba(255,255,255,.58)!important;border-radius:999px!important;
+  background:rgba(255,255,255,.42)!important;color:var(--SmartThemeBodyColor,#51434b)!important;
+  text-align:center!important;font-size:12px!important;font-variant-numeric:tabular-nums!important;
+  backdrop-filter:blur(8px)!important;-webkit-backdrop-filter:blur(8px)!important;
+  box-shadow:0 1px 5px rgba(0,0,0,.08)!important;
+}
+@media(max-width:360px){
+ #qinghui-lite-panel [data-page-panel="albums"] .ql-album-page-arrow{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;}
+ #qinghui-lite-panel [data-page-panel="albums"] .ql-album-page-arrow svg{width:18px!important;height:18px!important;}
+}
