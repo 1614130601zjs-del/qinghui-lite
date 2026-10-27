@@ -1118,7 +1118,17 @@ function history(){
  const settings=$('#ql-history-columns');
  if(settings){settings.value=String(cols);settings.onchange=()=>{s.historyColumns=Math.max(1,Math.min(5,Number(settings.value)||3));save();history();};}
  host.style.setProperty('--ql-history-columns',String(cols));
- host.innerHTML=(records.length?'<div class="ql-cache-grid" data-columns="'+cols+'">'+records.map((r,i)=>'<article class="ql-cache-tile"><button type="button" class="ql-cache-image" data-ql-detail="'+i+'" aria-label="查看影像详情"><img loading="lazy" src="'+esc(r.dataUrl||'')+'" alt="影像记录"></button></article>').join('')+'</div>':'<p class="ql-muted">暂无缓存影像。生成的影像会保存在这里。</p>');
+ // 提示词图集专属照片仍保存在设置数据中，但不重复显示在「底片」缓存页。
+ const normalizePromptForAlbum=value=>String(value||'').trim().replace(/[\\s,，、/／|;；·]+/gu,' ').toLowerCase();
+ const promptEntries=Array.isArray(s.prompts)?s.prompts.filter(item=>item&&item.id):[];
+ const visibleRecords=records.map((record,index)=>({...record,_cacheIndex:index})).filter(record=>{
+  if(!record?.dataUrl)return false;
+  const linkedId=record.promptEntryId||record.sourcePromptEntryId;
+  if(linkedId&&promptEntries.some(item=>item.id===linkedId))return false;
+  const base=normalizePromptForAlbum(record.basePrompt||record.prompt||'');
+  return !base||!promptEntries.some(item=>normalizePromptForAlbum(item.promptEn||item.prompt||'')===base);
+ });
+ host.innerHTML=(visibleRecords.length?'<div class="ql-cache-grid" data-columns="'+cols+'">'+visibleRecords.map(record=>'<article class="ql-cache-tile"><button type="button" class="ql-cache-image" data-ql-detail="'+record._cacheIndex+'" aria-label="查看影像详情"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="影像记录"></button></article>').join('')+'</div>':'<p class="ql-muted">暂无底片缓存影像。应用词笺生成的照片会单独保存在对应图集中。</p>');
  const albums=$('#ql-character-albums'),cacheView=host,viewTabs=document.querySelectorAll('[data-album-view]');
  const renderAlbums=()=>{
   if(!albums)return;
