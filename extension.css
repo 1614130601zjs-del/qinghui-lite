@@ -3486,3 +3486,23 @@ r. */
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-favorite.is-favorite svg path{fill:currentColor!important;}
 /* 0.5.95: remove the internal prompt-gallery tab from the top navigation. */
 #qinghui-lite-panel .ql-tabs > .ql-tab[data-page="prompt-gallery"]{display:none!important;}
+
+
+/* 0.5.106：相册菜单独立挂载到 body，避免卡片裁切和层叠上下文遮挡。 */
+.ql-album-more-menu.ql-album-menu-portal{
+ display:flex!important;flex-direction:column!important;gap:3px!important;
+ padding:6px!important;overflow:visible!important;
+ border:1px solid var(--SmartThemeBorderColor,rgba(128,128,128,.3))!important;
+ border-radius:12px!important;background:var(--SmartThemeBlurTintColor,rgba(35,35,35,.96))!important;
+ color:var(--SmartThemeBodyColor)!important;
+ box-shadow:0 10px 28px rgba(0,0,0,.22)!important;
+ backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+}
+.ql-album-more-menu.ql-album-menu-portal[hidden]{display:none!important;}
+.ql-album-more-menu.ql-album-menu-portal button{
+ display:block!important;width:100%!important;min-height:34px!important;
+ padding:8px 11px!important;border:0!important;border-radius:7px!important;
+ background:transparent!important;color:var(--SmartThemeBodyColor)!important;
+ text-align:left!important;font-size:12px!important;white-space:nowrap!important;
+}
+.ql-album-more-menu.ql-album-menu-portal button:hover{background:var(--SmartThemeQuoteColor,rgba(128,128,128,.16))!important;}
