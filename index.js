@@ -1643,82 +1643,72 @@ $('#ql-character-save').onclick=()=>{const select=$('#ql-character-card'),charac
  let key=select?.value||'';
  if(key===''){
   const current=getContext()?.characterId;
-  if(!Number.isInteger(current)||current<0){statusNode.textContent='请先在上方选择一张多人角色卡。';return;}
+  if(!Number.isInteger(current)||current<0){statusNode.textContent='请先选择要读取的多人角色卡。';return;}
   key=String(current);
   if(select)select.value=key;
  }
- const cards=getCharacterCards();
- const card=cards[Number(key)];
- if(!card){statusNode.textContent='未能读取所选角色卡。请重新打开角色词库后再试。';return;}
+ const card=getCharacterCards()[Number(key)];
+ if(!card){statusNode.textContent='未能读取所选角色卡。';return;}
  const cardName=String(card.name||card.avatar||'未命名角色卡');
  const charData=card.data||{};
- const sources=[];
+ const books=[];
  const embedded=charData.character_book;
  if(embedded&&typeof embedded==='object'){
   const entries=Array.isArray(embedded.entries)?embedded.entries:Object.values(embedded.entries||{});
-  if(entries.length)sources.push({bookName:String(embedded.name||cardName+'（内嵌世界书）'),entries});
+  if(entries.length)books.push({name:String(embedded.name||cardName+'（内嵌世界书）'),entries});
  }
  const primaryBook=String(charData.extensions?.world||'').trim();
  if(primaryBook){
   statusNode.textContent='正在读取「'+cardName+'」绑定的世界书……';
   try{
    const book=await loadWorldInfo(primaryBook);
-   if(book&&book.entries)sources.push({bookName:primaryBook,entries:Object.values(book.entries)});
+   if(book&&book.entries)books.push({name:primaryBook,entries:Object.values(book.entries)});
   }catch(error){console.warn('[拾帧] 读取角色卡世界书失败',error);}
  }
- if(!sources.length){
-  statusNode.textContent=primaryBook?'没有读取到可用的世界书条目；请检查绑定的世界书是否存在。':'这张角色卡没有内嵌世界书，也没有绑定外部世界书。';
+ if(!books.length){
+  statusNode.textContent=primaryBook?'未能读取到绑定的世界书内容，请检查世界书是否存在。':'这张角色卡没有内嵌或绑定外部世界书。';
   return;
  }
- const ignoredTitle=/(世界观|世界设定|背景设定|剧情设定|故事背景|地点|地理|规则|注意事项|使用说明|互动规则|写作规则|系统提示|system prompt|setting|world.?info|lore.?rules|background|plot outline|locations?)/i;
- const candidates=[];
- for(const source of sources){
-  for(const entry of source.entries){
-   if(!entry||entry.enabled===false)continue;
-   const rawKeys=entry.key??entry.keys??entry.triggers??[];
-   const keys=(Array.isArray(rawKeys)?rawKeys:[rawKeys]).map(x=>String(x??'').trim()).filter(Boolean);
-   const entryName=String(entry.comment||entry.name||entry.title||entry.label||keys[0]||'').replace(/\s+/g,' ').trim();
-   if(!entryName||ignoredTitle.test(entryName))continue;
-   if(entryName.length>80)continue;
-   candidates.push({name:entryName,bookName:source.bookName,uid:entry.uid??null});
+ // 只认世界书正文中明确写出的“姓名：某某”字段，不把条目标题、关键词或其他世界书条目当成人物。
+ const names=[];
+ const seenNames=new Set();
+ const addName=value=>{
+  const name=String(value||'').replace(/<[^>]*>/g,' ').replace(/^[\s*#>*_【】「」『』"'“”]+|[\s*#>*_【】「」『』"'“”]+$/g,'').trim();
+  if(!name||name.length>40||/[：:]/.test(name)||/^(未知|无|暂无|待定|未填写|姓名|名字|角色名|unknown|n\/a|none)$/i.test(name))return;
+  const normalized=name.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'');
+  if(!normalized||seenNames.has(normalized))return;
+  seenNames.add(normalized);names.push(name);
+ };
+ for(const book of books){
+  for(const entry of book.entries||[]){
+   if(!entry||entry.disable===true||entry.enabled===false)continue;
+   const content=String(entry.content||'').replace(/\\r\\n?/g,'\n');
+   const pattern=/(?:^|[\n\r]|[，,；;。])\s*(?:[-*•]\s*)?(?:\*\*)?姓名(?:\*\*)?\s*[:：]\s*([^\n\r，,；;。|]+)/g;
+   let match;
+   while((match=pattern.exec(content))!==null)addName(match[1]);
+   // 兼容同一行使用逗号分隔的资料格式，例如“姓名：林某，年龄：……”。
+   const inline=/(?:^|\s)(?:\*\*)?姓名(?:\*\*)?\s*[:：]\s*(.+?)(?=\s*[,，;；|]\s*(?:年龄|性别|身份|职业|外貌|发色|瞳色|身高|性格|关系|简介|生日|种族|年龄段|设定)\s*[:：]|$)/g;
+   while((match=inline.exec(content))!==null)addName(match[1]);
   }
  }
- const unique=[];
- const seen=new Set();
- for(const item of candidates){
-  const normalized=item.name.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'');
-  if(!normalized||seen.has(normalized))continue;
-  seen.add(normalized);unique.push(item);
- }
- if(!unique.length){
-  statusNode.textContent='已读取世界书，但没有找到可识别的角色名称。请确认角色条目有备注名（Comment）或关键词（Key）。';
+ if(!names.length){
+  statusNode.textContent='已读取世界书，但没有找到明确的“姓名：角色名”字段；没有创建任何词条。';
   return;
  }
  const settings=cfg();
- const existing=new Set((settings.characters||[]).filter(item=>String(item.characterKey??'')===String(key)&&String(item.characterName||'')===cardName).map(item=>String(item.name||'').trim().toLocaleLowerCase()));
+ const existing=new Set((settings.characters||[]).filter(item=>String(item.characterKey??'')===String(key)&&String(item.characterName||'')===cardName).map(item=>String(item.name||'').trim().toLocaleLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'')));
  const added=[];
  const skipped=[];
- for(const candidate of unique){
-  const normalized=candidate.name.toLocaleLowerCase();
-  if(existing.has(normalized)){skipped.push(candidate.name);continue;}
-  settings.characters.unshift({
-   name:candidate.name,
-   characterKey:String(key),
-   characterName:cardName,
-   appearance:'',
-   sourceWorldbook:candidate.bookName,
-   sourceWorldbookUid:candidate.uid,
-   createdAt:Date.now()
-  });
-  existing.add(normalized);added.push(candidate.name);
+ for(const name of names){
+  const normalized=name.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'');
+  if(existing.has(normalized)){skipped.push(name);continue;}
+  settings.characters.unshift({name,characterKey:String(key),characterName:cardName,appearance:'',createdAt:Date.now()});
+  existing.add(normalized);added.push(name);
  }
  if(added.length)save();
  renderLibrary();
- if(added.length){
-  statusNode.textContent='已从「'+cardName+'」的世界书识别 '+unique.length+' 个角色，新增 '+added.length+' 条角色词条'+(skipped.length?'，跳过重复 '+skipped.length+' 条':'')+'。外貌词均留空，可逐条编辑填写。';
- }else{
-  statusNode.textContent='世界书中识别到 '+unique.length+' 个角色，但这些角色词条已经存在，没有重复创建。';
- }
+ if(added.length)statusNode.textContent='只根据世界书里的“姓名：……”识别到 '+names.length+' 个角色，新增 '+added.length+' 条词条'+(skipped.length?'，跳过重复 '+skipped.length+' 条':'')+'。生图词均留空，请逐条填写。';
+ else statusNode.textContent='识别到 '+names.length+' 个姓名，但对应词条已存在，没有重复创建。';
 };
 $('#ql-preset-save').onclick=()=>{const name=$('#ql-preset-name').value.trim(),positive=$('#ql-preset-positive').value.trim();if(!name||!positive){status('预设名称和正向画风串不能为空。');return;}const item={name,positive,negative:$('#ql-preset-negative').value.trim(),updatedAt:Date.now()};const edit=$('#ql-preset-save').dataset.edit;if(edit!==undefined){cfg().presets[Number(edit)]=item;delete $('#ql-preset-save').dataset.edit;}else cfg().presets.unshift(item);cfg().presets=cfg().presets.slice(0,100);$('#ql-preset-edit-select').value=String(cfg().presets.findIndex(x=>x.name===item.name&&x.positive===item.positive));const savedIndex=cfg().presets.findIndex(x=>x.name===item.name&&x.positive===item.positive);if(savedIndex>=0){$('#ql-preset-save').dataset.edit=String(savedIndex);$('#ql-preset-save').textContent='保存修改';}save();renderLibrary();status('画师串已保存，可通过上方下拉框切换编辑。');};
 
