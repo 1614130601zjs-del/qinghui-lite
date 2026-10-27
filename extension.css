@@ -3505,3 +3505,23 @@ r. */
 .ql-album-crop-modal:not([hidden]){display:flex!important;align-items:center!important;justify-content:center!important;overflow:auto!important;}
 .ql-album-crop-panel{margin:auto!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;}
 @media(max-width:600px){.ql-album-crop-modal:not([hidden]){align-items:center!important;justify-content:center!important;padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom))!important;}.ql-album-crop-panel{margin:auto!important;}}
+
+
+/* 0.5.101: center the three-dot album action menu in the visible screen. */
+#qinghui-lite-panel .ql-album-more-menu:not([hidden]){
+ position:fixed!important;
+ top:50%!important;
+ left:50%!important;
+ right:auto!important;
+ bottom:auto!important;
+ transform:translate(-50%,-50%)!important;
+ z-index:100001!important;
+ width:min(82vw,260px)!important;
+ min-width:0!important;
+ max-height:calc(100dvh - 32px)!important;
+ overflow-y:auto!important;
+ padding:10px!important;
+ border-radius:14px!important;
+ box-shadow:0 14px 44px rgba(0,0,0,.28)!important;
+}
+#qinghui-lite-panel .ql-album-more-menu:not([hidden]) button{padding:12px 14px!important;font-size:14px!important;}
