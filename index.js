@@ -1305,7 +1305,7 @@ function history(){
   const shelfPrev=albums.querySelector('[data-shelf-step="-1"]'),shelfNext=albums.querySelector('[data-shelf-step="1"]');if(shelfPrev)shelfPrev.disabled=shelfPage===0;if(shelfNext)shelfNext.disabled=shelfPage>=shelfPageCount-1;
   albums.querySelectorAll('[data-open-album]').forEach(button=>button.addEventListener('click',()=>{albums.dataset.albumKey=button.dataset.openAlbum;albums.dataset.albumMoveMode='';setSelectedPhotos([]);renderAlbums();}));
   // Bind the three-dot action directly to freshly-rendered buttons as well as the delegated fallback.
-  const closeAlbumPortal=()=>{document.querySelectorAll('.ql-album-menu-portal').forEach(menu=>{menu.hidden=true;menu.remove();});};
+  const closeAlbumPortal=()=>{document.querySelectorAll('.ql-album-menu-portal').forEach(menu=>{menu.hidden=true;menu.classList.remove('ql-album-menu-portal');menu.style.position='';menu.style.zIndex='';menu.style.width='';menu.style.minWidth='';menu.style.maxWidth='';menu.style.left='';menu.style.top='';const home=menu.__qlPortalHome;if(home&&home.isConnected)home.appendChild(menu);else menu.remove();delete menu.__qlPortalHome;});};
   if(!albums.dataset.portalDismissBound){albums.dataset.portalDismissBound='1';document.addEventListener('pointerdown',event=>{if(!event.target.closest('.ql-album-menu-portal')&&!event.target.closest('[data-album-more]'))closeAlbumPortal();},true);document.addEventListener('keydown',event=>{if(event.key==='Escape')closeAlbumPortal();});}
   albums.querySelectorAll('[data-album-more]').forEach(button=>button.addEventListener('click',event=>{
    event.preventDefault();event.stopPropagation();
@@ -1314,7 +1314,7 @@ function history(){
    closeAlbumPortal();
    const menu=Array.from(albums.querySelectorAll('[data-album-menu]')).find(item=>item.dataset.albumMenu===key);
    if(!menu)return;
-   menu.hidden=false;menu.classList.add('ql-album-menu-portal');menu.dataset.boundAlbumKey=key;document.body.appendChild(menu);
+   menu.__qlPortalHome=menu.parentElement;menu.hidden=false;menu.classList.add('ql-album-menu-portal');menu.dataset.boundAlbumKey=key;document.body.appendChild(menu);
    const rect=button.getBoundingClientRect(),w=Math.max(150,menu.offsetWidth||160),h=menu.offsetHeight||190;
    menu.style.position='fixed';menu.style.zIndex='2147483000';menu.style.width='max-content';menu.style.minWidth='150px';menu.style.maxWidth='calc(100vw - 20px)';
    menu.style.left=Math.max(10,Math.min(window.innerWidth-w-10,rect.right-w))+'px';
