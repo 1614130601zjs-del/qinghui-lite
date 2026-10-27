@@ -1180,6 +1180,12 @@ function history(){
   albums.querySelectorAll('[data-shelf-step]').forEach(button=>button.addEventListener('click',()=>{const total=Math.max(1,Math.ceil((books.length+1)/9));albums.dataset.albumShelfPage=String(Math.max(0,Math.min(total-1,Number(albums.dataset.albumShelfPage||0)+Number(button.dataset.shelfStep))));renderAlbums();}));
   const shelfPrev=albums.querySelector('[data-shelf-step="-1"]'),shelfNext=albums.querySelector('[data-shelf-step="1"]');if(shelfPrev)shelfPrev.disabled=shelfPage===0;if(shelfNext)shelfNext.disabled=shelfPage>=shelfPageCount-1;
   albums.querySelectorAll('[data-open-album]').forEach(button=>button.addEventListener('click',()=>{albums.dataset.albumKey=button.dataset.openAlbum;albums.dataset.albumMoveMode='';setSelectedPhotos([]);renderAlbums();}));
+  // Bind the three-dot action directly to freshly-rendered buttons as well as the delegated fallback.
+  albums.querySelectorAll('[data-album-more]').forEach(button=>button.addEventListener('click',event=>{
+   event.preventDefault();event.stopPropagation();
+   const key=button.dataset.albumMore;
+   albums.querySelectorAll('[data-album-menu]').forEach(menu=>{menu.hidden=menu.dataset.albumMenu!==key||!menu.hidden;});
+  }));
 
   const cropModal=albums.querySelector('[data-album-crop-modal]'),cropImage=albums.querySelector('[data-crop-image]'),cropViewport=albums.querySelector('[data-crop-viewport]'),zoomControl=albums.querySelector('[data-crop-zoom]'),xControl=albums.querySelector('[data-crop-x]'),yControl=albums.querySelector('[data-crop-y]');
   let cropSource=null,cropKey='',cropNaturalW=0,cropNaturalH=0,dragPoint=null;
