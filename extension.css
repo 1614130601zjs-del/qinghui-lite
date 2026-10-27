@@ -2225,7 +2225,7 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  min-width:0!important;margin:0!important;padding:0 11px!important;border-radius:999px!important;
  background:color-mix(in srgb,var(--ql-cache-accent) 13%,var(--ql-cache-card))!important;
  border:1px solid color-mix(in srgb,var(--ql-cache-accent) 24%,var(--ql-cache-border))!important;
- color:var(--ql-cache-text)!important;font-size:11px!important;line-height:1!important;
+ color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;font-size:11px!important;line-height:1!important;
  white-space:nowrap!important;box-shadow:none!important;
 }
 #ql-image-cache-modal .ql-cache-copy-pill:hover,
