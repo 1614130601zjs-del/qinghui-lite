@@ -3460,7 +3460,8 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
   dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame{padding:5px;border-radius:12px;}
   dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame img{max-width:calc(100vw - 40px);max-height:calc(100dvh - 120px);}
 }
-/* Reapply the previously working action-bar placement: favorite/delete together at bottom center. */
+/* 0.5.93: restore compact top-right statusbar favorite/delete controls. */
+r. */
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar{
   position:absolute!important;top:7px!important;right:7px!important;left:auto!important;bottom:auto!important;
   transform:none!important;display:flex!important;gap:5px!important;pointer-events:auto!important;z-index:2147483647!important;
