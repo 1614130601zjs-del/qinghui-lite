@@ -2167,49 +2167,5 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 
 
 /* 提示词图集最终布局：只允许铺开展示；照片按钮与影像缓存的按钮类完全隔离。 */
-#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-spread{
- display:grid!important;
- grid-template-columns:repeat(2,minmax(0,1fr))!important;
- align-items:start!important;
- gap:10px!important;
- width:100%!important;
- padding:10px!important;
- box-sizing:border-box!important;
-}
-#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo{
- display:block!important;
- min-width:0!important;
- margin:0!important;
- padding:5px!important;
- border:1px solid var(--ql-border,#d8cbd1)!important;
- border-radius:12px!important;
- background:var(--ql-card,#fffafc)!important;
- box-sizing:border-box!important;
-}
-#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo-button{
- display:flex!important;
- align-items:center!important;
- justify-content:center!important;
- width:100%!important;
- min-width:0!important;
- margin:0!important;
- padding:0!important;
- overflow:hidden!important;
- border:0!important;
- border-radius:8px!important;
- background:transparent!important;
- box-shadow:none!important;
- cursor:zoom-in!important;
-}
-#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo-button img{
- display:block!important;
- width:100%!important;
- height:auto!important;
- max-height:none!important;
- object-fit:contain!important;
- border-radius:7px!important;
-}
-#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo-button:focus-visible{
- outline:2px solid var(--ql-accent,#a86f8b)!important;
- outline-offset:2px!important;
-}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo-button{cursor:zoom-in!important;}
+
