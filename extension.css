@@ -2655,3 +2655,77 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  #qinghui-lite-panel .ql-album-grid{gap:9px!important}
  #qinghui-lite-panel .ql-album-grid .ql-album-card-caption{min-height:40px!important;padding:6px 4px 6px 7px!important}
 }
+
+
+/* 相册墙微调：新建入口固定首位，照片占主体，信息只保留底部窄条。 */
+#qinghui-lite-panel .ql-album-library-heading{
+  align-items:center!important;
+}
+#qinghui-lite-panel .ql-album-library-title{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  gap:3px!important;
+  min-width:0!important;
+}
+#qinghui-lite-panel .ql-album-library-heading h3{
+  margin:0!important;
+}
+#qinghui-lite-panel .ql-album-library-subtitle{
+  display:block!important;
+  font-size:10px!important;
+  line-height:1.35!important;
+  font-weight:400!important;
+  opacity:.7!important;
+  white-space:normal!important;
+}
+#qinghui-lite-panel .ql-album-library-count{
+  flex:0 0 auto!important;
+}
+#qinghui-lite-panel .ql-album-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  align-items:start!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-cover{
+  aspect-ratio:4/3!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-caption{
+  min-height:34px!important;
+  height:auto!important;
+  padding:5px 5px 5px 8px!important;
+  gap:0!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-caption-text{
+  gap:1px!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-caption strong{
+  font-size:11px!important;
+  line-height:1.25!important;
+  -webkit-line-clamp:1!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-caption span{
+  font-size:9px!important;
+  line-height:1.15!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-more{
+  align-self:center!important;
+  height:26px!important;
+  min-height:26px!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-create-card{
+  order:-1!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-create-cover{
+  aspect-ratio:4/3!important;
+}
+#qinghui-lite-panel .ql-album-create-combined{
+  gap:5px!important;
+}
+@media(max-width:380px){
+  #qinghui-lite-panel .ql-album-library-subtitle{font-size:9px!important}
+  #qinghui-lite-panel .ql-album-grid{gap:8px!important}
+  #qinghui-lite-panel .ql-album-grid .ql-album-card-caption{min-height:31px!important;padding:4px 3px 4px 6px!important}
+  #qinghui-lite-panel .ql-album-grid .ql-album-card-caption strong{font-size:10px!important}
+}
