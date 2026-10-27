@@ -3188,4 +3188,4 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 }
 #qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow-prev{left:8px!important;right:auto!important;}
 #qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow-next{right:8px!important;left:auto!important;}
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow{top:calc(50% + 10px)!important;}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow{top:50%!important;}
