@@ -2538,3 +2538,69 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  #qinghui-lite-panel .ql-album-card-caption strong{font-size:11px!important}
  #qinghui-lite-panel .ql-album-more{flex-basis:24px!important;width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important}
 }
+
+
+/* 重新按参考图收拢相册卡片：照片+信息区属于同一张有阴影的卡片。 */
+#qinghui-lite-panel .ql-album-grid .ql-album-card{
+  overflow:visible!important;
+  border:1px solid var(--SmartThemeBorderColor)!important;
+  border-radius:13px!important;
+  background:var(--SmartThemeBlurTintColor)!important;
+  box-shadow:0 4px 12px rgba(0,0,0,.16),0 1px 3px rgba(0,0,0,.08)!important;
+  isolation:isolate!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-open{
+  display:block!important;width:100%!important;overflow:hidden!important;
+  border-radius:12px 12px 0 0!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-cover{
+  aspect-ratio:4/3!important;
+  border-radius:12px 12px 0 0!important;
+  border:0!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-cover img{
+  width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-card-caption{
+  min-height:53px!important;
+  border-top:1px solid var(--SmartThemeBorderColor)!important;
+  border-radius:0 0 12px 12px!important;
+  background:var(--SmartThemeBlurTintColor)!important;
+  padding:8px 7px 8px 10px!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-more{
+  border:0!important;background:transparent!important;box-shadow:none!important;
+  font-size:22px!important;font-weight:700!important;letter-spacing:0!important;
+  width:24px!important;min-width:24px!important;flex-basis:24px!important;
+  height:30px!important;min-height:30px!important;border-radius:6px!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-create-card{
+  overflow:hidden!important;
+  border:1px dashed var(--SmartThemeBorderColor)!important;
+  background:var(--SmartThemeBlurTintColor)!important;
+  box-shadow:0 4px 12px rgba(0,0,0,.13)!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-create-open{
+  height:100%!important;border-radius:12px!important;
+}
+#qinghui-lite-panel .ql-album-grid .ql-album-create-cover{
+  aspect-ratio:4/3!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  border:0!important;border-radius:12px!important;
+}
+#qinghui-lite-panel .ql-album-create-combined{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:5px!important;color:var(--SmartThemeBodyColor)!important;opacity:.8!important;
+}
+#qinghui-lite-panel .ql-album-create-combined .ql-album-placeholder-mark{
+  font-size:30px!important;line-height:1!important;opacity:1!important;
+}
+#qinghui-lite-panel .ql-album-create-combined .ql-album-create-label{
+  display:block!important;font-size:12px!important;font-weight:600!important;line-height:1.3!important;
+  color:inherit!important;opacity:1!important;
+}
+#qinghui-lite-panel .ql-album-create-card .ql-album-card-caption{display:none!important;}
+@media(max-width:380px){
+ #qinghui-lite-panel .ql-album-grid .ql-album-card-caption{min-height:49px!important;}
+ #qinghui-lite-panel .ql-album-grid .ql-album-card{border-radius:11px!important;}
+}
