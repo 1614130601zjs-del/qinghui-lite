@@ -3084,3 +3084,35 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  #qinghui-lite-panel .ql-album-shelf-next{right:-15px!important}
  #qinghui-lite-panel .ql-album-shelf-arrow{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;font-size:23px!important}
 }
+
+
+/* 2026-10-27: clean create-album tile, modeled on 拾帧's own selected tab; no legacy cover, label, outline, or pseudo fill. */
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-card,
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-card::before,
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-card::after{
+ background:var(--ql-create-bg,#f2f6f9)!important;border:0!important;box-shadow:none!important;outline:0!important;
+}
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-card{
+ position:relative!important;overflow:hidden!important;padding:0!important;border-radius:14px!important;
+}
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-open{
+ position:absolute!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;
+ border:0!important;border-radius:inherit!important;outline:0!important;
+ background:var(--ql-create-bg,#f2f6f9)!important;color:var(--ql-create-text,#35434d)!important;
+ box-shadow:0 5px 12px rgba(44,58,68,.10),inset 0 1px 0 rgba(255,255,255,.58)!important;
+}
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-open::before,
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-open::after,
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-cover,
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-combined,
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-label,
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-open .ql-album-placeholder-mark{display:none!important;content:none!important}
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-open .ql-album-create-svg{
+ display:block!important;width:38px!important;height:38px!important;flex:0 0 38px!important;
+ color:var(--ql-create-accent,#8ca3b7)!important;stroke:currentColor!important;
+}
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-open:active{transform:scale(.97)!important;}
+#qinghui-lite-panel .ql-album-shelf-prev{left:-25px!important;}
+#qinghui-lite-panel .ql-album-shelf-next{right:-25px!important;}
+@media(max-width:380px){#qinghui-lite-panel .ql-album-shelf-prev{left:-20px!important;}#qinghui-lite-panel .ql-album-shelf-next{right:-20px!important;}}
