@@ -2427,3 +2427,55 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #ql-image-cache-modal .ql-cache-modal-panel{background:linear-gradient(155deg,#f8f8fd,#e9ecf8)!important;color:#4d506b!important;border:1px solid rgba(255,255,255,.94)!important;border-radius:20px!important;box-shadow:0 18px 55px rgba(64,67,110,.24)!important;}
 #ql-image-cache-modal .ql-cache-modal-close,#ql-image-cache-modal button{color:#4d506b;}
 @media(max-width:380px){#qinghui-lite-panel .ql-album-grid{gap:7px}#qinghui-lite-panel .ql-album-create-card{padding:3px;border-radius:11px}#qinghui-lite-panel .ql-album-create-card::before{border-radius:8px}#qinghui-lite-panel .ql-album-create-icon{width:32px;height:32px;font-size:22px}}
+
+
+/* 相册封面使用方图；卡片高度由封面和标题自然撑开。只做边框/布局，不填充颜色。 */
+#qinghui-lite-panel .ql-album-library-shell{
+  background:transparent!important;color:var(--SmartThemeBodyColor)!important;
+  border-color:var(--SmartThemeBorderColor)!important;box-shadow:none!important;
+}
+#qinghui-lite-panel .ql-album-library-heading{border-color:var(--SmartThemeBorderColor)!important;}
+#qinghui-lite-panel .ql-album-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;}
+#qinghui-lite-panel .ql-album-card,
+#qinghui-lite-panel .ql-album-create-card{
+  aspect-ratio:auto!important;min-height:0!important;padding:4px!important;
+  border:1px solid var(--SmartThemeBorderColor)!important;border-radius:12px!important;
+  background:transparent!important;color:var(--SmartThemeBodyColor)!important;box-shadow:none!important;
+}
+#qinghui-lite-panel .ql-album-card-cover{aspect-ratio:1/1!important;background:transparent!important;border-radius:8px!important;}
+#qinghui-lite-panel .ql-album-cover-placeholder{background:transparent!important;color:inherit!important;border:1px dashed var(--SmartThemeBorderColor)!important;}
+#qinghui-lite-panel .ql-album-create-card{position:relative!important;display:flex!important;flex-direction:column!important;justify-content:flex-start!important;gap:0!important;overflow:visible!important;}
+#qinghui-lite-panel .ql-album-create-card::before{
+  content:""!important;display:block!important;width:100%!important;aspect-ratio:1/1!important;
+  box-sizing:border-box!important;border:1px dashed var(--SmartThemeBorderColor)!important;
+  border-radius:8px!important;background:transparent!important;
+}
+#qinghui-lite-panel .ql-album-create-icon{
+  top:calc(50% - 17px)!important;left:50%!important;transform:translate(-50%,-50%)!important;
+  width:34px!important;height:34px!important;border:1px solid var(--SmartThemeBorderColor)!important;
+  border-radius:50%!important;background:transparent!important;color:inherit!important;box-shadow:none!important;
+}
+#qinghui-lite-panel .ql-album-create-card strong{display:block;padding:7px 2px 3px!important;color:inherit!important;font-size:12px!important;}
+#qinghui-lite-panel .ql-album-card-caption{padding:7px 3px 3px!important;}
+#qinghui-lite-panel .ql-album-card-caption strong,
+#qinghui-lite-panel .ql-album-card-caption span,
+#qinghui-lite-panel .ql-album-library-heading h3,
+#qinghui-lite-panel .ql-album-library-heading>span{color:inherit!important;}
+#qinghui-lite-panel .ql-album-card-caption span,
+#qinghui-lite-panel .ql-album-library-heading>span{opacity:.65!important;}
+#qinghui-lite-panel .ql-album-more-menu{background:var(--SmartThemeBlurTintColor)!important;border-color:var(--SmartThemeBorderColor)!important;color:var(--SmartThemeBodyColor)!important;}
+#qinghui-lite-panel .ql-album-more-menu button{color:var(--SmartThemeBodyColor)!important;}
+#qinghui-lite-panel .ql-album-crop-panel,
+#ql-image-cache-modal .ql-cache-modal-panel{
+  background:var(--SmartThemeBlurTintColor)!important;color:var(--SmartThemeBodyColor)!important;
+  border:1px solid var(--SmartThemeBorderColor)!important;box-shadow:0 12px 35px rgba(0,0,0,.18)!important;
+}
+#qinghui-lite-panel .ql-album-crop-viewport{background:transparent!important;border:1px solid var(--SmartThemeBorderColor)!important;box-shadow:none!important;}
+#qinghui-lite-panel .ql-album-crop-control{color:var(--SmartThemeBodyColor)!important;}
+#qinghui-lite-panel .ql-crop-slider-base{stroke:currentColor!important;opacity:.25!important;}
+#qinghui-lite-panel .ql-crop-slider-fill{stroke:currentColor!important;opacity:.65!important;}
+#qinghui-lite-panel .ql-crop-slider-thumb{fill:var(--SmartThemeBlurTintColor)!important;stroke:currentColor!important;filter:none!important;}
+#qinghui-lite-panel .ql-album-crop-actions button,
+#qinghui-lite-panel .ql-album-crop-actions [data-crop-save]{background:transparent!important;color:var(--SmartThemeBodyColor)!important;border:1px solid var(--SmartThemeBorderColor)!important;}
+#ql-image-cache-modal .ql-cache-modal-close,#ql-image-cache-modal button{color:var(--SmartThemeBodyColor)!important;}
+@media(max-width:380px){#qinghui-lite-panel .ql-album-grid{gap:7px!important}#qinghui-lite-panel .ql-album-card,#qinghui-lite-panel .ql-album-create-card{padding:3px!important;border-radius:10px!important}}
