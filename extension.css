@@ -3498,3 +3498,10 @@ r. */
 .ql-album-crop-viewport{aspect-ratio:4/5!important;height:auto;overflow:hidden;position:relative;flex:none;}
 .ql-album-crop-viewport img[data-crop-image]{position:absolute;max-width:none!important;max-height:none!important;object-fit:fill;transform:none!important;}
 @media(max-width:600px){.ql-album-crop-viewport{width:min(100%,260px);aspect-ratio:4/5!important;height:auto;}}
+
+
+/* 0.5.100: keep the dialog hidden when closed and center it in the viewport. */
+.ql-album-crop-modal[hidden]{display:none!important;}
+.ql-album-crop-modal:not([hidden]){display:flex!important;align-items:center!important;justify-content:center!important;overflow:auto!important;}
+.ql-album-crop-panel{margin:auto!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;}
+@media(max-width:600px){.ql-album-crop-modal:not([hidden]){align-items:center!important;justify-content:center!important;padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom))!important;}.ql-album-crop-panel{margin:auto!important;}}
