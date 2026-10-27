@@ -1298,30 +1298,20 @@ function renderLibrary(){
   if(title)title.textContent=(promptEntry.name||'未命名提示词')+' · 图集';
   if(description)description.textContent='这本图集只收录当前提示词关联的影像，使用与角色相册相同的展开和翻页方式。';
   if(content){
-   let pageIndex=0;
-   const mode=()=>cfg().albumViewMode==='flip'?'flip':'spread';
    const photoButton=record=>'<article class="ql-cache-tile ql-album-photo"><button type="button" class="ql-cache-image" data-prompt-record="'+record._cacheIndex+'" aria-label="查看影像详情"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="提示词图集照片"></button></article>';
-   const draw=()=>{
-    const currentMode=mode(),totalPages=Math.max(1,Math.ceil(items.length/(currentMode==='flip'?1:6)));
-    pageIndex=Math.max(0,Math.min(totalPages-1,pageIndex));
-    const current=items[pageIndex]||null;
-    content.innerHTML='<div class="ql-album-toolbar"><button type="button" class="menu_button" data-prompt-gallery-back>‹ 返回提示词库</button><div class="ql-album-toolbar-title"><span>PHOTO ALBUM</span><strong>'+esc(promptEntry.name||'未命名提示词')+' 图集</strong><small>'+items.length+' 张照片</small></div><span class="ql-album-toolbar-count">'+(pageIndex+1)+'/'+totalPages+'</span></div><div class="ql-album-mode" role="group" aria-label="照片排列方式"><button type="button" class="menu_button '+(currentMode==='flip'?'active':'')+'" data-prompt-gallery-mode="flip">翻页浏览</button><button type="button" class="menu_button '+(currentMode==='spread'?'active':'')+'" data-prompt-gallery-mode="spread">铺开浏览</button></div><div class="ql-album-paper '+(currentMode==='flip'?'is-flip':'is-spread')+'">'+(items.length?(currentMode==='flip'?'<div class="ql-album-flip-book"><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-prev ql-album-page-arrow" data-prompt-gallery-step="-1" aria-label="上一张" '+(pageIndex<=0?'disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><div class="ql-album-single-page"><button type="button" class="ql-album-single-photo" data-prompt-record="'+current._cacheIndex+'"><img src="'+esc(current.dataUrl||'')+'" alt="提示词图集照片"></button><span class="ql-album-page-number">'+(pageIndex+1)+'/'+items.length+'</span></div><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-next ql-album-page-arrow" data-prompt-gallery-step="1" aria-label="下一张" '+(pageIndex>=items.length-1?'disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div>':'<div class="ql-album-spread-book"><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-prev ql-album-page-arrow" data-prompt-gallery-step="-1" aria-label="上一页" '+(pageIndex<=0?'disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><div class="ql-album-spread-grid" data-columns="2">'+items.slice(pageIndex*6,pageIndex*6+6).map(photoButton).join('')+'</div><span class="ql-album-page-number">'+(pageIndex+1)+'/'+Math.max(1,Math.ceil(items.length/6))+'</span><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-next ql-album-page-arrow" data-prompt-gallery-step="1" aria-label="下一页" '+(pageIndex>=Math.ceil(items.length/6)-1?'disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div>'):'<div class="ql-album-empty-book"><div class="ql-album-empty-cover"><span>PHOTO ALBUM</span><strong>这本图集还没有照片</strong><small>应用该提示词生成图片后，关联的影像会自动收录在这里，不需要进入影像缓存。</small></div></div>')+'</div>';
-    content.querySelector('[data-prompt-gallery-back]')?.addEventListener('click',()=>{
-     root.querySelectorAll('button.ql-tab').forEach(item=>{const active=item.dataset.page==='wordbank';item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
-     root.querySelectorAll('[data-page-panel]').forEach(node=>{const active=node.dataset.pagePanel==='wordbank';node.hidden=!active;node.classList.toggle('active',active);});
-     const tab=root.querySelector('button.ql-subtab[data-subpage="prompt-library"]');
-     if(tab){const scope=tab.closest('.ql-page')||root;scope.querySelectorAll('button.ql-subtab').forEach(item=>{const active=item===tab;item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});scope.querySelectorAll('[data-subpage-panel]').forEach(node=>{const active=node.dataset.subpagePanel==='prompt-library';node.hidden=!active;node.classList.toggle('active',active);});}
-    });
-    content.querySelectorAll('[data-prompt-gallery-mode]').forEach(modeButton=>modeButton.addEventListener('click',()=>{const next=modeButton.dataset.promptGalleryMode;cfg().albumViewMode=next;save();pageIndex=0;draw();}));
-    content.querySelectorAll('[data-prompt-gallery-step]').forEach(stepButton=>stepButton.addEventListener('click',()=>{const max=Math.max(0,Math.ceil(items.length/(mode()==='flip'?1:6))-1);pageIndex=Math.max(0,Math.min(max,pageIndex+Number(stepButton.dataset.promptGalleryStep)));draw();}));
-    content.querySelectorAll('[data-prompt-record]').forEach(photo=>photo.addEventListener('click',()=>{
-     const index=Number(photo.dataset.promptRecord);
-     const cacheButton=$('#ql-history [data-ql-detail="'+index+'"]');
-     if(cacheButton)cacheButton.click();
-     else {const record=items.find(item=>item._cacheIndex===index);if(record?.dataUrl)openViewfinderImage(record.dataUrl);}
-    }));
-   };
-   draw();
+   content.innerHTML='<div class="ql-album-toolbar"><button type="button" class="menu_button" data-prompt-gallery-back>‹ 返回提示词库</button><div class="ql-album-toolbar-title"><span>PHOTO ALBUM</span><strong>'+esc(promptEntry.name||'未命名提示词')+' 图集</strong><small>'+items.length+' 张照片</small></div></div><div class="ql-album-paper is-spread">'+(items.length?'<div class="ql-album-spread-grid ql-prompt-gallery-spread" data-columns="2">'+items.map(photoButton).join('')+'</div>':'<div class="ql-album-empty-book"><div class="ql-album-empty-cover"><span>PHOTO ALBUM</span><strong>这本图集还没有照片</strong><small>应用该提示词生成图片后，关联的影像会自动收录在这里，不需要进入影像缓存。</small></div></div>')+'</div>';
+   content.querySelector('[data-prompt-gallery-back]')?.addEventListener('click',()=>{
+    root.querySelectorAll('button.ql-tab').forEach(item=>{const active=item.dataset.page==='wordbank';item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
+    root.querySelectorAll('[data-page-panel]').forEach(node=>{const active=node.dataset.pagePanel==='wordbank';node.hidden=!active;node.classList.toggle('active',active);});
+    const tab=root.querySelector('button.ql-subtab[data-subpage="prompt-library"]');
+    if(tab){const scope=tab.closest('.ql-page')||root;scope.querySelectorAll('button.ql-subtab').forEach(item=>{const active=item===tab;item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});scope.querySelectorAll('[data-subpage-panel]').forEach(node=>{const active=node.dataset.subpagePanel==='prompt-library';node.hidden=!active;node.classList.toggle('active',active);});}
+   });
+   content.querySelectorAll('[data-prompt-record]').forEach(photo=>photo.addEventListener('click',()=>{
+    const index=Number(photo.dataset.promptRecord);
+    const cacheButton=$('#ql-history [data-ql-detail="'+index+'"]');
+    if(cacheButton)cacheButton.click();
+    else {const record=items.find(item=>item._cacheIndex===index);if(record?.dataUrl)openViewfinderImage(record.dataUrl);}
+   }));
   }
   root.querySelectorAll('button.ql-tab').forEach(item=>{const active=item.dataset.page==='prompt-gallery';item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
   root.querySelectorAll('[data-page-panel]').forEach(node=>{const active=node.dataset.pagePanel==='prompt-gallery';node.hidden=!active;node.classList.toggle('active',active);});
