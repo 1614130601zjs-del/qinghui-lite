@@ -2651,7 +2651,7 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel .ql-album-grid .ql-album-create-combined .ql-album-create-label{font-size:12px!important}
 #qinghui-lite-panel .ql-album-grid .ql-album-card{box-shadow:0 5px 13px rgba(0,0,0,.17)!important}
 #qinghui-lite-panel .ql-album-crop-viewport{
-  position:relative!important;width:100%!important;aspect-ratio:5/3!important;height:auto!important;
+  position:relative!important;width:100%!important;aspect-ratio:1/1!important;height:auto!important;
   overflow:hidden!important;isolation:isolate!important;background:var(--SmartThemeBlurTintColor)!important;
 }
 #qinghui-lite-panel .ql-album-crop-viewport::after{
