@@ -3170,3 +3170,22 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  #qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book>.ql-album-page-arrow-next{right:5px!important;}
  #qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page .ql-album-page-number{bottom:15px!important;}
 }
+
+
+/* Faithful body-renderer frame for album flip browsing: same title, frame, corner, and arrow placement. */
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page::before{
+ content:"✦ 拾帧相册  /  PHOTO ALBUM";
+ display:flex!important;align-items:center!important;min-height:21px!important;
+ padding:0 5px 10px!important;color:var(--ql-text,#555)!important;opacity:.76!important;
+ font-size:10px!important;font-weight:750!important;letter-spacing:.14em!important;
+}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page::after{
+ content:"";position:absolute!important;z-index:2!important;top:10px!important;right:11px!important;
+ width:28px!important;height:28px!important;
+ border-top:2px solid color-mix(in srgb,var(--ql-accent,#7f98ad) 62%,transparent)!important;
+ border-right:2px solid color-mix(in srgb,var(--ql-accent,#7f98ad) 62%,transparent)!important;
+ border-radius:0 8px 0 0!important;pointer-events:none!important;opacity:.8!important;
+}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow-prev{left:8px!important;right:auto!important;}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow-next{right:8px!important;left:auto!important;}
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow{top:calc(50% + 10px)!important;}
