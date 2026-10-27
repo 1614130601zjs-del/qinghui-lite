@@ -1,6 +1,5 @@
 import { extension_settings, getContext } from '/scripts/extensions.js';
 import { saveSettingsDebounced, eventSource, event_types, getRequestHeaders } from '/script.js';
-import { loadWorldInfo } from '/scripts/world-info.js';
 import { parseImageMarkers, makeTriggerId, TriggerRegistry } from './trigger-core.js';
 
 const EXT = 'qinghui_lite';
@@ -1105,7 +1104,7 @@ function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-pa
 <div class="ql-page" data-page-panel="wordbank" role="tabpanel" hidden>
 <nav class="ql-subtabs" role="tablist" aria-label="词库分区"><button type="button" class="ql-subtab active" data-subpage="prompt-library" aria-selected="true">提示词库</button><button type="button" class="ql-subtab" data-subpage="character-library" aria-selected="false">角色词库</button></nav>
 <section class="ql-subpage active" data-subpage-panel="prompt-library"><div class="ql-card"><h3>提示词库</h3><p class="ql-muted">默认以小图网格浏览；点击某条才展开编辑区。</p><div id="ql-prompt-editor" hidden><section class="ql-library-prompt-field"><div class="ql-library-prompt-field-head"><label for="ql-library-prompt-en"><span class="ql-library-field-kicker">IMAGE PROMPT</span><span>画面提示词</span></label><button type="button" id="ql-library-prompt-copy" class="ql-library-copy-icon" aria-label="复制画面提示词" title="复制画面提示词"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div><textarea id="ql-library-prompt-en" placeholder="English prompt tags / description"></textarea></section><div class="ql-row"><input id="ql-prompt-name" placeholder="名称"><select id="ql-prompt-category"><option value="单人">单人</option><option value="双人">双人</option><option value="BG">BG</option><option value="BL">BL</option><option value="GL">GL</option><option value="其他">其他</option><option value="自定义">自定义分类…</option></select><input id="ql-prompt-category-custom" placeholder="输入自定义分类" hidden></div><label>自定义 Tag（用逗号、顿号、斜杠、空格或换行分隔）</label><textarea id="ql-library-prompt-zh" placeholder="例如：年上/暧昧，温柔 眼镜"></textarea><div class="ql-image-reference-editor"><label for="ql-library-image-file">预览图片</label><input id="ql-library-image-file" type="file" accept="image/*"><div id="ql-library-image-preview" class="ql-library-image-preview" data-image="" role="button" tabindex="0" aria-label="点击添加预览图片" title="点击此处选择图片"><span class="ql-muted">尚未添加预览图</span></div><button type="button" id="ql-library-image-clear" class="menu_button">移除预览图</button></div><div class="ql-row"><button id="ql-prompt-save" class="menu_button">保存提示词</button><button type="button" id="ql-prompt-cancel" class="menu_button">取消</button></div></div><button type="button" id="ql-prompt-add" class="menu_button ql-primary">＋ 添加提示词</button><div class="ql-row ql-library-tools ql-prompt-toolbar"><select id="ql-prompt-filter" aria-label="筛选提示词分类"><option value="">全部分类</option></select><button type="button" id="ql-library-edit-mode" class="menu_button">编辑模式</button><button type="button" id="ql-prompt-bulk-delete" class="menu_button">批量删除</button></div><p class="ql-muted" id="ql-library-edit-hint">提示词可按分类筛选；Tag 自由填写并自动拆分；应用后生成的图片会收录到对应图集。</p><div id="ql-prompts-list"></div></div></section>
-<section class="ql-subpage" data-subpage-panel="character-library" hidden><div class="ql-card"><h3>角色词条库</h3><p class="ql-muted">先选择一张角色卡，再进入这张卡的角色词条编辑。读取世界书时会识别明显的人设字段并提取姓名，不要求固定使用某一种字段名。</p><label for="ql-character-card">选择要编辑的角色卡</label><div class="ql-row"><select id="ql-character-card"><option value="">请选择角色卡</option></select><button type="button" id="ql-character-start" class="menu_button">开始编辑</button></div><button type="button" id="ql-character-analyze" class="menu_button">读取所选角色卡世界书</button><div id="ql-character-editor" hidden><label for="ql-character-name">角色名称</label><input id="ql-character-name" placeholder="例如：角色名 / 卡内角色名"><label for="ql-character-appearance">生图词 / 固定外貌词</label><textarea id="ql-character-appearance" placeholder="填写外貌、发色、瞳色、服装等固定生图词"></textarea><div class="ql-row"><button id="ql-character-save" class="menu_button">保存角色词条</button><button type="button" id="ql-character-cancel" class="menu_button">取消</button></div></div><p class="ql-muted" id="ql-character-status" role="status"></p><div class="ql-row ql-library-tools"><button type="button" id="ql-character-export" class="menu_button">导出所选</button><button type="button" id="ql-character-bulk-delete" class="menu_button">批量删除</button></div><div id="ql-characters-list"></div></div></section>
+<section class="ql-subpage" data-subpage-panel="character-library" hidden><div class="ql-card"><h3>角色词条库</h3><p class="ql-muted">先选择一张角色卡，再进入这张卡的角色词条编辑。角色名称和生图词由你手动添加，避免自动识别产生错误词条。</p><label for="ql-character-card">选择要编辑的角色卡</label><div class="ql-row"><select id="ql-character-card"><option value="">请选择角色卡</option></select><button type="button" id="ql-character-start" class="menu_button">开始编辑</button></div><div id="ql-character-editor" hidden><label for="ql-character-name">角色名称</label><input id="ql-character-name" placeholder="例如：角色名 / 卡内角色名"><label for="ql-character-appearance">生图词 / 固定外貌词</label><textarea id="ql-character-appearance" placeholder="填写外貌、发色、瞳色、服装等固定生图词"></textarea><div class="ql-row"><button id="ql-character-save" class="menu_button">保存角色词条</button><button type="button" id="ql-character-cancel" class="menu_button">取消</button></div></div><p class="ql-muted" id="ql-character-status" role="status"></p><div class="ql-row ql-library-tools"><button type="button" id="ql-character-export" class="menu_button">导出所选</button><button type="button" id="ql-character-bulk-delete" class="menu_button">批量删除</button></div><div id="ql-characters-list"></div></div></section>
 </div>
 <div class="ql-page" data-page-panel="history" role="tabpanel" hidden><div class="ql-card"><h3>影像缓存</h3><p class="ql-muted">这里保存生成过的影像记录；点击缩略图可查看提示词、参考图与生成参数。</p><label for="ql-history-columns">每行影像数量</label><select id="ql-history-columns"><option value="1">1 张</option><option value="2">2 张</option><option value="3">3 张</option><option value="4">4 张</option><option value="5">5 张</option></select><div id="ql-history"></div></div><div id="ql-cache-footer" class="ql-cache-bulk-tools"><button type="button" class="menu_button" id="ql-cache-select-mode" aria-pressed="false">多选</button><label class="ql-cache-select-all" hidden><input type="checkbox" data-ql-select-all disabled> 全选</label><span class="ql-cache-selected-count" data-ql-selected-count hidden>已选 0 张</span><button type="button" class="menu_button" data-ql-bulk-download disabled hidden>逐张下载</button><button type="button" class="menu_button" data-ql-bulk-delete disabled hidden>删除所选</button><button type="button" class="menu_button" id="ql-clear">清空影像缓存</button></div></div>
 <div class="ql-page active" data-page-panel="albums" role="tabpanel"><div class="ql-card ql-album-library-card"><div id="ql-character-albums"></div></div></div>
@@ -1673,74 +1672,6 @@ $('#ql-prompt-save').onclick=()=>{const name=$('#ql-prompt-name').value.trim(),p
 $('#ql-character-card').onchange=()=>{if($('#ql-character-save').dataset.edit!==undefined)return;activeCharacterCardKey=$('#ql-character-card').value||'';characterLibraryStarted=false;$('#ql-character-editor').hidden=true;renderLibrary();$('#ql-character-status').textContent=activeCharacterCardKey?'已选择角色卡，点击「开始编辑」查看词条。':'请先选择一张角色卡。';};
 $('#ql-character-save').onclick=()=>{const select=$('#ql-character-card'),characterKey=select?.value||'',name=$('#ql-character-name').value.trim(),appearance=$('#ql-character-appearance').value.trim();if(!name){$('#ql-character-status').textContent='请填写角色名称。';return;}const card=characterKey!==''?(getContext()?.characters||[])[Number(characterKey)]:null;const item={name,characterKey:characterKey===''?null:String(characterKey),characterName:card?.name||card?.avatar||'',characterAvatar:card?.avatar||'',appearance,updatedAt:Date.now()};const edit=$('#ql-character-save').dataset.edit;if(edit!==undefined&&cfg().characters[Number(edit)])cfg().characters[Number(edit)]={...cfg().characters[Number(edit)],...item};else cfg().characters.unshift(item);cfg().characters=cfg().characters.slice(0,100);save();if(characterKey!=='')activeCharacterCardKey=String(characterKey);else activeCharacterCardKey='__unbound';delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色词条';$('#ql-character-editor').hidden=true;renderLibrary();$('#ql-character-status').textContent=characterKey!==''?'已保存，并绑定到角色卡：'+item.characterName:'已保存角色词条（尚未绑定角色卡）。';};$('#ql-character-cancel').onclick=()=>{delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色词条';$('#ql-character-name').value='';$('#ql-character-appearance').value='';$('#ql-character-card').value='';$('#ql-character-editor').hidden=true;$('#ql-character-status').textContent='已切换到新建模式。';};$('#ql-character-card').onchange=()=>{activeCharacterCardKey=$('#ql-character-card').value||'';characterLibraryStarted=false;$('#ql-character-editor').hidden=true;renderLibrary();};
 $('#ql-character-start').onclick=()=>{const key=$('#ql-character-card').value||'';if(key===''){$('#ql-character-status').textContent='请先选择一张角色卡。';return;}activeCharacterCardKey=key;characterLibraryStarted=true;$('#ql-character-editor').hidden=true;renderLibrary();$('#ql-character-status').textContent='已进入所选角色卡的编辑界面。';};
-$('#ql-character-analyze').onclick=async()=>{
- const statusNode=$('#ql-character-status');
- const select=$('#ql-character-card');
- let key=select?.value||'';
- if(key===''){
-  const current=getContext()?.characterId;
-  if(!Number.isInteger(current)||current<0){statusNode.textContent='请先选择要读取的多人角色卡。';return;}
-  key=String(current);
-  if(select)select.value=key;
- }
- const card=getCharacterCards()[Number(key)];
- if(!card){statusNode.textContent='未能读取所选角色卡。';return;}
- const cardName=String(card.name||card.avatar||'未命名角色卡');
- activeCharacterCardKey=String(key);
- const charData=card.data||{};
- const books=[];
- const embedded=charData.character_book;
- if(embedded&&typeof embedded==='object'){
-  const entries=Array.isArray(embedded.entries)?embedded.entries:Object.values(embedded.entries||{});
-  if(entries.length)books.push({name:String(embedded.name||cardName+'（内嵌世界书）'),entries});
- }
- const primaryBook=String(charData.extensions?.world||'').trim();
- if(primaryBook){
-  statusNode.textContent='正在读取「'+cardName+'」绑定的世界书……';
-  try{
-   const book=await loadWorldInfo(primaryBook);
-   if(book&&book.entries)books.push({name:primaryBook,entries:Object.values(book.entries)});
-  }catch(error){console.warn('[拾帧] 读取角色卡世界书失败',error);}
- }
- if(!books.length){
-  statusNode.textContent=primaryBook?'未能读取到绑定的世界书内容，请检查世界书是否存在。':'这张角色卡没有内嵌或绑定外部世界书。';
-  return;
- }
- // 只认世界书正文中明确写出的“姓名：某某”字段，不把条目标题、关键词或其他世界书条目当成人物。
- const names=[];
- const seenNames=new Set();
- const addName=value=>{
-  const name=String(value||'').replace(/<[^>]*>/g,' ').replace(/^[\s*#>*_【】「」『』"'“”]+|[\s*#>*_【】「」『』"'“”]+$/g,'').trim();
-  if(!name||name.length>40||/[：:]/.test(name)||/(节目|作品|视频|频道|直播|栏目|标题|主题|活动|策划|流程|介绍|推荐|预告|播出)/i.test(name)||/^(未知|无|暂无|待定|未填写|姓名|名字|角色名|unknown|n\/a|none)$/i.test(name))return;
-  const normalized=name.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'');
-  if(!normalized||seenNames.has(normalized))return;
-  seenNames.add(normalized);names.push(name);
- };
- for(const book of books){
-  for(const entry of book.entries||[]){
-   if(!entry||entry.disable===true||entry.enabled===false)continue;
-   const content=String(entry.content||'').replace(/\\r\\n?/g,'\n');
-   // 已停用世界书自动识别姓名，避免把节目名、作品名等误导入角色库。
-   // 角色词条改为手动创建/编辑。
- if(!names.length){
-  statusNode.textContent='已读取世界书，但没有识别到明显的人设姓名字段；没有创建任何词条。';
-  return;
- }
- const settings=cfg();
- const existing=new Set((settings.characters||[]).filter(item=>String(item.characterKey??'')===String(key)&&String(item.characterName||'')===cardName).map(item=>String(item.name||'').trim().toLocaleLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'')));
- const added=[];
- const skipped=[];
- for(const name of names){
-  const normalized=name.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'');
-  if(existing.has(normalized)){skipped.push(name);continue;}
-  settings.characters.unshift({name,characterKey:String(key),characterName:cardName,characterAvatar:String(card.avatar||''),appearance:'',createdAt:Date.now()});
-  existing.add(normalized);added.push(name);
- }
- if(added.length)save();
- renderLibrary();
- if(added.length)statusNode.textContent='根据世界书中的人设字段识别到 '+names.length+' 个角色，新增 '+added.length+' 条词条'+(skipped.length?'，跳过重复 '+skipped.length+' 条':'')+'。生图词均留空，请逐条填写。';
- else statusNode.textContent='识别到 '+names.length+' 个姓名，但对应词条已存在，没有重复创建。';
-};
 $('#ql-preset-save').onclick=()=>{const name=$('#ql-preset-name').value.trim(),positive=$('#ql-preset-positive').value.trim();if(!name||!positive){status('预设名称和正向画风串不能为空。');return;}const item={name,positive,negative:$('#ql-preset-negative').value.trim(),updatedAt:Date.now()};const edit=$('#ql-preset-save').dataset.edit;if(edit!==undefined){cfg().presets[Number(edit)]=item;delete $('#ql-preset-save').dataset.edit;}else cfg().presets.unshift(item);cfg().presets=cfg().presets.slice(0,100);$('#ql-preset-edit-select').value=String(cfg().presets.findIndex(x=>x.name===item.name&&x.positive===item.positive));const savedIndex=cfg().presets.findIndex(x=>x.name===item.name&&x.positive===item.positive);if(savedIndex>=0){$('#ql-preset-save').dataset.edit=String(savedIndex);$('#ql-preset-save').textContent='保存修改';}save();renderLibrary();status('画师串已保存，可通过上方下拉框切换编辑。');};
 
 }
