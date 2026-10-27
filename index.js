@@ -1119,7 +1119,7 @@ function history(){
  if(settings){settings.value=String(cols);settings.onchange=()=>{s.historyColumns=Math.max(1,Math.min(5,Number(settings.value)||3));save();history();};}
  host.style.setProperty('--ql-history-columns',String(cols));
  // 提示词图集专属照片仍保存在设置数据中，但不重复显示在「底片」缓存页。
- const normalizePromptForAlbum=value=>String(value||'').trim().replace(/[\\s,，、/／|;；·]+/gu,' ').toLowerCase();
+ const normalizePromptForAlbum=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();
  const promptEntries=Array.isArray(s.prompts)?s.prompts.filter(item=>item&&item.id):[];
  const visibleRecords=records.map((record,index)=>({...record,_cacheIndex:index})).filter(record=>{
   if(!record?.dataUrl)return false;
