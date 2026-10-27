@@ -3197,13 +3197,13 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page{
  overflow:visible!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow-prev{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow[data-album-step="-1"]{
  left:-20px!important;right:auto!important;z-index:30!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow-next{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow[data-album-step="1"]{
  right:-20px!important;left:auto!important;z-index:30!important;
 }
 @media(max-width:380px){
- #qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow-prev{left:-16px!important;}
- #qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow-next{right:-16px!important;}
+ #qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow[data-album-step="-1"]{left:-16px!important;}
+ #qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow[data-album-step="1"]{right:-16px!important;}
 }
