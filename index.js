@@ -1,5 +1,6 @@
 import { extension_settings, getContext } from '/scripts/extensions.js';
 import { saveSettingsDebounced, eventSource, event_types, getRequestHeaders } from '/script.js';
+import { loadWorldInfo } from '/scripts/world-info.js';
 import { parseImageMarkers, makeTriggerId, TriggerRegistry } from './trigger-core.js';
 
 const EXT = 'qinghui_lite';
@@ -1636,7 +1637,89 @@ $('#ql-library-image-clear').onclick=()=>{const preview=$('#ql-library-image-pre
 $('#ql-library-prompt-copy').onclick=async()=>{const field=$('#ql-library-prompt-en');const button=$('#ql-library-prompt-copy');const value=field?.value||'';if(!value.trim()){status('画面提示词为空，暂时没有内容可复制。');return;}try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);}else{const area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('浏览器未允许复制');}button.classList.add('is-copied');button.title='已复制画面提示词';button.setAttribute('aria-label','已复制画面提示词');status('已复制画面提示词。');setTimeout(()=>{button.classList.remove('is-copied');button.title='复制画面提示词';button.setAttribute('aria-label','复制画面提示词');},1300);}catch(error){status('复制失败：请长按画面提示词手动复制。');}};
 $('#ql-prompt-save').onclick=()=>{const name=$('#ql-prompt-name').value.trim(),promptZh=$('#ql-library-prompt-zh').value.trim(),promptEn=$('#ql-library-prompt-en').value.trim();if(!name||(!promptZh&&!promptEn)){status('请填写名称，并至少填写中文或英文提示词。');return;}const selectedCategory=$('#ql-prompt-category').value;const customCategory=$('#ql-prompt-category-custom').value.trim();const category=selectedCategory==='自定义'?(customCategory||'其他'):selectedCategory;const edit=$('#ql-prompt-save').dataset.edit;const existing=edit!==undefined?cfg().prompts[Number(edit)]:null;const item={...(existing||{}),id:existing?.id||('prompt-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9)),name,category,promptZh,promptEn,image:$('#ql-library-image-preview')?.dataset.image||'',updatedAt:Date.now()};if(edit!==undefined){cfg().prompts[Number(edit)]={...cfg().prompts[Number(edit)],...item};delete $('#ql-prompt-save').dataset.edit;$('#ql-prompt-save').textContent='保存提示词';}else cfg().prompts.unshift(item);cfg().prompts=cfg().prompts.slice(0,200);save();$('#ql-prompt-editor').hidden=true;$('#ql-prompt-add').hidden=false;$('#ql-prompt-name').value='';$('#ql-library-prompt-zh').value='';$('#ql-library-prompt-en').value='';$('#ql-library-image-preview').dataset.image='';$('#ql-library-image-preview').innerHTML='<span class="ql-muted">尚未添加预览图</span>';$('#ql-library-image-file').value='';delete $('#ql-prompt-save').dataset.edit;$('#ql-prompt-save').textContent='保存提示词';renderLibrary();status('提示词已保存。');};
 $('#ql-character-card').onchange=()=>{if($('#ql-character-save').dataset.edit!==undefined)return;$('#ql-character-status').textContent=$('#ql-character-card').value===''?'当前角色词条不绑定酒馆角色卡。':'新建角色词条将绑定到所选角色卡。';};
-$('#ql-character-save').onclick=()=>{const select=$('#ql-character-card'),characterKey=select?.value||'',name=$('#ql-character-name').value.trim(),appearance=$('#ql-character-appearance').value.trim();if(!name||!appearance){$('#ql-character-status').textContent='请填写角色名称和生图词。';return;}const card=characterKey!==''?(getContext()?.characters||[])[Number(characterKey)]:null;const item={name,characterKey:characterKey===''?null:String(characterKey),characterName:card?.name||card?.avatar||'',appearance,updatedAt:Date.now()};const edit=$('#ql-character-save').dataset.edit;if(edit!==undefined&&cfg().characters[Number(edit)])cfg().characters[Number(edit)]={...cfg().characters[Number(edit)],...item};else cfg().characters.unshift(item);cfg().characters=cfg().characters.slice(0,100);save();delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色词条';renderLibrary();$('#ql-character-status').textContent=characterKey!==''?'已保存，并绑定到角色卡：'+item.characterName:'已保存角色词条（尚未绑定角色卡）。';};$('#ql-character-cancel').onclick=()=>{delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色词条';$('#ql-character-name').value='';$('#ql-character-appearance').value='';$('#ql-character-card').value='';$('#ql-character-status').textContent='已切换到新建模式。';};$('#ql-character-analyze').onclick=()=>{let key=$('#ql-character-card').value;if(key===''){const current=getContext()?.characterId;if(!Number.isInteger(current)||current<0){$('#ql-character-status').textContent='请先选择要读取的酒馆角色卡。';return;}key=String(current);$('#ql-character-card').value=key;}const card=getCharacterCards()[Number(key)];if(!card){$('#ql-character-status').textContent='未能读取所选角色卡资料。';return;}const source=[card.description,card.personality,card.scenario,card.first_mes,card.mes_example].filter(Boolean).join('\n');$('#ql-character-name').value=card.name||card.avatar||'未命名角色';$('#ql-character-appearance').value=$('#ql-character-appearance').value.trim()||source.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim().slice(0,3500);$('#ql-character-status').textContent='已读取角色卡描述、性格、场景与开场白作为填写参考。请检查并整理为生图词后保存。';};
+$('#ql-character-save').onclick=()=>{const select=$('#ql-character-card'),characterKey=select?.value||'',name=$('#ql-character-name').value.trim(),appearance=$('#ql-character-appearance').value.trim();if(!name||!appearance){$('#ql-character-status').textContent='请填写角色名称和生图词。';return;}const card=characterKey!==''?(getContext()?.characters||[])[Number(characterKey)]:null;const item={name,characterKey:characterKey===''?null:String(characterKey),characterName:card?.name||card?.avatar||'',appearance,updatedAt:Date.now()};const edit=$('#ql-character-save').dataset.edit;if(edit!==undefined&&cfg().characters[Number(edit)])cfg().characters[Number(edit)]={...cfg().characters[Number(edit)],...item};else cfg().characters.unshift(item);cfg().characters=cfg().characters.slice(0,100);save();delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色词条';renderLibrary();$('#ql-character-status').textContent=characterKey!==''?'已保存，并绑定到角色卡：'+item.characterName:'已保存角色词条（尚未绑定角色卡）。';};$('#ql-character-cancel').onclick=()=>{delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色词条';$('#ql-character-name').value='';$('#ql-character-appearance').value='';$('#ql-character-card').value='';$('#ql-character-status').textContent='已切换到新建模式。';};$('#ql-character-analyze').onclick=async()=>{
+ const statusNode=$('#ql-character-status');
+ const select=$('#ql-character-card');
+ let key=select?.value||'';
+ if(key===''){
+  const current=getContext()?.characterId;
+  if(!Number.isInteger(current)||current<0){statusNode.textContent='请先在上方选择一张多人角色卡。';return;}
+  key=String(current);
+  if(select)select.value=key;
+ }
+ const cards=getCharacterCards();
+ const card=cards[Number(key)];
+ if(!card){statusNode.textContent='未能读取所选角色卡。请重新打开角色词库后再试。';return;}
+ const cardName=String(card.name||card.avatar||'未命名角色卡');
+ const charData=card.data||{};
+ const sources=[];
+ const embedded=charData.character_book;
+ if(embedded&&typeof embedded==='object'){
+  const entries=Array.isArray(embedded.entries)?embedded.entries:Object.values(embedded.entries||{});
+  if(entries.length)sources.push({bookName:String(embedded.name||cardName+'（内嵌世界书）'),entries});
+ }
+ const primaryBook=String(charData.extensions?.world||'').trim();
+ if(primaryBook){
+  statusNode.textContent='正在读取「'+cardName+'」绑定的世界书……';
+  try{
+   const book=await loadWorldInfo(primaryBook);
+   if(book&&book.entries)sources.push({bookName:primaryBook,entries:Object.values(book.entries)});
+  }catch(error){console.warn('[拾帧] 读取角色卡世界书失败',error);}
+ }
+ if(!sources.length){
+  statusNode.textContent=primaryBook?'没有读取到可用的世界书条目；请检查绑定的世界书是否存在。':'这张角色卡没有内嵌世界书，也没有绑定外部世界书。';
+  return;
+ }
+ const ignoredTitle=/(世界观|世界设定|背景设定|剧情设定|故事背景|地点|地理|规则|注意事项|使用说明|互动规则|写作规则|系统提示|system prompt|setting|world.?info|lore.?rules|background|plot outline|locations?)/i;
+ const candidates=[];
+ for(const source of sources){
+  for(const entry of source.entries){
+   if(!entry||entry.enabled===false)continue;
+   const rawKeys=entry.key??entry.keys??entry.triggers??[];
+   const keys=(Array.isArray(rawKeys)?rawKeys:[rawKeys]).map(x=>String(x??'').trim()).filter(Boolean);
+   const entryName=String(entry.comment||entry.name||entry.title||entry.label||keys[0]||'').replace(/\s+/g,' ').trim();
+   if(!entryName||ignoredTitle.test(entryName))continue;
+   if(entryName.length>80)continue;
+   candidates.push({name:entryName,bookName:source.bookName,uid:entry.uid??null});
+  }
+ }
+ const unique=[];
+ const seen=new Set();
+ for(const item of candidates){
+  const normalized=item.name.toLocaleLowerCase().replace(/[\s\p{P}\p{S}]+/gu,'');
+  if(!normalized||seen.has(normalized))continue;
+  seen.add(normalized);unique.push(item);
+ }
+ if(!unique.length){
+  statusNode.textContent='已读取世界书，但没有找到可识别的角色名称。请确认角色条目有备注名（Comment）或关键词（Key）。';
+  return;
+ }
+ const settings=cfg();
+ const existing=new Set((settings.characters||[]).filter(item=>String(item.characterKey??'')===String(key)&&String(item.characterName||'')===cardName).map(item=>String(item.name||'').trim().toLocaleLowerCase()));
+ const added=[];
+ const skipped=[];
+ for(const candidate of unique){
+  const normalized=candidate.name.toLocaleLowerCase();
+  if(existing.has(normalized)){skipped.push(candidate.name);continue;}
+  settings.characters.unshift({
+   name:candidate.name,
+   characterKey:String(key),
+   characterName:cardName,
+   appearance:'',
+   sourceWorldbook:candidate.bookName,
+   sourceWorldbookUid:candidate.uid,
+   createdAt:Date.now()
+  });
+  existing.add(normalized);added.push(candidate.name);
+ }
+ if(added.length)save();
+ renderLibrary();
+ if(added.length){
+  statusNode.textContent='已从「'+cardName+'」的世界书识别 '+unique.length+' 个角色，新增 '+added.length+' 条角色词条'+(skipped.length?'，跳过重复 '+skipped.length+' 条':'')+'。外貌词均留空，可逐条编辑填写。';
+ }else{
+  statusNode.textContent='世界书中识别到 '+unique.length+' 个角色，但这些角色词条已经存在，没有重复创建。';
+ }
+};
 $('#ql-preset-save').onclick=()=>{const name=$('#ql-preset-name').value.trim(),positive=$('#ql-preset-positive').value.trim();if(!name||!positive){status('预设名称和正向画风串不能为空。');return;}const item={name,positive,negative:$('#ql-preset-negative').value.trim(),updatedAt:Date.now()};const edit=$('#ql-preset-save').dataset.edit;if(edit!==undefined){cfg().presets[Number(edit)]=item;delete $('#ql-preset-save').dataset.edit;}else cfg().presets.unshift(item);cfg().presets=cfg().presets.slice(0,100);$('#ql-preset-edit-select').value=String(cfg().presets.findIndex(x=>x.name===item.name&&x.positive===item.positive));const savedIndex=cfg().presets.findIndex(x=>x.name===item.name&&x.positive===item.positive);if(savedIndex>=0){$('#ql-preset-save').dataset.edit=String(savedIndex);$('#ql-preset-save').textContent='保存修改';}save();renderLibrary();status('画师串已保存，可通过上方下拉框切换编辑。');};
 
 }
