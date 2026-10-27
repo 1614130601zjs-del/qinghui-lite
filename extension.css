@@ -3728,8 +3728,12 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
   fill:currentColor!important;
 }
 
-/* Fix: give the viewfinder favorite's persistent state enough specificity to beat legacy gold styles. */
-#qinghui-lite-panel #ql-result-favorite.is-favorite {
+/* Fix: persistent favorite state must outrank every legacy viewfinder favorite selector. */
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus-visible {
   background:#38424b!important;
   border:1px solid #38424b!important;
   color:#fff!important;
@@ -3738,11 +3742,11 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
   transform:none!important;
   opacity:1!important;
 }
-#qinghui-lite-panel #ql-result-favorite.is-favorite svg,
-#qinghui-lite-panel #ql-result-favorite.is-favorite svg path {
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite svg,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite svg path {
   color:#fff!important;
   stroke:#fff!important;
 }
-#qinghui-lite-panel #ql-result-favorite.is-favorite svg path {
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite svg path {
   fill:currentColor!important;
 }
