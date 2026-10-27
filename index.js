@@ -1296,9 +1296,9 @@ function renderLibrary(){
   root.dataset.activePromptGalleryIndex=String(promptIndex);
   const title=$('#ql-prompt-gallery-title'),description=$('#ql-prompt-gallery-description'),content=$('#ql-prompt-gallery-content');
   if(title)title.textContent=(promptEntry.name||'未命名提示词')+' · 图集';
-  if(description)description.textContent='这本图集只收录当前提示词关联的影像，使用与角色相册相同的展开和翻页方式。';
+  if(description)description.textContent='仅铺开显示当前提示词关联的全部照片；点击照片只放大预览，不跳转影像缓存。';
   if(content){
-   const photoButton=record=>'<article class="ql-cache-tile ql-album-photo"><button type="button" class="ql-cache-image" data-prompt-record="'+record._cacheIndex+'" aria-label="查看影像详情"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="提示词图集照片"></button></article>';
+   const photoButton=record=>'<article class="ql-album-photo ql-prompt-gallery-photo"><button type="button" class="ql-prompt-gallery-photo-button" data-prompt-record="'+record._cacheIndex+'" aria-label="放大预览照片"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="提示词图集照片"></button></article>';
    content.innerHTML='<div class="ql-album-toolbar"><button type="button" class="menu_button" data-prompt-gallery-back>‹ 返回提示词库</button><div class="ql-album-toolbar-title"><span>PHOTO ALBUM</span><strong>'+esc(promptEntry.name||'未命名提示词')+' 图集</strong><small>'+items.length+' 张照片</small></div></div><div class="ql-album-paper is-spread">'+(items.length?'<div class="ql-album-spread-grid ql-prompt-gallery-spread" data-columns="2">'+items.map(photoButton).join('')+'</div>':'<div class="ql-album-empty-book"><div class="ql-album-empty-cover"><span>PHOTO ALBUM</span><strong>这本图集还没有照片</strong><small>应用该提示词生成图片后，关联的影像会自动收录在这里，不需要进入影像缓存。</small></div></div>')+'</div>';
    content.querySelector('[data-prompt-gallery-back]')?.addEventListener('click',()=>{
     root.querySelectorAll('button.ql-tab').forEach(item=>{const active=item.dataset.page==='wordbank';item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
@@ -1307,10 +1307,8 @@ function renderLibrary(){
     if(tab){const scope=tab.closest('.ql-page')||root;scope.querySelectorAll('button.ql-subtab').forEach(item=>{const active=item===tab;item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});scope.querySelectorAll('[data-subpage-panel]').forEach(node=>{const active=node.dataset.subpagePanel==='prompt-library';node.hidden=!active;node.classList.toggle('active',active);});}
    });
    content.querySelectorAll('[data-prompt-record]').forEach(photo=>photo.addEventListener('click',()=>{
-    const index=Number(photo.dataset.promptRecord);
-    const cacheButton=$('#ql-history [data-ql-detail="'+index+'"]');
-    if(cacheButton)cacheButton.click();
-    else {const record=items.find(item=>item._cacheIndex===index);if(record?.dataUrl)openViewfinderImage(record.dataUrl);}
+    const record=items.find(item=>item._cacheIndex===Number(photo.dataset.promptRecord));
+    if(record?.dataUrl)openViewfinderImage(record.dataUrl);
    }));
   }
   root.querySelectorAll('button.ql-tab').forEach(item=>{const active=item.dataset.page==='prompt-gallery';item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
