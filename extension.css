@@ -1259,7 +1259,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-statusbar-card .ql-statusbar-arrow{pointer-events:auto!important;position:relative;z-index:21;min-width:30px;min-height:28px;}
 
 
-/* 0.5.18: separated translucent white arrows on the left/right of the statusbar center. */
+/* 0.5.18: separated translucent white arrows on the left/right of the statusbar cente/* 0.5.94: compact top-right statusbar favorite/delete controls. */
 .ql-statusbar-card .ql-statusbar-controls{display:block!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;z-index:2147483000!important;inset:0!important;width:100%!important;height:100%!important;left:0!important;top:0!important;bottom:auto!important;transform:none!important;background:transparent!important;border:0!important;padding:0!important}
 .ql-statusbar-card .ql-statusbar-controls button{display:flex!important;visibility:visible!important;pointer-events:auto!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;color:#fff!important;background:rgba(255,255,255,.34)!important;border:1px solid rgba(255,255,255,.52)!important;box-shadow:0 1px 5px rgba(0,0,0,.10)!important}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-arrow:first-child{left:8%!important;right:auto!important;top:50%!important;transform:translate(-50%,-50%)!important}
@@ -3460,26 +3460,24 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
   dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame{padding:5px;border-radius:12px;}
   dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame img{max-width:calc(100vw - 40px);max-height:calc(100dvh - 120px);}
 }
-/* Reapply the previously working action-bar placement: favorite/delete together at bottom center. */
+/* 0.5.93: restore compact top-right statusbar favorite/delete controls. */
+r. */
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar{
-  position:absolute!important;left:50%!important;right:auto!important;top:auto!important;
-  bottom:12px!important;transform:translateX(-50%)!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  gap:8px!important;width:max-content!important;max-width:96%!important;
-  pointer-events:auto!important;z-index:2147483647!important;
+  position:absolute!important;top:7px!important;right:7px!important;left:auto!important;bottom:auto!important;
+  transform:none!important;display:flex!important;gap:5px!important;pointer-events:auto!important;z-index:2147483647!important;
 }
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-action{
-  position:static!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
-  display:flex!important;visibility:visible!important;opacity:1!important;
-  flex:0 0 40px!important;width:40px!important;height:40px!important;
-  min-width:40px!important;min-height:40px!important;margin:0!important;padding:8px!important;
-  border:1px solid rgba(255,255,255,.72)!important;border-radius:50%!important;
-  background:rgba(20,16,22,.76)!important;color:#fff!important;
-  box-shadow:0 2px 8px rgba(0,0,0,.24)!important;
-  pointer-events:auto!important;touch-action:manipulation!important;
+  position:static!important;top:auto!important;right:auto!important;left:auto!important;bottom:auto!important;
+  width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important;
+  padding:5px!important;border-radius:8px!important;flex:0 0 27px!important;
 }
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-action:active{
-  transform:scale(.92)!important;
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-action svg{
+  width:14px!important;height:14px!important;
+}
+@media(max-width:360px){
+  .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-action{
+    width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;flex-basis:25px!important;padding:4px!important;
+  }
 }
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-favorite.is-favorite{color:#ffe18a!important;}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-favorite.is-favorite svg path{fill:currentColor!important;}
