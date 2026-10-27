@@ -3191,17 +3191,19 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow{top:50%!important;}
 
 
-/* 拾帧相册翻页：箭头从整张相册边框向外探出，不压在照片边缘上。 */
+/* 拾帧相册翻页修复：外层容器不裁切箭头，并提高箭头定位规则优先级。 */
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-paper,
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book,
 #qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page{
  overflow:visible!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow-prev{
- left:-20px!important;right:auto!important;z-index:20!important;
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow-prev{
+ left:-20px!important;right:auto!important;z-index:30!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow-next{
- right:-20px!important;left:auto!important;z-index:20!important;
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow-next{
+ right:-20px!important;left:auto!important;z-index:30!important;
 }
 @media(max-width:380px){
- #qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow-prev{left:-16px!important;}
- #qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page>.ql-album-page-arrow-next{right:-16px!important;}
+ #qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow-prev{left:-16px!important;}
+ #qinghui-lite-panel [data-page-panel="albums"] .ql-album-flip-book > .ql-album-single-page > button.ql-album-page-arrow-next{right:-16px!important;}
 }
