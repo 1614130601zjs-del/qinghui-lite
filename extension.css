@@ -3492,3 +3492,9 @@ r. */
 .ql-album-crop-modal{position:fixed!important;inset:0!important;width:100vw;height:100vh;height:100dvh;box-sizing:border-box;display:flex;align-items:flex-start!important;justify-content:center;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));}
 .ql-album-crop-panel{flex:0 0 auto;width:min(100%,390px);max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);margin:auto 0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;}
 @media(max-width:600px){.ql-album-crop-modal{padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom));}.ql-album-crop-panel{width:100%;max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px);padding:12px;border-radius:14px}.ql-album-crop-viewport{width:min(100%,260px)}}
+
+
+/* 0.5.98: center the crop dialog vertically on screen. */
+.ql-album-crop-modal{align-items:center!important;justify-content:center!important;}
+.ql-album-crop-panel{margin:auto 0!important;}
+@media(max-width:600px){.ql-album-crop-modal{align-items:center!important;}.ql-album-crop-panel{margin:auto 0!important;}}
