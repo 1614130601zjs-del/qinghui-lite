@@ -679,7 +679,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
    const current=card._qlCandidates?.[card._qlIndex];if(!current?.url)return;
    let records=(cfg().records||[]).filter(item=>item.taskKey===taskKey&&item.dataUrl===current.url);
    const albumPhotos=(cfg().albumPhotos||[]).filter(item=>item.taskKey===taskKey&&item.dataUrl===current.url);
-   if(albumPhotos.length){for(const photo of albumPhotos){const cached={...photo};delete cached.albumCharacterName;delete cached.albumCharacterKey;delete cached.albumPhotoId;cfg().records.push(cached);}cfg().records=cfg().records.slice(-100);cfg().albumPhotos=cfg().albumPhotos.filter(item=>!(item.taskKey===taskKey&&item.dataUrl===current.url));save();render();history();status('已取消收藏，图片已移回影像缓存。');return;}
+   if(albumPhotos.length){for(const photo of albumPhotos){const cached={...photo};delete cached.albumCharacterName;delete cached.albumCharacterKey;delete cached.albumPhotoId;cfg().records.push(cached);}cfg().albumPhotos=cfg().albumPhotos.filter(item=>!(item.taskKey===taskKey&&item.dataUrl===current.url));save();render();history();status('已取消收藏，图片已移回影像缓存。');return;}
    if(!records.length){await storeChatRecord(current.url,card.dataset.qlPrompt||prompt,taskKey,recordMeta);records=(cfg().records||[]).filter(item=>item.taskKey===taskKey&&item.dataUrl===current.url);}
    const record=records[0];if(!record){status('未能找到这张图片的缓存记录。');return;}
    const currentChar=currentCharacter();
@@ -794,7 +794,7 @@ async function storeChatRecord(url,prompt,taskKey,meta={}){
   config:snapshotConfig(prompt,resolved.negative),source:meta.source||'chat',
   messageIndex:meta.messageIndex,taskKey,character:meta.character||null,chatId:getContext()?.chatId||null
  });
- c.records=c.records.slice(0,100);save();history();
+ save();history();
  for(const card of document.querySelectorAll('.ql-chat-image,.ql-statusbar-card')){
   if(card.dataset.qlTask!==taskKey||!Array.isArray(card._qlCandidates))continue;
   for(const candidate of card._qlCandidates)if(candidate.url===url)candidate.url=storedUrl;
@@ -807,33 +807,46 @@ let qlLegacyMigrationPromise=null;
 async function migrateLegacyImageRecords(){
  if(qlLegacyMigrationPromise)return qlLegacyMigrationPromise;
  qlLegacyMigrationPromise=(async()=>{
-  const records=cfg().records||[];
-  const pending=records.filter(record=>typeof record?.dataUrl==='string'&&/^data:image\//i.test(record.dataUrl));
+  // 旧图片可能位于普通缓存，也可能已经被收藏进角色相册；两处都迁移，避免 settings.json 继续携带大段 Base64。
+  const collections=[
+   {name:'影像缓存',records:cfg().records||[]},
+   {name:'角色相册',records:cfg().albumPhotos||[]}
+  ];
+  const pending=collections.flatMap(collection=>collection.records
+   .filter(record=>typeof record?.dataUrl==='string'&&/^data:image\//i.test(record.dataUrl))
+   .map(record=>({record,collection:collection.name})));
   if(!pending.length)return {migrated:0,remaining:0};
-  console.info('[轻绘 Lite] 开始迁移 '+pending.length+' 条旧图片缓存到酒馆图片目录。');
+  console.info('[拾帧] 开始迁移 '+pending.length+' 张旧图片到酒馆图片目录。');
   let migrated=0;
-  for(const record of pending){
-   const oldUrl=record.dataUrl;
+  const migratedPaths=new Map();
+  for(const entry of pending){
+   const record=entry.record,oldUrl=record.dataUrl;
    try{
-    const path=await persistImageToTavern(oldUrl,record.taskKey||record.id||record.at);
+    let path=migratedPaths.get(oldUrl);
+    if(!path){path=await persistImageToTavern(oldUrl,record.taskKey||record.id||record.at);migratedPaths.set(oldUrl,path);}
     if(record.dataUrl===oldUrl)record.dataUrl=path;
     for(const card of document.querySelectorAll('.ql-chat-image,.ql-statusbar-card')){
      if(card.dataset.qlTask!==record.taskKey||!Array.isArray(card._qlCandidates))continue;
      for(const candidate of card._qlCandidates)if(candidate.url===oldUrl)candidate.url=path;
      card._qlRender?.();
     }
-    migrated++;save();
-    if(migrated%5===0){status('正在迁移旧图片缓存：'+migrated+'/'+pending.length+' 张。');console.info('[轻绘 Lite] 图片缓存迁移进度：'+migrated+'/'+pending.length);}
+    migrated++;
+    // 每 5 张再写一次设置，减少大文件反复序列化和备份写入；中断时未迁移的原图仍留在原位置。
+    if(migrated%5===0){
+     save();
+     status('正在迁移旧图片：'+migrated+'/'+pending.length+' 张。');
+     console.info('[拾帧] 图片迁移进度：'+migrated+'/'+pending.length);
+    }
    }catch(error){
     save();history();
-    console.error('[轻绘 Lite] 图片缓存迁移暂停；未成功的原图仍保留在设置中。',error);
-    status('图片缓存迁移已暂停：已迁移 '+migrated+' 张，剩余图片保留原数据。请检查酒馆服务端后重试。');
+    console.error('[拾帧] 图片迁移暂停；未成功的原图仍保留在设置中。',error);
+    status('图片迁移已暂停：已迁移 '+migrated+' 张，剩余图片保留原数据。请检查酒馆服务端后重试。');
     return {migrated,remaining:pending.length-migrated,error};
    }
   }
   save();history();
-  status('图片缓存迁移完成：'+migrated+' 张图片已转存到酒馆目录。');
-  console.info('[轻绘 Lite] 图片缓存迁移完成：'+migrated+' 张。');
+  status('图片迁移完成：'+migrated+' 张图片已转存到酒馆图片目录。');
+  console.info('[拾帧] 图片迁移完成：'+migrated+' 张。');
   return {migrated,remaining:0};
  })();
  return qlLegacyMigrationPromise;
@@ -985,7 +998,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   const actionBar=document.createElement('div');actionBar.className='ql-statusbar-action-bar';actionBar.style.cssText='position:absolute!important;left:50%!important;bottom:12px!important;transform:translateX(-50%)!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;width:max-content!important;max-width:96%!important;z-index:2147483647!important;pointer-events:auto!important;';
   for(const button of [favorite,remove]){button.style.cssText+=';position:static!important;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;flex:0 0 40px!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;padding:8px!important;border:1px solid rgba(255,255,255,.7)!important;border-radius:50%!important;background:rgba(20,16,22,.72)!important;color:#fff!important;touch-action:manipulation!important;';}
   actionBar.append(favorite,remove);controls.append(prev,count,next,actionBar);
-  favorite.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();const current=card._qlCandidates[card._qlIndex];if(!current?.url)return;let records=matchingStatusRecords(current.url);const albumPhotos=(cfg().albumPhotos||[]).filter(item=>item.taskKey===taskKey&&item.dataUrl===current.url&&(item.source||'chat')==='statusbar');if(!records.length&&!albumPhotos.length){await storeChatRecord(current.url,card._qlPrompt||prompt,taskKey,{source:'statusbar'});records=matchingStatusRecords(current.url);}if(!records.length&&!albumPhotos.length){status('没有找到这张状态栏图片的缓存记录。');return;}if(albumPhotos.length){for(const photo of albumPhotos){const cached={...photo};delete cached.albumCharacterName;delete cached.albumCharacterKey;delete cached.albumPhotoId;cfg().records.push(cached);}cfg().records=cfg().records.slice(-100);cfg().albumPhotos=cfg().albumPhotos.filter(item=>!albumPhotos.includes(item));save();history();status('已取消收藏，图片已移回影像缓存。');}else{const character=currentCharacter();const name=String(character.name||getContext()?.name2||'当前角色').trim();for(const item of records){cfg().albumPhotos.push({...item,albumPhotoId:item.id||('album-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)),albumCharacterName:name,albumCharacterKey:character.id||''});}cfg().records=cfg().records.filter(item=>!(item.taskKey===taskKey&&item.dataUrl===current.url&&(item.source||'chat')==='statusbar'));save();history();status('已收藏到「'+name+'」角色相册，已从缓存移出。');}updateStatusActions();});
+  favorite.addEventListener('click',async e=>{e.preventDefault();e.stopPropagation();const current=card._qlCandidates[card._qlIndex];if(!current?.url)return;let records=matchingStatusRecords(current.url);const albumPhotos=(cfg().albumPhotos||[]).filter(item=>item.taskKey===taskKey&&item.dataUrl===current.url&&(item.source||'chat')==='statusbar');if(!records.length&&!albumPhotos.length){await storeChatRecord(current.url,card._qlPrompt||prompt,taskKey,{source:'statusbar'});records=matchingStatusRecords(current.url);}if(!records.length&&!albumPhotos.length){status('没有找到这张状态栏图片的缓存记录。');return;}if(albumPhotos.length){for(const photo of albumPhotos){const cached={...photo};delete cached.albumCharacterName;delete cached.albumCharacterKey;delete cached.albumPhotoId;cfg().records.push(cached);}cfg().albumPhotos=cfg().albumPhotos.filter(item=>!albumPhotos.includes(item));save();history();status('已取消收藏，图片已移回影像缓存。');}else{const character=currentCharacter();const name=String(character.name||getContext()?.name2||'当前角色').trim();for(const item of records){cfg().albumPhotos.push({...item,albumPhotoId:item.id||('album-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)),albumCharacterName:name,albumCharacterKey:character.id||''});}cfg().records=cfg().records.filter(item=>!(item.taskKey===taskKey&&item.dataUrl===current.url&&(item.source||'chat')==='statusbar'));save();history();status('已收藏到「'+name+'」角色相册，已从缓存移出。');}updateStatusActions();});
   remove.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const current=card._qlCandidates[card._qlIndex];if(!current?.url)return;const records=cfg().records||[];const before=records.length;cfg().records=records.filter(item=>!(item&&item.taskKey===taskKey&&item.dataUrl===current.url&&(item.source||'chat')==='statusbar'));card._qlCandidates.splice(card._qlIndex,1);if(card._qlIndex>=card._qlCandidates.length)card._qlIndex=card._qlCandidates.length-1;save();history();card._qlRender();status(before===cfg().records.length?'已从当前状态栏轮播中移除图片。':'已删除当前状态栏图片及其缓存记录。');});
   controls.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();});
   controls.addEventListener('click',e=>e.stopPropagation());
@@ -1597,7 +1610,7 @@ function toggleViewfinderFavorite(){
  if(matches.some(item=>item.albumCharacterName)){
   const albumMatches=matches.filter(item=>item.albumCharacterName);
   for(const item of albumMatches){const cached={...item};delete cached.albumCharacterName;delete cached.albumCharacterKey;delete cached.albumPhotoId;cfg().records.push(cached);}
-  cfg().records=cfg().records.slice(-100);cfg().albumPhotos=cfg().albumPhotos.filter(item=>!albumMatches.includes(item));
+  cfg().albumPhotos=cfg().albumPhotos.filter(item=>!albumMatches.includes(item));
   save();history();syncViewfinderActions();status('已取消收藏，图片已移回影像缓存。');return;
  }
  const character=currentCharacter(),ctx=getContext()||{};
@@ -1622,7 +1635,7 @@ $('#ql-generate').onclick=async()=>{
   const storedUrl=await persistImageToTavern(url,recordId);
   const img=document.createElement('img');img.alt='轻绘生成结果';img.dataset.qlRecordId=recordId;img.src=storedUrl;$('#ql-result').append(img);
   conf.records.unshift({id:recordId,taskKey:recordId,at:Date.now(),prompt:finalPrompt,basePrompt:conf.prompt.trim(),negative:finalNegative,provider:conf.provider,model:conf.provider!=='openai'?conf.naiModel:conf.model,size:conf.provider!=='openai'?(conf.naiWidth+'x'+conf.naiHeight):conf.size,quality:conf.quality,dataUrl:storedUrl,source:'viewfinder',character:currentCharacter().name||getContext()?.name2||'',preset:activePreset?{name:activePreset.name||'',positive:activePreset.positive||'',negative:activePreset.negative||'',index:activePresetIndex,source:activePreset.source||'local'}:null,vibe:activeVibe?{name:activeVibe.name||'',entries:(activeVibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,config:snapshotConfig(finalPrompt,finalNegative)});
-  conf.records=conf.records.slice(0,100);save();history();syncViewfinderActions();status('生成完成。图片已保存到酒馆图片目录，可放大查看或收藏到角色相册。');
+  save();history();syncViewfinderActions();status('生成完成。图片已保存到酒馆图片目录，可放大查看或收藏到角色相册。');
  }catch(e){console.error('[轻绘 Lite] 生图失败',e);status('生成失败：'+(e?.message||String(e))+'。请检查接口地址、Key、模型名和网络连接。')}
  finally{busy=false;$('#ql-generate').disabled=false;}
 }
