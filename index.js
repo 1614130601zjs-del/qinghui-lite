@@ -1210,7 +1210,8 @@ function history(){
   albums.querySelectorAll('[data-album-delete]').forEach(button=>button.addEventListener('click',()=>{const key=button.dataset.albumDelete,name=titleFor(key,groups.get(key)||[]);if(!confirm('删除相册「'+name+'」？照片仍会保留在影像缓存中。'))return;delete settings.albumNames[key];delete settings.albumCovers[key];for(const record of settings.records||[])if(String(record.albumCharacterKey||record.albumCharacterName||'current')===key){delete record.albumCharacterKey;delete record.albumCharacterName;}save();renderAlbums();status('相册已删除，照片仍保留在影像缓存中。');}));
   albums.querySelector('[data-album-new]')?.addEventListener('click',()=>{const next=prompt('新建相册名称');if(next==null)return;const clean=next.trim();if(!clean){status('相册名称不能为空。');return;}const key='album-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);settings.albumNames[key]=clean;save();renderAlbums();status('已新建相册。');});
   // Each rendered [data-album-more] button has a direct click handler above.
-  // Avoid a second capturing handler toggling the same menu closed immediately. };
+  // Avoid a second capturing handler toggling the same menu closed immediately.
+  };
  const setAlbumView=view=>{const albumMode=view==='albums';if(cacheView)cacheView.hidden=albumMode;if(albums)albums.hidden=!albumMode;viewTabs.forEach(button=>{const active=button.dataset.albumView===view;button.classList.toggle('active',active);button.setAttribute('aria-selected',String(active));});if(albumMode)renderAlbums();};
  viewTabs.forEach(button=>button.onclick=()=>setAlbumView(button.dataset.albumView));
  const footer=$('#ql-cache-footer');const clearButton=footer?.querySelector('#ql-clear');if(clearButton)clearButton.onclick=()=>{if(confirm('清空拾帧本地生成记录？不会删除聊天图片。')){cfg().records=[];save();history();status('记录已清空。');}};
