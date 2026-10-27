@@ -1259,7 +1259,10 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-statusbar-card .ql-statusbar-arrow{pointer-events:auto!important;position:relative;z-index:21;min-width:30px;min-height:28px;}
 
 
-/* 0.5.18: separated translucent white arrows on the left/right of the statusbar cente/* 0.5.94: compact top-right statusbar favorite/delete controls. */
+/* 0.5.18: separated translucent white arrows on the left/right of the statusbar cente/* 0.5.95: keep the redundant prompt-gallery page out of the top navigation. */
+#qinghui-lite-panel button.ql-tab[data-page="prompt-gallery"]{display:none!important;}
+
+/* 0.5.94: compact top-right statusbar favorite/delete controls. */
 .ql-statusbar-card .ql-statusbar-controls{display:block!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;z-index:2147483000!important;inset:0!important;width:100%!important;height:100%!important;left:0!important;top:0!important;bottom:auto!important;transform:none!important;background:transparent!important;border:0!important;padding:0!important}
 .ql-statusbar-card .ql-statusbar-controls button{display:flex!important;visibility:visible!important;pointer-events:auto!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;color:#fff!important;background:rgba(255,255,255,.34)!important;border:1px solid rgba(255,255,255,.52)!important;box-shadow:0 1px 5px rgba(0,0,0,.10)!important}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-arrow:first-child{left:8%!important;right:auto!important;top:50%!important;transform:translate(-50%,-50%)!important}
