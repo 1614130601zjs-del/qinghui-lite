@@ -3087,10 +3087,16 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 
 
 /* 2026-10-27: clean create-album tile, modeled on 拾帧's own selected tab; no legacy cover, label, outline, or pseudo fill. */
-#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-card,
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-card{
+ background:var(--ql-create-bg,#f2f6f9)!important;
+ border:1px solid var(--ql-border,rgba(140,150,160,.3))!important;
+ box-shadow:0 4px 12px rgba(30,40,50,.10)!important;
+ outline:0!important;
+}
+/* Disable the old split-cover pseudo layers completely. */
 #qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-card::before,
 #qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-card::after{
- background:var(--ql-create-bg,#f2f6f9)!important;border:0!important;box-shadow:none!important;outline:0!important;
+ content:none!important;display:none!important;background:none!important;border:0!important;box-shadow:none!important;
 }
 #qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-card{
  position:relative!important;overflow:hidden!important;padding:0!important;border-radius:14px!important;
@@ -3109,8 +3115,8 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-label,
 #qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-open .ql-album-placeholder-mark{display:none!important;content:none!important}
 #qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-open .ql-album-create-svg{
- display:block!important;width:38px!important;height:38px!important;flex:0 0 38px!important;
- color:var(--ql-create-accent,#8ca3b7)!important;stroke:currentColor!important;
+ display:block!important;width:32px!important;height:32px!important;flex:0 0 32px!important;
+ color:var(--ql-create-accent,#8ca3b7)!important;stroke:currentColor!important;opacity:.82!important;
 }
 #qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-open:active{transform:scale(.97)!important;}
 #qinghui-lite-panel .ql-album-shelf-prev{left:-25px!important;}
