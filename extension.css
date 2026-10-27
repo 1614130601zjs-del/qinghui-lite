@@ -1801,8 +1801,17 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  cursor:pointer!important;user-select:none;-webkit-tap-highlight-color:transparent;
 }
 #qinghui-lite-panel .ql-preset-compact.ql-preset-selectable:active{transform:scale(.995);}
+#qinghui-lite-panel .ql-character-card-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0 16px}
+#qinghui-lite-panel .ql-character-card-choice{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;padding:12px;border:1px solid var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.3)))!important;border-radius:12px;background:var(--ql-card,var(--SmartThemeBlurTintColor,rgba(255,255,255,.35)))!important;color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;text-align:left}
+#qinghui-lite-panel .ql-character-card-choice.is-selected{background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 28%,var(--ql-card,white))!important;border-color:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 70%,var(--ql-border,gray))!important;box-shadow:inset 3px 0 0 var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa))}
+#qinghui-lite-panel .ql-character-card-choice-name{font-weight:650;overflow-wrap:anywhere}
+#qinghui-lite-panel .ql-character-card-choice small,#qinghui-lite-panel .ql-character-role-heading small{font-size:11px;opacity:.72}
+#qinghui-lite-panel .ql-character-role-panel{margin-top:12px}
+#qinghui-lite-panel .ql-character-role-panel h4{margin:0 0 8px}
+#qinghui-lite-panel .ql-character-add{width:100%;margin:0 0 10px}
+#qinghui-lite-panel .ql-character-role-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 #qinghui-lite-panel .ql-preset-compact.ql-preset-selectable.is-selected{
- background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 22%,var(--ql-card,var(--SmartThemeBlurTintColor,transparent)))!important;
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 48%,var(--ql-card,var(--SmartThemeBlurTintColor,transparent)))!important;
  border-color:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 62%,var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.3))))!important;
  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 72%,var(--ql-text,var(--SmartThemeBodyColor,#333)))!important;
 }
@@ -1855,7 +1864,7 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;
 }
 #qinghui-lite-panel .ql-preset-compact.ql-preset-selectable.is-selected{
- background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 22%,var(--ql-card,var(--SmartThemeBlurTintColor,rgba(255,255,255,.5))))!important;
+ background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 48%,var(--ql-card,var(--SmartThemeBlurTintColor,rgba(255,255,255,.5))))!important;
  border-color:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 62%,var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.3))))!important;
  box-shadow:inset 3px 0 0 color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8999aa)) 72%,var(--ql-text,var(--SmartThemeBodyColor,#333)))!important;
 }
