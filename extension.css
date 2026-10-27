@@ -3215,3 +3215,26 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #qinghui-lite-panel .ql-album-shelf-pager .ql-album-more{position:relative!important;z-index:30!important;pointer-events:auto!important;touch-action:manipulation!important;}
 #qinghui-lite-panel .ql-album-shelf-pager .ql-album-more-menu{position:absolute!important;z-index:50!important;pointer-events:auto!important;}
 #qinghui-lite-panel .ql-album-shelf-pager .ql-album-more-menu[hidden]{display:none!important;}
+
+
+/* 2026-10-27: unify every album tile with the rounded create-album card. */
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-card{
+ box-sizing:border-box!important;
+ border:1px solid var(--ql-border,rgba(140,150,160,.3))!important;
+ border-radius:14px!important;
+ background:var(--ql-create-bg,#f2f6f9)!important;
+ box-shadow:0 4px 12px rgba(30,40,50,.10)!important;
+}
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-card-open{
+ border-radius:13px 13px 0 0!important;
+}
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-card-cover{
+ border-radius:13px 13px 0 0!important;
+ overflow:hidden!important;
+}
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-card-cover img{
+ border-radius:13px 13px 0 0!important;
+}
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-card-caption{
+ border-radius:0 0 13px 13px!important;
+}
