@@ -534,7 +534,7 @@ async function saveCleanImage(src,filename,forceClean=false){
     ctx.fillStyle='#ffffff';ctx.fillRect(0,0,width,height);ctx.drawImage(source,0,0,width,height);
     fileBlob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('JPG 编码失败')),'image/jpeg',0.94));
     if(!fileBlob||fileBlob.type!=='image/jpeg')throw new Error('浏览器未能生成 JPG 文件');
-    name=name.replace(/\\.(png|jpe?g|webp|gif)$/i,'')+'.jpg';
+    name=name.replace(/\.(png|jpe?g|webp|gif|avif)$/i,'')+'.jpg';
     const previousUrl=objectUrl;objectUrl=URL.createObjectURL(fileBlob);if(previousUrl&&previousUrl!==src)URL.revokeObjectURL(previousUrl);
     lastPngCleanReport='JPG 已重新编码为 image/jpeg；原 PNG 元数据未复制到新文件。';
    }finally{bitmap?.close?.();if(tempUrl)URL.revokeObjectURL(tempUrl);}
