@@ -4339,3 +4339,21 @@ dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-cl
   width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;
  }
 }
+
+/* The lightbox close control only closes the dialog; it has no pressed/focus/hover feedback. */
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close:hover,
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close:focus,
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close:focus-visible,
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close:active,
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close:active:not(:disabled){
+ color:#fff!important;
+ background:rgba(24,20,28,.28)!important;
+ border-color:rgba(255,255,255,.58)!important;
+ box-shadow:0 1px 6px rgba(0,0,0,.15)!important;
+ outline:none!important;
+ transform:none!important;
+ filter:none!important;
+}
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close{
+ -webkit-tap-highlight-color:transparent!important;
+}
