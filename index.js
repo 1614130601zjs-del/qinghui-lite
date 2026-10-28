@@ -651,7 +651,7 @@ async function saveCleanImage(src,filename,forceClean=false){
   const top=document.createElement('div');
   top.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;';
   const title=document.createElement('strong');title.textContent='下载图片';title.style.cssText='font-size:20px;color:'+theme.text+';';
-  const close=document.createElement('button');close.type='button';close.textContent='关闭';close.style.cssText='border:1px solid '+theme.border+';border-radius:10px;background:'+theme.card+';padding:9px 13px;color:'+theme.text+';font-size:14px;';
+  const close=document.createElement('button');close.type='button';close.className='ql-universal-close ql-download-modal-close';close.setAttribute('aria-label','关闭下载预览');close.title='关闭';close.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   top.append(title,close);
   const preview=document.createElement('img');preview.src=objectUrl;preview.alt='待保存的图片预览';preview.style.cssText='display:block;width:100%;max-height:min(38dvh,320px);object-fit:contain;border-radius:12px;background:'+theme.card+';border:1px solid '+theme.border+';';
   const filenameNode=document.createElement('div');filenameNode.textContent=name;filenameNode.style.cssText='margin:12px 0 6px;overflow-wrap:anywhere;font-size:14px;font-weight:600;color:'+theme.text+';';
@@ -1298,7 +1298,7 @@ function exportVibeGroups(hideOriginalImages=false,sourceGroups=cfg().vibes||[])
 }
 
 function html(){return `<div id="ql-overlay" hidden><section id="shizhen-panel">
-<header class="ql-header"><div class="ql-brand"><strong>拾帧</strong><span>故事仍在继续，快门为你停留。</span></div><button id="ql-close" class="menu_button" type="button">关闭</button></header>
+<header class="ql-header"><div class="ql-brand"><strong>拾帧</strong><span>故事仍在继续，快门为你停留。</span></div><button id="ql-close" class="menu_button ql-universal-close" type="button" aria-label="关闭拾帧" title="关闭"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
 <nav class="ql-tabs" aria-label="拾帧功能导航" role="tablist">
 <button type="button" class="ql-tab active" data-page="generate" role="tab" aria-selected="true">取景</button>
 <button type="button" class="ql-tab" data-page="library" role="tab" aria-selected="false">参数</button>
@@ -1449,7 +1449,7 @@ function history(){
  const footer=$('#ql-cache-footer');const clearButton=footer?.querySelector('#ql-clear');if(clearButton)clearButton.onclick=()=>{if(confirm('清空底片缓存？已收藏到角色相册或提示词图集的照片会保留，聊天消息中的图片不会删除。')){const settings=cfg();settings.records=(settings.records||[]).filter(record=>record&&(record.albumCharacterName||isPromptGalleryRecord(record,settings)));save();history();status('底片缓存已清空；已收藏的相册照片已保留。');}};
  let modal=document.getElementById('ql-image-cache-modal');
  if(!modal){
-  const modalHost=document.getElementById('ql-overlay')||document.body;modalHost.insertAdjacentHTML('beforeend','<div id="ql-image-cache-modal" hidden role="dialog" aria-modal="true" aria-label="图片详情"><div class="ql-cache-modal-panel"><button type="button" class="menu_button ql-cache-modal-close">关闭</button><div class="ql-cache-modal-content"></div></div></div>');
+  const modalHost=document.getElementById('ql-overlay')||document.body;modalHost.insertAdjacentHTML('beforeend','<div id="ql-image-cache-modal" hidden role="dialog" aria-modal="true" aria-label="图片详情"><div class="ql-cache-modal-panel"><button type="button" class="menu_button ql-cache-modal-close ql-universal-close" aria-label="关闭图片详情" title="关闭"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="ql-cache-modal-content"></div></div></div>');
   modal=document.getElementById('ql-image-cache-modal');
   modal.querySelector('.ql-cache-modal-close').addEventListener('click',()=>{modal.hidden=true;modal.style.display='';});
   modal.addEventListener('click',e=>{if(e.target===modal){modal.hidden=true;modal.style.display='';}});
