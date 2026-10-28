@@ -1939,7 +1939,7 @@ function openViewfinderImage(url){
  let overlay=document.querySelector('.ql-viewfinder-lightbox');
  if(!overlay){
   overlay=document.createElement('dialog');overlay.className='ql-viewfinder-lightbox';overlay.setAttribute('aria-label','放大查看图片');
-  overlay.innerHTML='<div class="ql-album-paper is-flip"><div class="ql-album-single-page"><div class="ql-album-single-photo"><img alt="放大查看的生成图片"></div></div></div><button type="button" class="ql-viewfinder-lightbox-close" aria-label="关闭图片" title="关闭"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+  overlay.innerHTML='<div class="ql-album-paper is-flip"><div class="ql-album-single-page"><button type="button" class="ql-viewfinder-lightbox-close" aria-label="关闭图片" title="关闭"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="ql-album-single-photo"><img alt="放大查看的生成图片"></div></div></div>';
   overlay.addEventListener('click',event=>{if(event.target===overlay||event.target.closest('.ql-viewfinder-lightbox-close')){if(overlay.open)overlay.close();else overlay.removeAttribute('open');}});
   overlay.addEventListener('close',()=>{overlay.querySelector('img')?.removeAttribute('src');$('#ql-result-enlarge')?.classList.remove('is-enlarged');});
   document.body.append(overlay);
