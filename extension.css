@@ -3779,3 +3779,12 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  }
 }
 
+
+/* 提示词图集照片详情页操作：取消收藏或移动到角色卡相册。 */
+dialog.ql-viewfinder-lightbox .ql-gallery-detail-actions{display:flex;flex-direction:column;gap:8px;width:100%;max-width:720px;margin:10px auto 0;}
+dialog.ql-viewfinder-lightbox .ql-gallery-detail-main{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;}
+dialog.ql-viewfinder-lightbox .ql-gallery-detail-main[hidden],dialog.ql-viewfinder-lightbox .ql-gallery-detail-move[hidden]{display:none!important;}
+dialog.ql-viewfinder-lightbox .ql-gallery-detail-actions button{min-height:36px;padding:7px 14px;border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.35));border-radius:10px;background:var(--SmartThemeBlurTintColor,#fff);color:var(--SmartThemeBodyColor,#333);}
+dialog.ql-viewfinder-lightbox .ql-gallery-detail-move{display:flex;flex-direction:column;gap:8px;}
+dialog.ql-viewfinder-lightbox .ql-gallery-detail-move label{display:flex;flex-direction:column;gap:5px;font-size:13px;}
+dialog.ql-viewfinder-lightbox .ql-gallery-detail-move select{width:100%;min-height:38px;padding:6px 10px;border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.35));border-radius:8px;background:var(--SmartThemeBlurTintColor,#fff);color:var(--SmartThemeBodyColor,#333);}
