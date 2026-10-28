@@ -1391,7 +1391,7 @@ function history(){
    const close=()=>overlay.remove();
    cancel.onclick=close;overlay.addEventListener('click',event=>{if(event.target===overlay)close();});
    confirm.onclick=()=>{const choice=choices[Number(select.value)];if(!choice)return;onConfirm(choice);close();};
-   buttons.append(cancel,confirm);panel.append(heading,note,select,buttons);overlay.append(panel);document.body.append(overlay);
+   buttons.append(cancel,confirm);panel.append(heading,note,select,buttons);overlay.append(panel);modal.append(overlay);
   };
   const roleChoices=()=>getCharacterCards().map((character,index)=>({key:String(index),name:String(character?.name||character?.avatar||('角色 '+(index+1)))}));
   const galleryChoices=()=>promptEntries.map(entry=>({key:String(entry.id),name:String(entry.name||'未命名图集')}));
@@ -1430,16 +1430,6 @@ function history(){
    detailActions.querySelector('[data-gallery-move]').onclick=()=>{
     const choices=roleChoices();
     showDetailChoice('移动到角色卡相册','请选择要存放这张照片的角色相册。',choices,'确认移动',choice=>setRoleAlbum(cfg().records?.[index],choice));
-   };
-  }else if(r.albumCharacterName){
-   detailActions.innerHTML='<button type="button" class="menu_button" data-detail-unfavorite>取消收藏</button><button type="button" class="menu_button ql-cache-action-primary" data-detail-move-gallery>移动到图集</button>';
-   content.querySelector('.ql-cache-detail-actions')?.after(detailActions);
-   detailActions.querySelector('[data-detail-unfavorite]').onclick=()=>{
-    const live=cfg().records?.[index];if(!live)return;
-    delete live.albumCharacterName;delete live.albumCharacterKey;save();hideDetail();history();renderAlbums?.();status('已从角色相册取消收藏；图片仍保留在缓存中。');
-   };
-   detailActions.querySelector('[data-detail-move-gallery]').onclick=()=>{
-    showDetailChoice('移动到图集','请选择要存放这张照片的提示词图集。',galleryChoices(),'确认移动',choice=>setPromptGallery(cfg().records?.[index],choice));
    };
   }else{
    detailActions.innerHTML='<button type="button" class="menu_button ql-cache-action-primary" data-detail-save-gallery>收藏到图集</button><button type="button" class="menu_button" data-detail-save-album>收藏到角色相册</button>';
