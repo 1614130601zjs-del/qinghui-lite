@@ -2043,6 +2043,23 @@ function syncViewfinderAlbumTargets(){
  else select.value='';
  const target=select.closest('.ql-viewfinder-album-target');
  if(target)target.hidden=Boolean(s.activePromptEntryAppliedAt||s.activePromptEntryId);
+ const saveButton=$('#ql-result-album-target-save');
+ if(saveButton){
+  const saved=Boolean(savedTarget&&select.value===savedTarget);
+  saveButton.classList.toggle('is-target-saved',saved);
+  saveButton.setAttribute('aria-pressed',String(saved));
+  saveButton.setAttribute('aria-label',saved?'收藏目标已保存':'保存收藏目标');
+  saveButton.title=saved?'默认收藏目标已保存；点击收藏会进入所选角色卡相册':'保存所选角色卡作为默认收藏目标';
+  saveButton.style.setProperty('background',saved?'#38424b':'','important');
+  saveButton.style.setProperty('color',saved?'#fff':'','important');
+  saveButton.style.setProperty('border-color',saved?'#38424b':'','important');
+  saveButton.style.setProperty('border-style',saved?'solid':'','important');
+  saveButton.style.setProperty('border-width',saved?'1px':'','important');
+  saveButton.style.setProperty('box-shadow',saved?'inset 0 1px 3px rgba(0,0,0,.16)':'','important');
+  saveButton.style.setProperty('filter','none','important');
+  saveButton.style.setProperty('transform','none','important');
+  saveButton.style.setProperty('opacity','1','important');
+ }
 }
 function toggleViewfinderFavorite(){
  const img=$('#ql-result img');if(!img)return;
