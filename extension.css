@@ -4126,9 +4126,18 @@ dialog.ql-viewfinder-lightbox button:disabled {
 #qinghui-lite-panel button.ql-tab[data-page="prompt-gallery"]{display:none!important;}
 
 
-/* Reuse the 7a4e843 chat favorite outline for the statusbar favorite icon. */
+/* 7a4e843: copied chat favorite SVG outline declarations for the statusbar favorite state. */
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite svg {
  display:block!important;width:19px!important;height:19px!important;fill:none!important;
  stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important;
 }
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite {color:#d6a52f!important;}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg path {
+ color:#d6a52f!important;
+ fill:none!important;
+ stroke:#d6a52f!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite {
+ border-color:var(--SmartThemeBorderColor,rgba(255,255,255,.65))!important;
+}
