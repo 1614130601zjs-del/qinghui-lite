@@ -701,6 +701,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   const prev=document.createElement('button');prev.type='button';prev.className='menu_button ql-chat-image-arrow ql-chat-image-arrow-prev';prev.setAttribute('aria-label','上一张');prev.title='上一张';prev.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
   const next=document.createElement('button');next.type='button';next.className='menu_button ql-chat-image-arrow ql-chat-image-arrow-next';next.setAttribute('aria-label','下一张');next.title='下一张';next.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
   const reroll=document.createElement('button');reroll.type='button';reroll.className='menu_button ql-chat-image-reroll';reroll.setAttribute('aria-label','重 Roll');reroll.title='重 Roll';reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14-5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14 5l2-2"/><path d="M20 20v-4h-4"/></svg>';
+  const collapse=document.createElement('button');collapse.type='button';collapse.className='ql-chat-image-collapse';collapse.setAttribute('aria-label','折叠图片');collapse.title='折叠图片';collapse.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg><span>拾帧相册 · PHOTO ALBUM</span>';
   const remove=document.createElement('button');remove.type='button';remove.className='menu_button ql-chat-image-remove';remove.setAttribute('aria-label','删除当前图片');remove.title='仅从正文隐藏当前图片，缓存和相册中的原图保留';remove.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="m6 7 1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg>';
   const favorite=document.createElement('button');favorite.type='button';favorite.className='menu_button ql-chat-image-favorite';favorite.setAttribute('aria-label','收藏到角色相册');favorite.title='收藏到当前角色的相册';favorite.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg>';
   remove.disabled=true;remove.title='当前只有一张图片，无法删除最后一张；请使用重 Roll 生成其他图片后再删除。';
@@ -715,7 +716,8 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   const cancelTag=document.createElement('button');cancelTag.type='button';cancelTag.className='menu_button ql-chat-image-tag-cancel';cancelTag.textContent='取消';
   const editorActions=document.createElement('div');editorActions.className='ql-chat-image-editor-actions';editorActions.append(saveTag,cancelTag);editor.append(tempConfig,textarea,editorActions);
   const fillTempConfig=()=>{const c=cfg();const allCombinations=(c.combinations||[]).map((combo,i)=>({index:String(i),name:combo?.name||('组合 '+(i+1))}));tempPreset.innerHTML='<option value="">跟随默认</option><option value="viewfinder">跟随取景</option>'+allCombinations.map(item=>'<option value="'+esc(item.index)+'">'+esc(item.name)+'</option>').join('');tempSize.innerHTML='<option value="">使用默认尺寸</option><option value="832x1216">竖版 · 832 × 1216</option><option value="768x1344">长竖版 · 768 × 1344</option><option value="1024x1024">正方形 · 1024 × 1024</option><option value="1216x832">横版 · 1216 × 832</option><option value="1344x768">宽横版 · 1344 × 768</option>';const saved=String(card.dataset.qlTempCombo??'');tempPreset.value=saved; if(![...tempPreset.options].some(option=>option.value===tempPreset.value))tempPreset.value='';tempSize.value=card.dataset.qlTempSize??'';};fillTempConfig();
-  controls.append(edit,reroll,remove,favorite);card.append(img,prev,next,controls,editor);if(anchor?.parentNode)anchor.parentNode.insertBefore(card,anchor);else host.append(card);
+  controls.append(edit,reroll,remove,favorite);card.append(img,prev,next,controls,collapse,editor);if(anchor?.parentNode)anchor.parentNode.insertBefore(card,anchor);else host.append(card);
+  collapse.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const collapsed=card.classList.toggle('ql-image-collapsed');collapse.setAttribute('aria-label',collapsed?'展开图片':'折叠图片');collapse.title=collapsed?'点击展开图片':'点击折叠图片';collapse.innerHTML=(collapsed?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 10 6 6 6-6"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 14 6-6 6 6"/></svg>')+'<span>拾帧相册 · PHOTO ALBUM</span>';});
   edit.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();const currentUrl=card._qlCandidates[card._qlIndex]?.url||img.getAttribute('src');editor.hidden=!editor.hidden;if(!editor.hidden){fillTempConfig();textarea.value=card.dataset.qlPrompt||'';if(currentUrl)img.src=currentUrl;textarea.focus();}});
   cancelTag.addEventListener('click',()=>{textarea.value=card.dataset.qlPrompt||'';editor.hidden=true;});
   saveTag.addEventListener('click',()=>{
@@ -809,15 +811,6 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   reroll.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();runChatReroll();});
   card._qlRender=render;
  }
- let albumHeader=card.querySelector(':scope > .ql-chat-image-header');
- if(!albumHeader){
-  albumHeader=document.createElement('button');albumHeader.type='button';albumHeader.className='ql-chat-image-header';
-  albumHeader.innerHTML='<span class="ql-chat-image-header-title">拾帧相册</span><span class="ql-chat-image-header-subtitle">PHOTO ALBUM</span><span class="ql-chat-image-header-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 14 6-6 6 6"/></svg></span>';
-  card.insertBefore(albumHeader,card.firstChild);
- }
- const syncAlbumHeader=()=>{const collapsed=card.classList.contains('ql-image-collapsed');albumHeader.setAttribute('aria-expanded',String(!collapsed));albumHeader.setAttribute('aria-label',collapsed?'展开拾帧相册':'折叠拾帧相册');albumHeader.title=collapsed?'点击展开图片':'点击折叠图片';const toggle=albumHeader.querySelector('.ql-chat-image-header-toggle');if(toggle)toggle.innerHTML=collapsed?'<svg viewBox="0 0 24 24"><path d="m6 10 6 6 6-6"/></svg>':'<svg viewBox="0 0 24 24"><path d="m6 14 6-6 6 6"/></svg>';};
- albumHeader.onclick=event=>{event.preventDefault();event.stopPropagation();card.classList.toggle('ql-image-collapsed');syncAlbumHeader();};
- syncAlbumHeader();
  card.dataset.qlPrompt=String(prompt||card.dataset.qlPrompt||'');
  applyChatAlbumStyle(card,cfg().chatAlbumStyle||'classic');applyChatTheme(card);
  if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;}
