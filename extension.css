@@ -1020,6 +1020,30 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #chat .ql-chat-image.ql-image-collapsed .ql-chat-image-collapse{margin:0 auto!important;}
 
 
+
+/* Chat album header: the title row is also the persistent collapse/expand control. */
+#chat .ql-chat-image-header{
+ display:flex!important;align-items:center!important;gap:8px!important;
+ width:100%!important;box-sizing:border-box!important;min-height:38px!important;
+ margin:0 0 9px!important;padding:7px 10px!important;
+ border:1px solid var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.35)))!important;
+ border-radius:10px!important;background:var(--ql-field,var(--ql-card,transparent))!important;
+ color:var(--ql-text,var(--SmartThemeBodyColor,inherit))!important;
+ text-align:left!important;cursor:pointer!important;box-shadow:none!important;
+}
+#chat .ql-chat-image-header-title{font-size:13px!important;font-weight:700!important;white-space:nowrap!important;}
+#chat .ql-chat-image-header-subtitle{font-size:10px!important;letter-spacing:.09em!important;opacity:.68!important;flex:1!important;}
+#chat .ql-chat-image-header-toggle{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:24px!important;height:24px!important;flex:none!important;}
+#chat .ql-chat-image-header-toggle svg{display:block!important;width:18px!important;height:18px!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important;stroke-linecap:round!important;stroke-linejoin:round!important;}
+#chat .ql-chat-image-header:hover{border-color:var(--ql-accent,var(--SmartThemeBorderColor))!important;}
+#chat .ql-chat-image.ql-image-collapsed{padding:8px!important;min-height:0!important;}
+#chat .ql-chat-image.ql-image-collapsed>img,
+#chat .ql-chat-image.ql-image-collapsed>.ql-chat-image-arrow,
+#chat .ql-chat-image.ql-image-collapsed>.ql-chat-image-controls,
+#chat .ql-chat-image.ql-image-collapsed>.ql-chat-image-editor,
+#chat .ql-chat-image.ql-image-collapsed>.ql-chat-image-tag-saved{display:none!important;}
+#chat .ql-chat-image.ql-image-collapsed>.ql-chat-image-header{margin:0!important;}
+
 /* Chat album presentation presets */
 #chat .mes_text .ql-inline-image-trigger{
  box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
