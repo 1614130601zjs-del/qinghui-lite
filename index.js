@@ -942,6 +942,52 @@ async function processLatestAssistantMessage(){
   }
  }
 }
+function processEditMessageMarkers(){
+ const context=getContext(),chat=context?.chat;
+ if(!Array.isArray(chat))return;
+ const chatId=context.chatId||'chat';
+ document.querySelectorAll('.mes[mesid]').forEach(messageNode=>{
+  const messageIndex=Number(messageNode.getAttribute('mesid'));
+  if(!Number.isInteger(messageIndex)||messageIndex<0)return;
+  const message=chat[messageIndex];
+  if(!message||message.is_user||message.is_system)return;
+  // SillyTavern 编辑态通常把正文放进 textarea/contenteditable；只处理当前可见且确实包含 marker 的编辑控件。
+  const editors=[...messageNode.querySelectorAll('textarea,input,[contenteditable="true"],.edit_textarea')].filter(editor=>{
+   if(editor.closest('.ql-edit-roll-actions'))return false;
+   const value=editor.isContentEditable?editor.textContent:(editor.value??editor.textContent??'');
+   if(!String(value).includes('image###'))return false;
+   const style=getComputedStyle(editor),rect=editor.getBoundingClientRect();
+   return style.display!=='none'&&style.visibility!=='hidden'&&rect.width>0&&rect.height>0;
+  });
+  const editor=editors[0];
+  const actions=messageNode.querySelector('.ql-edit-roll-actions');
+  if(!editor){actions?.remove();return;}
+  const value=editor.isContentEditable?editor.textContent:(editor.value??editor.textContent??'');
+  const found=markers(String(value));
+  if(!found.length){actions?.remove();return;}
+  const signature=found.map(x=>x.prompt).join('\u0000');
+  let row=actions;
+  if(!row){row=document.createElement('div');row.className='ql-edit-roll-actions';row.style.cssText='display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0;padding:6px 0;';messageNode.append(row);}
+  if(row.dataset.qlSignature===signature)return;
+  row.dataset.qlSignature=signature;
+  row.replaceChildren();
+  found.forEach((marker,markerOrdinal)=>{
+   const button=document.createElement('button');
+   button.type='button';button.className='menu_button ql-inline-image-trigger';
+   button.textContent=found.length>1?'Roll 第 '+(markerOrdinal+1)+' 张图片':'Roll 图片';
+   button.title='使用编辑框中的 image###提示词### 生成图片';
+   button.dataset.qlPrompt=marker.prompt;
+   const taskKey=makeTriggerId({chatId,messageId:String(messageIndex)+':edit',markerIndex:markerOrdinal});
+   button.dataset.qlTrigger=taskKey;
+   applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
+   button.addEventListener('click',event=>{
+    event.preventDefault();event.stopPropagation();
+    runInlineImageTrigger(button,{prompt:marker.prompt,taskKey,messageIndex,markerOrdinal});
+   });
+   row.append(button);
+  });
+ });
+}
 let statusbarObserver=null;
 const statusbarObservedDocs=new WeakSet();
 function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);return match?.[1]?.trim()||'';}
