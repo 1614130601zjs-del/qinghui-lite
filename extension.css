@@ -4057,34 +4057,38 @@ dialog.ql-viewfinder-lightbox button:disabled {
  #qinghui-lite-panel #ql-result-album-target{padding:6px;font-size:11px}
 }
 
-
-/* Final viewfinder favorite state override: saved is dark, unsaved returns to the light palette. */
+/* 0.5.100: persistent action states, not momentary press feedback. */
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate.is-generating,
 #qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:hover,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus-visible {
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge.is-enlarged {
   background:#38424b!important;
-  background-color:#38424b!important;
-  background-image:none!important;
-  border-color:#38424b!important;
+  border:1px solid #38424b!important;
   color:#fff!important;
   box-shadow:inset 0 1px 3px rgba(0,0,0,.16)!important;
   filter:none!important;
   transform:none!important;
   opacity:1!important;
 }
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(.is-favorite),
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(.is-favorite):hover,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(.is-favorite):active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(.is-favorite):focus,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(.is-favorite):focus-visible {
-  background:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
-  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
-  background-image:none!important;
-  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24)))!important;
-  color:var(--ql-button-text,var(--SmartThemeBodyColor,inherit))!important;
-  box-shadow:none!important;
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate.is-generating svg,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite svg,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge.is-enlarged svg {
+  color:#fff!important;
+  stroke:#fff!important;
+}
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite svg path {
+  fill:currentColor!important;
+}
+
+/* Fix: persistent favorite state must outrank every legacy viewfinder favorite selector. */
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:hover,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus-visible {
+  background:#38424b!important;
+  border:1px solid #38424b!important;
+  color:#fff!important;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.16)!important;
   filter:none!important;
   transform:none!important;
   opacity:1!important;
@@ -4095,9 +4099,5 @@ dialog.ql-viewfinder-lightbox button:disabled {
   stroke:#fff!important;
 }
 #qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite svg path {
-  fill:#fff!important;
-}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(.is-favorite) svg path {
-  fill:none!important;
-  stroke:currentColor!important;
+  fill:currentColor!important;
 }
