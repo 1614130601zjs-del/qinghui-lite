@@ -1542,6 +1542,14 @@ function history(){
   };
   const setPromptGallery=(live,choice)=>{
    if(!live)return;
+   // Preserve the source role album even when its last photo is moved to a prompt gallery.
+   const sourceAlbumKey=String(live.albumCharacterKey||live.albumCharacterName||'').trim();
+   const sourceAlbumName=String(live.albumCharacterName||'').trim();
+   if(sourceAlbumKey&&sourceAlbumName){
+    const settings=cfg();
+    if(!settings.albumNames||typeof settings.albumNames!=='object'||Array.isArray(settings.albumNames))settings.albumNames={};
+    if(!settings.albumNames[sourceAlbumKey])settings.albumNames[sourceAlbumKey]=sourceAlbumName;
+   }
    const targetId=String(choice.key);
    live.promptEntryId=targetId;
    live.sourcePromptEntryId=targetId;
