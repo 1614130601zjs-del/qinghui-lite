@@ -2132,6 +2132,7 @@ jQuery(()=>{
       if(target==='albums')history();
      return;
     }
+    removeLegacyEnglishText();
     const target=tab.dataset.subpage;
     if(!target)return;
     if(target==='bindings')ensureGlobalComboPresetUi();
@@ -2148,6 +2149,15 @@ jQuery(()=>{
 
  // 兼容热重载：旧版 #ql-overlay 已存在时，主初始化块会跳过 html() 与 init()。
  // 确保「参数 → 预设」里的全局通用预设卡片和保存事件仍然存在。
+ function removeLegacyEnglishText(){
+  const walker=document.createTreeWalker(document,NodeFilter.SHOW_TEXT);
+  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  for(const node of nodes){
+   if(!node.parentNode||!(/remove\\s+standalone\\s+reroll\\s+settings\\s+card/i.test(node.nodeValue||'')))continue;
+   node.nodeValue=(node.nodeValue||'').replace(/remove\\s+standalone\\s+reroll\\s+settings\\s+card/ig,'');
+   if(!node.nodeValue.trim()&&!node.parentElement?.children.length)node.parentElement?.remove();
+  }
+ }
  function ensureGlobalComboPresetUi(){
   const root=$('#qinghui-lite-panel');
   const library=root?.querySelector('[data-page-panel="library"]');
