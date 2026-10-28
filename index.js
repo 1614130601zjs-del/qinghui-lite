@@ -757,8 +757,31 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
    try{if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate([45,35,45]);}catch{}
    const old=reroll.innerHTML;reroll.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.64 5.64l2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l2.12 2.12"/></svg>';
    try{
-    const c=cfg(),old={mode:c.activeConfigMode,combo:c.activeComboIndex,preset:c.activePresetIndex,vibe:c.activeVibeIndex,width:c.naiWidth,height:c.naiHeight,size:c.size};
-    try{let ci=-1;const tempValue=String(card.dataset.qlTempCombo??'');const useViewfinder=tempValue==='viewfinder';if(!useViewfinder){if(tempValue==='global')ci=Number(c.globalComboIndex??-1);else if(tempValue.startsWith('bound:')){const chosen=Number(tempValue.slice(6));if(Number.isInteger(chosen)&&c.combinations[chosen])ci=chosen;}else if(/^\d+$/.test(tempValue)&&c.combinations[Number(tempValue)]){ci=Number(tempValue);}if(ci<0){const current=currentCharacter(),binding=findCharacterBinding(current.id,current.name,c);ci=binding?Number(binding.combinationIndex):Number(c.globalComboIndex??-1);}}const combo=c.combinations[ci];if(combo){c.activeConfigMode='combo';c.activeComboIndex=ci;c.activePresetIndex=Number(combo.artistIndex??-1);c.activeVibeIndex=Number(combo.vibeIndex??-1);}else if(!useViewfinder){c.activeConfigMode='combo';c.activeComboIndex=-1;c.activePresetIndex=-1;c.activeVibeIndex=-1;}const dims=String(card.dataset.qlTempSize||'').split('x').map(Number);if(dims.length===2&&dims.every(n=>Number.isFinite(n)&&n>0)){if(c.provider==='novelai'||c.provider==='novelai-thirdparty'){c.naiWidth=dims[0];c.naiHeight=dims[1];}else c.size=card.dataset.qlTempSize;}const fresh=await requestWithActiveSettings(currentPrompt);storeChatRecord(fresh,currentPrompt,taskKey,recordMeta);card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();}finally{c.activeConfigMode=old.mode;c.activeComboIndex=old.combo;c.activePresetIndex=old.preset;c.activeVibeIndex=old.vibe;c.naiWidth=old.width;c.naiHeight=old.height;c.size=old.size;save();}
+    const c=cfg(),old={width:c.naiWidth,height:c.naiHeight,size:c.size};
+    try{
+     const tempValue=String(card.dataset.qlTempCombo??'');
+     let generation;
+     if(tempValue==='viewfinder'){
+      generation=resolveActiveGeneration(currentPrompt);
+      const activeCombo=c.activeConfigMode!=='separate'&&Number(c.activeComboIndex)>=0?c.combinations[Number(c.activeComboIndex)]:null;
+      const presetIndex=activeCombo?Number(activeCombo.artistIndex??-1):Number(c.activePresetIndex??-1);
+      generation.presetIndex=presetIndex;generation.preset=presetIndex>=0?c.presets[presetIndex]:null;
+     }else if(tempValue==='global'){
+      generation=resolveCombinationGeneration(currentPrompt,c.globalComboIndex,c);
+     }else if(tempValue.startsWith('bound:')){
+      const chosen=Number(tempValue.slice(6));
+      generation=resolveCombinationGeneration(currentPrompt,Number.isInteger(chosen)&&c.combinations[chosen]?chosen:-1,c);
+     }else if(/^\d+$/.test(tempValue)&&c.combinations[Number(tempValue)]){
+      generation=resolveCombinationGeneration(currentPrompt,Number(tempValue),c);
+     }else{
+      generation=resolveChatImageGeneration(currentPrompt,getContext());
+     }
+     const dims=String(card.dataset.qlTempSize||'').split('x').map(Number);
+     if(dims.length===2&&dims.every(n=>Number.isFinite(n)&&n>0)){if(c.provider==='novelai'||c.provider==='novelai-thirdparty'){c.naiWidth=dims[0];c.naiHeight=dims[1];}else c.size=card.dataset.qlTempSize;}
+     const fresh=await requestImage(generation.prompt,generation.negative,generation.vibe);
+     storeChatRecord(fresh,currentPrompt,taskKey,recordMeta,generation);
+     card._qlCandidates.push({url:fresh,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;render();
+    }finally{c.naiWidth=old.width;c.naiHeight=old.height;c.size=old.size;save();}
     triggerRegistry.markSucceeded(rerollKey,rerollKey+':candidate:'+Date.now());
    }catch(error){
     try{triggerRegistry.markFailed(rerollKey,error?.message||String(error));}catch{}
