@@ -977,7 +977,7 @@ function processEditMessageMarkers(){
    button.textContent=found.length>1?'Roll 第 '+(markerOrdinal+1)+' 张图片':'Roll 图片';
    button.title='使用编辑框中的 image###提示词### 生成图片';
    button.dataset.qlPrompt=marker.prompt;
-   const taskKey=makeTriggerId({chatId,messageId:String(messageIndex)+':edit',markerIndex:markerOrdinal});
+   const taskKey=makeTriggerId({chatId,messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
    button.dataset.qlTrigger=taskKey;
    applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
    button.addEventListener('click',event=>{
