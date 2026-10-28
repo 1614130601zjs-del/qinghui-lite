@@ -2058,18 +2058,19 @@ jQuery(()=>{
   document.documentElement.dataset.qlLiteMenuWatch='1';
   new MutationObserver(()=>ensureLiteLauncher()).observe(document.documentElement,{childList:true,subtree:true});
  }
- // 若酒馆仍持有旧版弹窗 DOM，脚本重载时不能只跳过创建逻辑：
- // 检查预设卡片结构和历史误插入的英文残句，必要时移除旧 DOM，让下方正常初始化重建。
+ // 酒馆热重载/重复注入时可能残留多个同 ID 的旧弹窗；只检查 querySelector 的第一个会漏掉后面的旧 DOM。
+ // 任一旧弹窗缺少全局预设或仍含历史英文残句时，统一清除所有旧副本，再由当前 html() 重建。
  let restoreOverlayOpen=false;
- const existingOverlay=$('#ql-overlay');
- if(existingOverlay){
+ const existingOverlays=[...document.querySelectorAll('#ql-overlay')];
+ const needsOverlayRebuild=existingOverlays.length>1||existingOverlays.some(existingOverlay=>{
   const existingPanel=existingOverlay.querySelector('#qinghui-lite-panel');
   const hasGlobalPreset=!!existingPanel?.querySelector('[data-subpage-panel="bindings"] .ql-global-default-card #ql-global-combo');
   const hasStrayEnglish=existingOverlay.textContent.includes('remove standalone reroll settings card');
-  if(!hasGlobalPreset||hasStrayEnglish){
-   restoreOverlayOpen=!existingOverlay.hidden;
-   existingOverlay.remove();
-  }
+  return !hasGlobalPreset||hasStrayEnglish;
+ });
+ if(existingOverlays.length&&needsOverlayRebuild){
+  restoreOverlayOpen=existingOverlays.some(overlay=>!overlay.hidden);
+  existingOverlays.forEach(overlay=>overlay.remove());
  }
  if(!$('#ql-overlay')){
   document.documentElement.insertAdjacentHTML('beforeend',html());
