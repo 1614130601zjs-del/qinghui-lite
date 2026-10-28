@@ -1786,6 +1786,8 @@ function collectVibeItems(data,fileName='Vibe 导入',out=[],seen=new WeakSet())
  if(Array.isArray(data)){for(const item of data)collectVibeItems(item,fileName,out,seen);return out;}
  const name=String(data.name||data.title||data.label||data.filename||fileName||'导入的 Vibe').trim();
  const canonical=data.identifier==='novelai-vibe-transfer';
+ const directEntries=Array.isArray(data.entries)?data.entries:(Array.isArray(data.images)?data.images:(Array.isArray(data.references)?data.references:(Array.isArray(data.vibeData)?data.vibeData:(Array.isArray(data.vibes)?data.vibes:(Array.isArray(data.items)?data.items:null)))));
+ if(!canonical&&directEntries&&directEntries.length&&directEntries.some(x=>x&&typeof x==='object'&&('image' in x||'raw' in x||'encoding' in x||'identifier' in x||'encodings' in x))){out.push({name,raw:data,entries:directEntries,source:'group'});return out;}
  if(canonical){
   out.push({name,raw:data,source:'novelai-vibe-transfer'});
   return out;
@@ -1808,9 +1810,7 @@ function collectVibeItems(data,fileName='Vibe 导入',out=[],seen=new WeakSet())
   }
   if(value&&typeof value==='object')collectVibeItems(value,name,out,seen);
  }
- if(Array.isArray(data.entries)&&data.entries.length&&data.entries.some(x=>x&&typeof x==='object'&&('image' in x||'raw' in x||'encoding' in x))){
-  if(!out.some(x=>x.raw===data))out.push({name,raw:data,entries:data.entries,source:'entries'});
- }
+
  return out;
 }
 
