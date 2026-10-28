@@ -1666,21 +1666,18 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 }
 #qinghui-lite-panel .ql-viewfinder-heading h3{margin:0;min-width:0;}
 #qinghui-lite-panel .ql-viewfinder-actions{
- display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto;gap:6px;margin:0;
+ display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto;gap:5px;margin:0;
 }
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button{
- display:inline-flex;align-items:center;justify-content:center;flex:0 0 30px;
- width:30px;height:30px;min-width:30px;min-height:30px;padding:6px;margin:0;
+ display:inline-flex;align-items:center;justify-content:center;flex:0 0 24px;
+ width:24px;height:24px;min-width:24px;min-height:24px;padding:4px;margin:0;
  border:1px solid var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.35)));
- border-radius:9px;background:color-mix(in srgb,var(--ql-card,transparent) 88%,var(--ql-accent,transparent));
+ border-radius:7px;background:color-mix(in srgb,var(--ql-card,transparent) 88%,var(--ql-accent,transparent));
  color:var(--ql-text,var(--SmartThemeBodyColor));box-shadow:none;touch-action:manipulation;
-}
-#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button svg{
- display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
 }
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:disabled{opacity:.36;cursor:default;}
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):active{transform:scale(.96);}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate{width:40px;min-width:40px;max-width:40px;margin:0;background:color-mix(in srgb,var(--ql-accent) 20%,var(--ql-card));color:var(--ql-text);border-color:var(--ql-accent);}
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate{flex-basis:24px;width:24px;min-width:24px;max-width:24px;height:24px;min-height:24px;padding:4px;margin:0;background:color-mix(in srgb,var(--ql-accent) 20%,var(--ql-card));color:var(--ql-text);border-color:var(--ql-accent);}
 #qinghui-lite-panel #ql-result-favorite.is-favorite{color:#c99b35;border-color:color-mix(in srgb,#c99b35 55%,var(--ql-border));}
 #qinghui-lite-panel .ql-viewfinder-card>p.ql-muted{margin:8px 0 10px;}
 #qinghui-lite-panel .ql-viewfinder-layout{display:block;min-width:0;}
