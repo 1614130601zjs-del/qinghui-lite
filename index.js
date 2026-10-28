@@ -1467,7 +1467,7 @@ function history(){
    };
    console.info('[拾帧][角色相册移动诊断]',diagnostic);
    const diagnosticText='诊断：图片记录角色名称='+JSON.stringify(live?.characterName??null)+'，历史角色字段='+JSON.stringify(live?.character??null)+'，编号='+JSON.stringify(live?.characterKey??null)+'；当前角色名称='+JSON.stringify(context.name2??null)+'，编号='+JSON.stringify(context.characterId??null)+'；默认选择依据：'+defaultReason+'。角色列表和完整记录已输出到控制台。';
-   showDetailChoice(title,diagnosticText,choices,confirmLabel,choice=>setRoleAlbum(cfg().records?.[index],choice),defaultKey);
+   showDetailChoice(title,diagnosticText,choices,confirmLabel,choice=>setRoleAlbum(live,choice),defaultKey);
   };
   const setPromptGallery=(live,choice)=>{
    if(!live)return;
@@ -1489,7 +1489,7 @@ function history(){
     delete live.albumCharacterName;delete live.albumCharacterKey;save();hideDetail();history();status('已从当前图集取消收藏；照片仍保留在底片中。');galleryContext.onChange?.();
    };
    detailActions.querySelector('[data-gallery-move]').onclick=()=>{
-    showRoleAlbumChoice(cfg().records?.[index],'移动到角色卡相册','已优先选中这张照片原本生成时所属的角色卡；也可以手动更改。','确认移动');
+    showRoleAlbumChoice(r,'移动到角色卡相册','已优先选中这张照片原本生成时所属的角色卡；也可以手动更改。','确认移动');
    };
   }else if(detailContext==='roleAlbum'){
    detailActions.innerHTML='<button type="button" class="menu_button" data-role-cancel>取消收藏</button><button type="button" class="menu_button ql-cache-action-primary" data-role-move-gallery>移动到图集</button>';
@@ -1510,7 +1510,7 @@ function history(){
     showDetailChoice('收藏到图集','请选择要收藏到的提示词图集。',galleryChoices(),'确认收藏',choice=>setPromptGallery(cfg().records?.[index],choice));
    };
    detailActions.querySelector('[data-detail-save-album]').onclick=()=>{
-    showRoleAlbumChoice(cfg().records?.[index],'收藏到角色相册','已优先选中这张照片原本生成时所属的角色卡；也可以手动更改。','确认收藏');
+    showRoleAlbumChoice(r,'收藏到角色相册','已优先选中这张照片原本生成时所属的角色卡；也可以手动更改。','确认收藏');
    };
   }
   content.querySelector('[data-modal-save]').onclick=async e=>{e.preventDefault();e.stopPropagation();const button=e.currentTarget;if(button.dataset.busy==='1')return;button.dataset.busy='1';try{const imageUrl=String(r.dataUrl||content.querySelector('.ql-cache-large')?.currentSrc||content.querySelector('.ql-cache-large')?.src||'');const result=await saveCleanImage(imageUrl,'shizhen-'+(r.at||Date.now()),true);status((result?.edgeFallback?'已打开下载面板，请点击面板中的“保存图片”。':result?.downloadStarted?'已发起图片下载；请在浏览器下载列表或系统下载目录查看。':'已发起图片下载。')+(lastPngCleanReport?' '+lastPngCleanReport:''));}catch(e){status(e.message||String(e));}finally{delete button.dataset.busy;}};
