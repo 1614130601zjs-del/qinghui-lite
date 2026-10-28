@@ -2058,6 +2058,19 @@ jQuery(()=>{
   document.documentElement.dataset.qlLiteMenuWatch='1';
   new MutationObserver(()=>ensureLiteLauncher()).observe(document.documentElement,{childList:true,subtree:true});
  }
+ // 若酒馆仍持有旧版弹窗 DOM，脚本重载时不能只跳过创建逻辑：
+ // 检查预设卡片结构和历史误插入的英文残句，必要时移除旧 DOM，让下方正常初始化重建。
+ let restoreOverlayOpen=false;
+ const existingOverlay=$('#ql-overlay');
+ if(existingOverlay){
+  const existingPanel=existingOverlay.querySelector('#qinghui-lite-panel');
+  const hasGlobalPreset=!!existingPanel?.querySelector('[data-subpage-panel="bindings"] .ql-global-default-card #ql-global-combo');
+  const hasStrayEnglish=existingOverlay.textContent.includes('remove standalone reroll settings card');
+  if(!hasGlobalPreset||hasStrayEnglish){
+   restoreOverlayOpen=!existingOverlay.hidden;
+   existingOverlay.remove();
+  }
+ }
  if(!$('#ql-overlay')){
   document.documentElement.insertAdjacentHTML('beforeend',html());
   const overlay=$('#ql-overlay');
@@ -2160,6 +2173,10 @@ jQuery(()=>{
   };
  }
  ensureGlobalComboPresetUi();
+ if(restoreOverlayOpen){
+  const overlay=$('#ql-overlay');
+  if(overlay){overlay.hidden=false;document.body.classList.add('ql-modal-open');}
+ }
 
  observeStatusbarFrames();
  // 扩展启用时先扫描现有聊天；再观察酒馆正文重绘，避免事件时序导致 marker 一直以原文显示。
