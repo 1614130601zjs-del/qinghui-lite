@@ -2173,8 +2173,8 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  border-color:color-mix(in srgb,var(--ql-accent,#a86f8b) 30%,#d8c7b8);
 }
 @media(max-width:420px){
- #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar{gap:6px;}
- #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar-title{order:3;flex-basis:100%;}
+ #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center;}
+ #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar-title{order:initial;flex:initial;min-width:0;}
 }
 
 
