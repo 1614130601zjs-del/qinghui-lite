@@ -1797,7 +1797,7 @@ function collectVibeItems(data,fileName='Vibe 导入',out=[],seen=new WeakSet())
    for(const [index,item] of value.entries()){
     if(!item||typeof item!=='object')continue;
     const itemName=String(item.name||item.title||item.label||('Vibe '+(index+1))).trim();
-    const entries=Array.isArray(item.entries)?item.entries:(Array.isArray(item.images)?item.images:(Array.isArray(item.references)?item.references:null));
+    const entries=Array.isArray(item.entries)?item.entries:(Array.isArray(item.images)?item.images:(Array.isArray(item.references)?item.references:(Array.isArray(item.vibeData)?item.vibeData:(Array.isArray(item.vibes)?item.vibes:(Array.isArray(item.items)?item.items:null)))));
     if(entries){
      out.push({name:itemName,raw:item,entries,source:'group'});
     }else{
