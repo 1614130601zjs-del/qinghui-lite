@@ -1257,7 +1257,7 @@ function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-pa
 <header class="ql-header"><div class="ql-brand"><strong>拾帧</strong><span>故事仍在继续，快门为你停留。</span></div><button id="ql-close" class="menu_button" type="button">关闭</button></header>
 <nav class="ql-tabs" aria-label="拾帧功能导航" role="tablist">
 <button type="button" class="ql-tab active" data-page="generate" role="tab" aria-selected="true">取景</button>
-<button type="button" class="ql-tab" data-page="library" role="tab" aria-selected="false">配置</button>
+<button type="button" class="ql-tab" data-page="library" role="tab" aria-selected="false">参数</button>
 <button type="button" class="ql-tab" data-page="wordbank" role="tab" aria-selected="false">词笺</button>
 <button type="button" class="ql-tab" data-page="history" role="tab" aria-selected="false">底片</button>
 <button type="button" class="ql-tab" data-page="albums" role="tab" aria-selected="false">拾帧</button>
