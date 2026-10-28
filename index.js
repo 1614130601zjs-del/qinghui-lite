@@ -2130,6 +2130,33 @@ jQuery(()=>{
   init();
   migrateLegacyImageRecords().catch(error=>console.error('[拾帧] 旧图片缓存迁移失败',error));
  }
+
+ // 兼容热重载：旧版 #ql-overlay 已存在时，主初始化块会跳过 html() 与 init()。
+ // 确保「参数 → 预设」里的全局通用预设卡片和保存事件仍然存在。
+ function ensureGlobalComboPresetUi(){
+  const root=$('#qinghui-lite-panel');
+  const section=root?.querySelector('[data-subpage-panel="bindings"]');
+  if(!section)return;
+  let card=section.querySelector('.ql-global-default-card');
+  if(!card||!card.querySelector('#ql-global-combo')){
+   card?.remove();
+   const comboList=section.querySelector('.ql-combo-list-card');
+   if(!comboList)return;
+   comboList.insertAdjacentHTML('afterend','<div class="ql-card ql-global-default-card"><div class="ql-section-heading"><div><h3>全局通用预设</h3><p class="ql-muted">正文自动生图仅在角色卡没有专属绑定时使用；不会读取取景区当前的画师串或 Vibe。</p></div></div><label for="ql-global-combo">默认组合</label><select id="ql-global-combo"><option value="-1">不使用预设</option></select></div>');
+   card=section.querySelector('.ql-global-default-card');
+  }
+  if(!card)return;
+  renderBindings();
+  const global=card.querySelector('#ql-global-combo');
+  if(global)global.onchange=()=>{
+   const index=Number(global.value),s=cfg();
+   s.globalComboIndex=Number.isInteger(index)&&index>=0&&s.combinations[index]?index:-1;
+   save();
+   status('已保存全局通用预设：'+(s.combinations[s.globalComboIndex]?.name||'不使用预设'));
+  };
+ }
+ ensureGlobalComboPresetUi();
+
  observeStatusbarFrames();
  // 扩展启用时先扫描现有聊天；再观察酒馆正文重绘，避免事件时序导致 marker 一直以原文显示。
  let inlineScanTimers=[];
