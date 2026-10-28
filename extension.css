@@ -4155,3 +4155,28 @@ dialog.ql-viewfinder-lightbox button:disabled {
  word-break:normal!important;
  background:transparent!important;
 }
+
+
+/* Fix: let long image prompts wrap and grow inside the detail frame. */
+#ql-image-cache-modal .ql-cache-prompt-section,
+#ql-image-cache-modal .ql-cache-prompt-section .ql-cache-prompt-box{
+  box-sizing:border-box!important;
+  min-width:0!important;
+  max-width:100%!important;
+}
+#ql-image-cache-modal .ql-cache-prompt-section .ql-cache-prompt-box{
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+#ql-image-cache-modal .ql-cache-prompt-section .ql-cache-prompt-box pre{
+  box-sizing:border-box!important;
+  height:auto!important;
+  max-height:none!important;
+  min-width:0!important;
+  max-width:100%!important;
+  white-space:pre-wrap!important;
+  overflow-wrap:anywhere!important;
+  word-break:break-word!important;
+  overflow:visible!important;
+}
