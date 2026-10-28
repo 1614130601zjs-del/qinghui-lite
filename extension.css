@@ -3911,7 +3911,16 @@ dialog.ql-viewfinder-lightbox button:hover,
   background-color:var(--ql-button-hover, var(--SmartThemeQuoteColor, rgba(127,127,127,.16)))!important;
   color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
 }
-/* 不强制覆盖按钮原有边框与焦点轮廓，避免透明按钮出现突兀描边。 */
+#qinghui-lite-panel button:focus,
+#qinghui-lite-panel button:focus-visible,
+#ql-image-cache-modal button:focus,
+#ql-image-cache-modal button:focus-visible,
+.ql-detail-choice-overlay button:focus,
+.ql-detail-choice-overlay button:focus-visible,
+dialog.ql-viewfinder-lightbox button:focus,
+dialog.ql-viewfinder-lightbox button:focus-visible {
+  outline-color:var(--ql-button-border, var(--SmartThemeUnderlineColor, currentColor))!important;
+}
 #qinghui-lite-panel button:active:not(:disabled),
 #ql-image-cache-modal button:active:not(:disabled),
 .ql-detail-choice-overlay button:active:not(:disabled),
@@ -4021,4 +4030,4 @@ dialog.ql-viewfinder-lightbox button:disabled {
 }
 
 
-/* 0.5.109: do not override native button borders; keep the original transparent-button appearance. */
+/* 0.5.109 的透明按钮边框覆盖已撤销：恢复 0.5.107 的完整按钮主题隔离。 */
