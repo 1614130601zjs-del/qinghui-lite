@@ -1413,10 +1413,20 @@ function history(){
   albums.querySelectorAll('[data-album-more]').forEach(button=>button.addEventListener('click',event=>{
    event.preventDefault();event.stopPropagation();
    const key=button.dataset.albumMore;
-   albums.querySelectorAll('[data-album-menu]').forEach(menu=>{menu.hidden=menu.dataset.albumMenu!==key||!menu.hidden;});
+   const menus=[...albums.querySelectorAll('[data-album-menu]'),...document.querySelectorAll('body > .ql-album-menu-portal[data-album-menu]')];
+   menus.forEach(menu=>{menu.hidden=true;});
+   const menu=menus.find(item=>item.dataset.albumMenu===key);
+   if(!menu)return;
+   menu.classList.add('ql-album-menu-portal');
+   document.body.append(menu);
+   menu.hidden=false;
   }));
   albums.querySelectorAll('[data-album-menu]').forEach(menu=>menu.addEventListener('click',event=>{
-   if(event.target===menu){menu.hidden=true;}
+   if(event.target===menu||event.target.closest('.ql-album-more-menu-panel button')){
+    menu.hidden=true;
+    menu.classList.remove('ql-album-menu-portal');
+    albums.append(menu);
+   }
   }));
 
   const cropModal=albums.querySelector('[data-album-crop-modal]'),cropImage=albums.querySelector('[data-crop-image]'),cropViewport=albums.querySelector('[data-crop-viewport]'),zoomControl=albums.querySelector('[data-crop-zoom]'),xControl=albums.querySelector('[data-crop-x]'),yControl=albums.querySelector('[data-crop-y]');
