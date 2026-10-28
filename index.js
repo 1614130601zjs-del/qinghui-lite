@@ -1441,6 +1441,31 @@ function history(){
    status('照片已移动到「'+live.albumCharacterName+'」角色相册；原图仍保留。');
    galleryContext?.onChange?.();
   };
+  const showRoleAlbumChoice=(live,title,description)=>{
+   const choices=roleChoices();
+   const sourceName=String(live?.characterName||'').trim();
+   const sourceKey=live?.characterKey==null?'':String(live.characterKey);
+   const sourceChoice=choices.find(choice=>sourceName!==''&&choice.name.trim()===sourceName);
+   const keyedSourceChoice=choices.find(choice=>sourceKey!==''&&String(choice.key)===sourceKey);
+   const context=getContext()||{};
+   const current=currentCharacter();
+   const currentName=String(current.name||context.name2||'').trim();
+   const currentChoice=choices.find(choice=>String(choice.key)===String(current.id))
+    ||choices.find(choice=>currentName!==''&&choice.name.trim()===currentName);
+   let defaultKey=null,defaultReason='没有匹配到来源角色或当前角色；浏览器将默认选中第一项';
+   if(sourceChoice){defaultKey=sourceChoice.key;defaultReason='匹配到图片记录的角色名称';}
+   else if(keyedSourceChoice){defaultKey=keyedSourceChoice.key;defaultReason='匹配到图片记录的角色编号';}
+   else if(currentChoice){defaultKey=currentChoice.key;defaultReason='图片记录未匹配，回退到当前角色';}
+   const diagnostic={
+    record:{id:live?.id||null,taskKey:live?.taskKey||null,characterName:live?.characterName??null,characterKey:live?.characterKey??null,character:live?.character??null,source:live?.source??null},
+    current:{characterId:context.characterId??null,name2:context.name2??null,resolvedId:current.id,resolvedName:current.name},
+    choices:choices.map(choice=>({key:choice.key,name:choice.name})),
+    defaultKey,defaultReason
+   };
+   console.info('[拾帧][角色相册移动诊断]',diagnostic);
+   const diagnosticText='诊断：图片记录角色名称='+JSON.stringify(live?.characterName??null)+'，编号='+JSON.stringify(live?.characterKey??null)+'；当前角色名称='+JSON.stringify(context.name2??null)+'，编号='+JSON.stringify(context.characterId??null)+'；默认选择依据：'+defaultReason+'。角色列表和完整记录已输出到控制台。';
+   showDetailChoice(title,diagnosticText,choices,'确认',choice=>setRoleAlbum(cfg().records?.[index],choice),defaultKey);
+  };
   const setPromptGallery=(live,choice)=>{
    if(!live)return;
    const targetId=String(choice.key);
@@ -1461,31 +1486,7 @@ function history(){
     delete live.albumCharacterName;delete live.albumCharacterKey;save();hideDetail();history();status('已从当前图集取消收藏；照片仍保留在底片中。');galleryContext.onChange?.();
    };
    detailActions.querySelector('[data-gallery-move]').onclick=()=>{
-    const choices=roleChoices();
-    const live=cfg().records?.[index];
-    const sourceName=String(live?.characterName||'').trim();
-    const sourceKey=live?.characterKey==null?'':String(live.characterKey);
-    const sourceChoice=choices.find(choice=>sourceName!==''&&choice.name.trim()===sourceName);
-    const keyedSourceChoice=choices.find(choice=>sourceKey!==''&&String(choice.key)===sourceKey);
-    const current=currentCharacter();
-    const context=getContext()||{};
-    const contextId=context.characterId==null?'':String(context.characterId);
-    const currentName=String(current.name||context.name2||'').trim();
-    const currentChoice=choices.find(choice=>String(choice.key)===String(current.id))
-     ||choices.find(choice=>currentName!==''&&choice.name.trim()===currentName);
-    let defaultKey=null,defaultReason='没有匹配到来源角色或当前角色；浏览器将默认选中第一项';
-    if(sourceChoice){defaultKey=sourceChoice.key;defaultReason='匹配到图片记录的角色名称';}
-    else if(keyedSourceChoice){defaultKey=keyedSourceChoice.key;defaultReason='匹配到图片记录的角色编号';}
-    else if(currentChoice){defaultKey=currentChoice.key;defaultReason='图片记录未匹配，回退到当前角色';}
-    const diagnostic={
-     record:{id:live?.id||null,taskKey:live?.taskKey||null,characterName:live?.characterName??null,characterKey:live?.characterKey??null,character:live?.character??null,source:live?.source??null},
-     current:{characterId:context.characterId??null,name2:context.name2??null,resolvedId:current.id,resolvedName:current.name},
-     choices:choices.map(choice=>({key:choice.key,name:choice.name})),
-     defaultKey,defaultReason
-    };
-    console.info('[拾帧][角色相册移动诊断]',diagnostic);
-    const diagnosticText='诊断：图片记录角色名称='+JSON.stringify(live?.characterName??null)+'，编号='+JSON.stringify(live?.characterKey??null)+'；当前角色名称='+JSON.stringify(context.name2??null)+'，编号='+JSON.stringify(context.characterId??null)+'；默认选择依据：'+defaultReason+'。角色列表和完整记录已输出到控制台。';
-    showDetailChoice('移动到角色卡相册',diagnosticText,choices,'确认移动',choice=>setRoleAlbum(cfg().records?.[index],choice),defaultKey);
+    showRoleAlbumChoice(cfg().records?.[index],'移动到角色卡相册','已优先选中这张照片原本生成时所属的角色卡；也可以手动更改。');
    };
   }else if(detailContext==='roleAlbum'){
    detailActions.innerHTML='<button type="button" class="menu_button" data-role-cancel>取消收藏</button><button type="button" class="menu_button ql-cache-action-primary" data-role-move-gallery>移动到图集</button>';
@@ -1506,7 +1507,7 @@ function history(){
     showDetailChoice('收藏到图集','请选择要收藏到的提示词图集。',galleryChoices(),'确认收藏',choice=>setPromptGallery(cfg().records?.[index],choice));
    };
    detailActions.querySelector('[data-detail-save-album]').onclick=()=>{
-    showDetailChoice('收藏到角色相册','请选择要收藏到的角色相册。',roleChoices(),'确认收藏',choice=>setRoleAlbum(cfg().records?.[index],choice));
+    showRoleAlbumChoice(cfg().records?.[index],'收藏到角色相册','已优先选中这张照片原本生成时所属的角色卡；也可以手动更改。');
    };
   }
   content.querySelector('[data-modal-save]').onclick=async e=>{e.preventDefault();e.stopPropagation();const button=e.currentTarget;if(button.dataset.busy==='1')return;button.dataset.busy='1';try{const imageUrl=String(r.dataUrl||content.querySelector('.ql-cache-large')?.currentSrc||content.querySelector('.ql-cache-large')?.src||'');const result=await saveCleanImage(imageUrl,'shizhen-'+(r.at||Date.now()),true);status((result?.edgeFallback?'已打开下载面板，请点击面板中的“保存图片”。':result?.downloadStarted?'已发起图片下载；请在浏览器下载列表或系统下载目录查看。':'已发起图片下载。')+(lastPngCleanReport?' '+lastPngCleanReport:''));}catch(e){status(e.message||String(e));}finally{delete button.dataset.busy;}};
