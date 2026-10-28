@@ -4125,3 +4125,23 @@ dialog.ql-viewfinder-lightbox button:disabled {
  #qinghui-lite-panel #ql-result-album-target{padding:4px 5px!important;font-size:11px;}
  #qinghui-lite-panel #ql-result-album-target-save{padding:4px 8px!important;font-size:11px;}
 }
+
+
+/* 正文收藏图标保持空心，仅将线条变为金色；不使用黄色实心填充。 */
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:hover,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:active,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus-visible{
+  color:#d6a52f!important;
+  background:transparent!important;
+  border-color:#d6a52f!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg path{
+  fill:none!important;
+  stroke:#d6a52f!important;
+}
