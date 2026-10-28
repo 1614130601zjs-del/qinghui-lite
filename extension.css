@@ -3632,9 +3632,9 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 }
 @media(max-width:480px){
   dialog.ql-viewfinder-lightbox[open]{max-width:calc(100vw - 10px)!important;max-height:calc(100dvh - 10px)!important;}
-  dialog.ql-viewfinder-lightbox .ql-lightbox-album-paper{max-width:calc(100vw - 10px)!important;max-height:calc(100dvh - 10px)!important;padding:8px!important;}
-  dialog.ql-viewfinder-lightbox .ql-lightbox-album-page{max-height:calc(100dvh - 38px)!important;padding:6px!important;}
-  dialog.ql-viewfinder-lightbox .ql-lightbox-album-image{max-width:calc(100vw - 36px)!important;max-height:calc(100dvh - 48px)!important;}
+  dialog.ql-viewfinder-lightbox .ql-album-paper{max-width:calc(100vw - 10px)!important;max-height:calc(100dvh - 10px)!important;}
+  dialog.ql-viewfinder-lightbox .ql-album-single-page{max-height:calc(100dvh - 38px)!important;}
+  dialog.ql-viewfinder-lightbox .ql-album-single-photo img{max-width:calc(100vw - 36px)!important;max-height:calc(100dvh - 48px)!important;}
 }
 
 
