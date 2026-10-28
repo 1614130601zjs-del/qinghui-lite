@@ -4229,3 +4229,35 @@ dialog.ql-viewfinder-lightbox,
 #extensionsMenu #ql-chat-launch {
   font-size: 14px;
 }
+
+/* Chat 修改 tag editor: bright selectors and a vertically resizable prompt field. */
+#chat .ql-chat-image-editor .ql-chat-image-temp-config select {
+  color: #344653 !important;
+  background: #f8fafb !important;
+  border: 1px solid rgba(100,125,145,.36) !important;
+  opacity: 1 !important;
+  color-scheme: light;
+}
+#chat .ql-chat-image-editor .ql-chat-image-tag-input {
+  display: block !important;
+  width: 100% !important;
+  min-height: 150px !important;
+  height: 190px !important;
+  max-height: 70vh !important;
+  resize: vertical !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+  padding: 10px 12px !important;
+  line-height: 1.55 !important;
+  color: #344653 !important;
+  background: #f8fafb !important;
+  border: 1px solid rgba(100,125,145,.36) !important;
+  border-radius: 10px !important;
+  opacity: 1 !important;
+  color-scheme: light;
+}
+#chat .ql-chat-image-editor .ql-chat-image-tag-input:focus {
+  outline: 2px solid rgba(127,152,173,.32) !important;
+  outline-offset: 1px !important;
+  border-color: #7f98ad !important;
+}
