@@ -1489,7 +1489,7 @@ function history(){
   const themePanel=document.querySelector('#shizhen-panel');
   if(themePanel){const theme=getComputedStyle(themePanel);for(const name of ['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-border','--ql-muted','--ql-field','--ql-button-bg','--ql-button-hover','--ql-button-active','--ql-button-border','--ql-button-text','--SmartThemeBodyColor','--SmartThemeBorderColor','--SmartThemeBlurTintColor','--SmartThemeEmColor','--SmartThemeQuoteColor','--SmartThemeUnderlineColor']){modal.style.removeProperty(name);const value=theme.getPropertyValue(name).trim();if(value)modal.style.setProperty(name,value);}}
   const createdAt=new Date(r.at||Date.now());
-  const promptSource=String(r.basePrompt||r.prompt||'');
+  const promptSource=String(r.prompt||r.basePrompt||'');
   const artistPositive=String(preset?.positive||'').trim();
   const promptText=artistPositive&&promptSource.includes(artistPositive)
    ?promptSource.split(artistPositive).join(' ').replace(/(?:\s*[,，、]\s*){2,}/g,', ').replace(/^[\s,，、]+|[\s,，、]+$/g,'').trim()
