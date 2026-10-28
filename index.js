@@ -1413,12 +1413,12 @@ function history(){
   albums.querySelectorAll('[data-album-more]').forEach(button=>button.addEventListener('click',event=>{
    event.preventDefault();event.stopPropagation();
    const key=button.dataset.albumMore;
-   const menus=[...albums.querySelectorAll('[data-album-menu]'),...document.querySelectorAll('body > .ql-album-menu-portal[data-album-menu]')];
+   const menus=[...albums.querySelectorAll('[data-album-menu]'),...document.querySelectorAll('html > .ql-album-menu-portal[data-album-menu]')];
    menus.forEach(menu=>{menu.hidden=true;});
    const menu=menus.find(item=>item.dataset.albumMenu===key);
    if(!menu)return;
    menu.classList.add('ql-album-menu-portal');
-   document.body.append(menu);
+   document.documentElement.append(menu);
    menu.hidden=false;
   }));
   albums.querySelectorAll('[data-album-menu]').forEach(menu=>menu.addEventListener('click',event=>{
