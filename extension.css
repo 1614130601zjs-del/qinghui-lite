@@ -4201,3 +4201,37 @@ dialog.ql-viewfinder-lightbox button:disabled {
   overflow-wrap:anywhere!important;
   word-break:break-word!important;
 }
+
+/* 拾帧主题隔离：不继承酒馆字体美化及其主题变量。 */
+#shizhen-panel,
+#shizhen-panel *,
+#ql-overlay,
+#ql-overlay *,
+#ql-image-cache-modal,
+#ql-image-cache-modal *,
+.ql-detail-choice-overlay,
+.ql-detail-choice-overlay *,
+dialog.ql-viewfinder-lightbox,
+dialog.ql-viewfinder-lightbox *,
+.ql-chat-image,
+.ql-chat-image *,
+.ql-statusbar-card,
+.ql-statusbar-card *,
+#chat .ql-inline-image-trigger,
+#extensionsMenu #ql-chat-launch {
+  font-family: Arial, "Noto Sans", sans-serif !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  text-shadow: none !important;
+}
+#shizhen-panel,
+#ql-overlay,
+#ql-image-cache-modal,
+.ql-detail-choice-overlay,
+dialog.ql-viewfinder-lightbox,
+.ql-chat-image,
+.ql-statusbar-card,
+#chat .ql-inline-image-trigger,
+#extensionsMenu #ql-chat-launch {
+  font-size: 14px;
+}
