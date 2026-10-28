@@ -1467,7 +1467,7 @@ function history(){
  if(!modal){
   const modalHost=document.getElementById('ql-overlay')||document.body;modalHost.insertAdjacentHTML('beforeend','<div id="ql-image-cache-modal" hidden role="dialog" aria-modal="true" aria-label="图片详情"><div class="ql-cache-modal-panel"><button type="button" class="menu_button ql-cache-modal-close ql-universal-close" aria-label="关闭图片详情" title="关闭"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="ql-cache-modal-content"></div></div></div>');
   modal=document.getElementById('ql-image-cache-modal');
-  modal.querySelector('.ql-cache-modal-close').addEventListener('click',()=>{modal.hidden=true;modal.style.display='';});
+  modal.querySelector('.ql-cache-modal-close').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();modal.hidden=true;modal.style.display='none';});
   modal.addEventListener('click',e=>{if(e.target===modal){modal.hidden=true;modal.style.display='';}});
  }
  const openDetail=(index,galleryContext=null,detailContext='cache')=>{
@@ -1602,7 +1602,7 @@ function history(){
    };
   }
   content.querySelector('[data-modal-save]').onclick=async e=>{e.preventDefault();e.stopPropagation();const button=e.currentTarget;if(button.dataset.busy==='1')return;button.dataset.busy='1';try{const imageUrl=String(r.dataUrl||content.querySelector('.ql-cache-large')?.currentSrc||content.querySelector('.ql-cache-large')?.src||'');const result=await saveCleanImage(imageUrl,'shizhen-'+(r.at||Date.now()),true);status((result?.edgeFallback?'已打开下载面板，请点击面板中的“保存图片”。':result?.downloadStarted?'已发起图片下载；请在浏览器下载列表或系统下载目录查看。':'已发起图片下载。')+(lastPngCleanReport?' '+lastPngCleanReport:''));}catch(e){status(e.message||String(e));}finally{delete button.dataset.busy;}};
-  modal.hidden=false;modal.style.display='flex';
+  modal.hidden=false;modal.style.removeProperty('display');modal.style.display='flex';
  };
  host.openDetail=openDetail;
  const modeButton=footer?.querySelector('#ql-cache-select-mode');let selectionMode=false;const setSelectionMode=enabled=>{selectionMode=enabled;if(modeButton){modeButton.textContent=enabled?'完成选择':'多选';modeButton.setAttribute('aria-pressed',String(enabled));}const allLabel=footer?.querySelector('.ql-cache-select-all'),count=footer?.querySelector('[data-ql-selected-count]'),bulkDelete=footer?.querySelector('[data-ql-bulk-delete]'),bulkDownload=footer?.querySelector('[data-ql-bulk-download]');if(allLabel)allLabel.hidden=!enabled;if(count)count.hidden=!enabled;if(bulkDelete)bulkDelete.hidden=!enabled;if(bulkDownload)bulkDownload.hidden=!enabled;host.classList.toggle('ql-cache-selection-mode',enabled);if(!enabled){host.querySelectorAll('.ql-cache-tile.is-selected').forEach(tile=>tile.classList.remove('is-selected'));host.querySelectorAll('[data-ql-select]').forEach(input=>input.checked=false);}updateSelection();};if(modeButton)modeButton.onclick=()=>setSelectionMode(!selectionMode);
@@ -2340,7 +2340,7 @@ jQuery(()=>{
   if(eventName)eventSource.on(eventName,scheduleScan);
  }
  if(event_types.CHAT_CHANGED)eventSource.on(event_types.CHAT_CHANGED,()=>{autoTasks.clear();renderBindings();renderLibrary();applyCurrentBinding();});
- if(event_types.CHARACTER_SELECTED)eventSource.on(event_types.CHARACTER_SELECTED,()=>{renderBindings();renderLibrary();syncViewfinderAlbumTargets();applyCurrentBinding();});
+ if(event_types.CHARACTER_SELECTED)eventSource.on(event_types.CHARACTER_SELECTED,()=>{const s=cfg();s.prompt='';s.negative='';s.viewfinderRoles=[{appearance:'',libraryIndex:-1},{appearance:'',libraryIndex:-1}];save();const positive=$('#ql-prompt'),negative=$('#ql-negative');if(positive)positive.value='';if(negative)negative.value='';renderBindings();renderLibrary();renderViewfinderRoles();syncViewfinderAlbumTargets();applyCurrentBinding();});
  applyCurrentBinding();
 });
 
