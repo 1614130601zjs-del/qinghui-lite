@@ -297,6 +297,36 @@ function resolveActiveGeneration(prompt, negativeOverride){
   :baseNegative;
  return {prompt:finalPrompt,negative:finalNegative,vibe};
 }
+function resolveChatImageGeneration(prompt, context=getContext()){
+ const s=cfg(),characterId=context?.characterId==null?'':String(context.characterId);
+ const cards=Array.isArray(context?.characters)?context.characters:getCharacterCards();
+ const ch=characterId!==''?cards[Number(characterId)]:null;
+ const characterName=String(context?.name2||context?.name||ch?.name||ch?.avatar||'').trim();
+ const validBinding=b=>Number.isInteger(Number(b?.combinationIndex))&&Number(b.combinationIndex)>=0&&!!s.combinations[Number(b.combinationIndex)];
+ const binding=(s.bindings||[]).find(b=>b.characterName===characterName&&validBinding(b))
+  ||(s.bindings||[]).find(b=>String(b.characterKey??'')===characterId&&validBinding(b));
+ let presetIndex=-1,vibeIndex=-1,comboIndex=-1,resolved;
+ if(binding){
+  comboIndex=Number(binding.combinationIndex);
+  const combo=s.combinations[comboIndex];
+  presetIndex=Number(combo.artistIndex??-1);
+  vibeIndex=Number(combo.vibeIndex??-1);
+  const preset=presetIndex>=0?s.presets[presetIndex]:null;
+  const vibe=vibeIndex>=0?s.vibes[vibeIndex]:null;
+  resolved={
+   prompt:[String(prompt??'').trim(),preset?.positive].filter(Boolean).join(', '),
+   negative:[String(s.negative??'').trim(),preset?.negative].filter(Boolean).join(', '),
+   vibe
+  };
+ }else{
+  const activeCombo=s.activeConfigMode!=='separate'&&Number(s.activeComboIndex)>=0?s.combinations[Number(s.activeComboIndex)]:null;
+  presetIndex=activeCombo?Number(activeCombo.artistIndex??-1):Number(s.activePresetIndex??-1);
+  vibeIndex=activeCombo?Number(activeCombo.vibeIndex??-1):Number(s.activeVibeIndex??-1);
+  comboIndex=activeCombo?Number(s.activeComboIndex):-1;
+  resolved=resolveActiveGeneration(prompt);
+ }
+ return {...resolved,presetIndex,preset:presetIndex>=0?s.presets[presetIndex]:null,vibeIndex,comboIndex,bindingApplied:!!binding};
+}
 async function requestWithActiveSettings(prompt, negativeOverride){
  const resolved=resolveActiveGeneration(prompt,negativeOverride);
  return requestImage(resolved.prompt,resolved.negative,resolved.vibe);
@@ -793,9 +823,10 @@ async function persistImageToTavern(src,taskKey='image'){
  return normalizeTavernImagePath(result.path);
 }
 
-function storeChatRecord(url,prompt,taskKey,meta={}){
- const c=cfg(),resolved=resolveActiveGeneration(prompt);
- const presetIndex=Number(c.activePresetIndex??-1),preset=presetIndex>=0?c.presets[presetIndex]:null;
+function storeChatRecord(url,prompt,taskKey,meta={},generationOverride=null){
+ const c=cfg(),resolved=generationOverride||resolveActiveGeneration(prompt);
+ const presetIndex=generationOverride?Number(generationOverride.presetIndex??-1):Number(c.activePresetIndex??-1);
+ const preset=generationOverride?generationOverride.preset:(presetIndex>=0?c.presets[presetIndex]:null);
  const vibe=resolved.vibe;
  const record={
   id:taskKey+':'+Date.now(),at:Date.now(),prompt:resolved.prompt,basePrompt:prompt,negative:resolved.negative||c.negative||'',
@@ -905,13 +936,14 @@ async function runInlineImageTrigger(button,entry){
  try{
   const context=getContext();
   const meta={messageIndex:entry.messageIndex,character:context?.name||null,characterName:context?.name2||null,characterKey:context?.characterId??null,chatId:context?.chatId||null};
-  const url=await requestWithActiveSettings(prompt);
+  const generation=resolveChatImageGeneration(prompt,context);
+  const url=await requestImage(generation.prompt,generation.negative,generation.vibe);
   const host=button.closest('.mes_text')||document.querySelector('.mes[mesid="'+entry.messageIndex+'"] .mes_text');
   if(!host)throw new Error('找不到原消息正文，图片已生成但无法插入原消息。');
   const card=addMessageImage(host,url,prompt,taskKey,meta);
   if(card)button.after(card);
   button.remove();statusNode.remove();
-  storeChatRecord(url,prompt,taskKey,meta);
+  storeChatRecord(url,prompt,taskKey,meta,generation);
   triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());
  }catch(error){
   triggerRegistry.markFailed(taskKey,error?.message||String(error));
