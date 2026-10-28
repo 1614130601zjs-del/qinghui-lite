@@ -53,11 +53,24 @@ function cfg(){
 const triggerRegistry = new TriggerRegistry();
 const autoTasks = new Set(); // 临时兼容旧入口状态；任务准入与状态以 triggerRegistry 为准。
 function markers(text){return parseImageMarkers(text).map(({index,prompt,marker})=>({index,prompt,raw:marker}));}
+// 判断某个 .mes_text 是否正处于酒馆的“编辑消息”状态。
+// 上一版用“host 里有没有 textarea”来判断，结果发现几乎每条消息里都能找到一个 textarea
+// （不管是酒馆自己预渲染但隐藏着的编辑框模板，还是代码块复制按钮插件塞进去的隐藏 textarea），
+// 导致所有消息都被当成“正在编辑”而整体跳过渲染。改成同时要求元素真的可见（offsetParent 不为 null），
+// 只有真正展开显示出来的编辑框才算数。
+function isHostBeingEdited(host){
+ if(!host)return false;
+ if(host.isContentEditable)return true;
+ const editable=host.querySelector('[contenteditable="true"]');
+ if(editable&&editable.offsetParent!==null)return true;
+ const ta=host.querySelector('#curEditTextarea,textarea.edit_textarea');
+ if(ta&&ta.offsetParent!==null)return true;
+ return false;
+}
 function hideMarkersInTextNode(root,entries=[]){
  if(!root)return;
- // 正在被酒馆编辑（contenteditable / 内嵌 textarea）的区域不要插按钮，否则保存时会把按钮文字一起存回正文，
- // 把 image###...### 标记永久破坏掉。
- if(root.isContentEditable||root.closest?.('[contenteditable="true"]')||root.querySelector?.('textarea,#curEditTextarea'))return;
+ // 正在被酒馆编辑的区域不要插按钮，否则保存时会把按钮文字一起存回正文，把 image###...### 标记永久破坏掉。
+ if(isHostBeingEdited(root))return;
  let entryCursor=0;
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
  const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue?.includes('image###'))nodes.push(walker.currentNode);
@@ -921,11 +934,8 @@ async function processLatestAssistantMessage(){
   if(!found.length)continue;
   const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
   if(!host)continue;
-  // 酒馆点击编辑铅笔时会把 .mes_text 变成可编辑区域（contenteditable 或内嵌 textarea），
-  // 其中显示的是原始 mes 文本。之前在这期间也照样扫描/插入按钮，结果酒馆保存编辑时会把
-  // 按钮的文字一起当成正文存回去，把 image###...### 标记永久破坏掉，导致刷新也救不回来。
-  // 正在编辑的消息这里直接跳过，等编辑结束（保存/取消，会触发 DOM 变动）再由下一轮扫描处理。
-  if(host.isContentEditable||host.closest('[contenteditable="true"]')||host.querySelector('textarea,#curEditTextarea'))continue;
+  // 正在编辑的消息跳过（见 isHostBeingEdited），等编辑结束（保存/取消会触发 DOM 变动）再由下一轮扫描补回按钮。
+  if(isHostBeingEdited(host))continue;
   const entries=found.map((marker,markerOrdinal)=>{
    const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal,markerKey:messageIndex+':'+markerOrdinal};
