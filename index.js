@@ -2146,13 +2146,17 @@ jQuery(()=>{
    card=section.querySelector('.ql-global-default-card');
   }
   if(!card)return;
-  renderBindings();
   const global=card.querySelector('#ql-global-combo');
-  if(global)global.onchange=()=>{
-   const index=Number(global.value),s=cfg();
-   s.globalComboIndex=Number.isInteger(index)&&index>=0&&s.combinations[index]?index:-1;
+  if(!global)return;
+  const s=cfg(),selected=String(s.globalComboIndex??-1);
+  global.innerHTML='<option value="-1">不使用预设</option>'+s.combinations.map((x,i)=>'<option value="'+i+'">'+esc(x.name||('组合 '+(i+1)))+'</option>').join('');
+  global.value=s.combinations[Number(selected)]?selected:'-1';
+  renderBindings();
+  global.onchange=()=>{
+   const index=Number(global.value),settings=cfg();
+   settings.globalComboIndex=Number.isInteger(index)&&index>=0&&settings.combinations[index]?index:-1;
    save();
-   status('已保存全局通用预设：'+(s.combinations[s.globalComboIndex]?.name||'不使用预设'));
+   status('已保存全局通用预设：'+(settings.combinations[settings.globalComboIndex]?.name||'不使用预设'));
   };
  }
  ensureGlobalComboPresetUi();
