@@ -3461,7 +3461,6 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
   dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame img{max-width:calc(100vw - 40px);max-height:calc(100dvh - 120px);}
 }
 /* 0.5.93: restore compact top-right statusbar favorite/delete controls. */
-r. */
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar{
   position:absolute!important;top:7px!important;right:7px!important;left:auto!important;bottom:auto!important;
   transform:none!important;display:flex!important;gap:5px!important;pointer-events:auto!important;z-index:2147483647!important;
@@ -4126,3 +4125,36 @@ dialog.ql-viewfinder-lightbox button:disabled {
 
 /* Keep the redundant prompt-gallery page out of the top navigation. */
 #qinghui-lite-panel button.ql-tab[data-page="prompt-gallery"]{display:none!important;}
+
+
+/* 拾帧状态栏收藏：沿用拾帧按钮配色，外框不随收藏变金色，只让星星保持金色空心描边。 */
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite:hover:not(:disabled),
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:hover:not(:disabled) {
+  background:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24)))!important;
+  color:var(--ql-button-text,var(--SmartThemeBodyColor,inherit))!important;
+  box-shadow:none!important;
+  filter:none!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:hover:not(:disabled) {
+  color:#d6a52f!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg path {
+  fill:none!important;
+  stroke:#d6a52f!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite:active:not(:disabled),
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active:not(:disabled) {
+  background:var(--ql-button-active,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  background-color:var(--ql-button-active,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24)))!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  opacity:1!important;
+}
