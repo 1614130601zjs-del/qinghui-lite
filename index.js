@@ -301,7 +301,7 @@ function resolveChatImageGeneration(prompt, context=getContext()){
  const s=cfg(),characterId=context?.characterId==null?'':String(context.characterId);
  const cards=Array.isArray(context?.characters)?context.characters:getCharacterCards();
  const ch=characterId!==''?cards[Number(characterId)]:null;
- const characterName=String(context?.name2||context?.name||ch?.name||ch?.avatar||'').trim();
+ const characterName=String(ch?.name||ch?.avatar||context?.name2||context?.name||'').trim();
  const validBinding=b=>Number.isInteger(Number(b?.combinationIndex))&&Number(b.combinationIndex)>=0&&!!s.combinations[Number(b.combinationIndex)];
  const binding=(s.bindings||[]).find(b=>b.characterName===characterName&&validBinding(b))
   ||(s.bindings||[]).find(b=>String(b.characterKey??'')===characterId&&validBinding(b));
