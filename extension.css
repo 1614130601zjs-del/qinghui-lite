@@ -4018,12 +4018,4 @@ dialog.ql-viewfinder-lightbox button:disabled {
 }
 
 
-/* 0.5.109: preserve transparent button borders; only isolate fill and text colors. */
-#qinghui-lite-panel button,
-#ql-image-cache-modal button,
-.ql-detail-choice-overlay button,
-dialog.ql-viewfinder-lightbox button,
-#chat .ql-chat-image-controls button,
-.ql-statusbar-card button {
-  border-color:initial!important;
-}
+/* 0.5.109: do not override native button borders; keep the original transparent-button appearance. */
