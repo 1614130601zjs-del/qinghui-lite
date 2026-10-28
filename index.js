@@ -2134,6 +2134,7 @@ jQuery(()=>{
     }
     const target=tab.dataset.subpage;
     if(!target)return;
+    if(target==='bindings')ensureGlobalComboPresetUi();
     if(target==='character-library')renderLibrary();
     const scope=tab.closest('.ql-page')||panel;
     scope.querySelectorAll('button.ql-subtab').forEach(item=>{const active=item===tab;item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
@@ -2149,17 +2150,24 @@ jQuery(()=>{
  // 确保「参数 → 预设」里的全局通用预设卡片和保存事件仍然存在。
  function ensureGlobalComboPresetUi(){
   const root=$('#qinghui-lite-panel');
-  const section=root?.querySelector('[data-subpage-panel="bindings"]');
+  const library=root?.querySelector('[data-page-panel="library"]');
+  let section=library?.querySelector('[data-subpage-panel="bindings"]');
+  if(!section&&library){
+   section=document.createElement('section');
+   section.className='ql-subpage';
+   section.dataset.subpagePanel='bindings';
+   section.hidden=true;
+   library.append(section);
+  }
   if(!section)return;
   let card=section.querySelector('.ql-global-default-card');
   if(!card||!card.querySelector('#ql-global-combo')){
    card?.remove();
-   const comboList=section.querySelector('.ql-combo-list-card');
-   if(!comboList)return;
-   comboList.insertAdjacentHTML('afterend','<div class="ql-card ql-global-default-card"><div class="ql-section-heading"><div><h3>全局通用预设</h3><p class="ql-muted">正文自动生图仅在角色卡没有专属绑定时使用；不会读取取景区当前的画师串或 Vibe。</p></div></div><label for="ql-global-combo">默认组合</label><select id="ql-global-combo"><option value="-1">不使用预设</option></select></div>');
-   card=section.querySelector('.ql-global-default-card');
+   card=document.createElement('div');
+   card.className='ql-card ql-global-default-card';
+   card.innerHTML='<div class="ql-section-heading"><div><h3>全局通用预设</h3><p class="ql-muted">正文自动生图仅在角色卡没有专属绑定时使用；不会读取取景区当前的画师串或 Vibe。</p></div></div><label for="ql-global-combo">默认组合</label><select id="ql-global-combo"><option value="-1">不使用预设</option></select>';
+   section.append(card);
   }
-  if(!card)return;
   const global=card.querySelector('#ql-global-combo');
   if(!global)return;
   const s=cfg(),selected=String(s.globalComboIndex??-1);
