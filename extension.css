@@ -3834,3 +3834,52 @@ dialog.ql-viewfinder-lightbox .ql-gallery-detail-move select{width:100%;min-heig
 #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo .ql-cache-image:focus-visible{
  outline:2px solid var(--ql-accent,#a86f8b)!important;outline-offset:2px!important;
 }
+
+
+/* 拾帧自有配色：选择内置/自选配色时，覆盖酒馆主题变量；auto 才继承酒馆主题。 */
+#qinghui-lite-panel .ql-card,
+#qinghui-lite-panel input,
+#qinghui-lite-panel textarea,
+#qinghui-lite-panel select,
+#ql-image-cache-modal,
+#ql-image-cache-modal input,
+#ql-image-cache-modal textarea,
+#ql-image-cache-modal select,
+.ql-detail-choice-overlay,
+.ql-detail-choice-overlay select {
+ color:var(--SmartThemeBodyColor,#354653);
+}
+#ql-image-cache-modal,
+.ql-detail-choice-overlay>div {
+ background:var(--SmartThemeBlurTintColor,#fcfdfe);
+ border-color:var(--SmartThemeBorderColor,rgba(100,125,145,.28));
+}
+#ql-image-cache-modal button,
+.ql-detail-choice-overlay button,
+#qinghui-lite-panel .ql-gallery-detail-actions button,
+#qinghui-lite-panel .ql-prompt-gallery-existing-detail-actions button {
+ writing-mode:horizontal-tb!important;
+ text-orientation:mixed!important;
+ white-space:nowrap!important;
+ word-break:keep-all!important;
+ overflow-wrap:normal!important;
+ flex-direction:row!important;
+ min-width:max-content!important;
+ width:auto!important;
+}
+#ql-image-cache-modal .ql-cache-detail-actions,
+#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-main,
+.ql-detail-choice-overlay>div>div:last-child {
+ display:flex!important;
+ flex-direction:row!important;
+ align-items:center!important;
+ justify-content:flex-end!important;
+ flex-wrap:wrap!important;
+ gap:8px!important;
+}
+#ql-image-cache-modal .ql-cache-detail-actions button,
+.ql-detail-choice-overlay button {
+ flex:0 0 auto!important;
+ min-height:38px!important;
+ padding:8px 14px!important;
+}
