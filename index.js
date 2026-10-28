@@ -670,7 +670,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
 
   const editor=document.createElement('div');editor.className='ql-chat-image-editor';editor.hidden=true;
   const tempConfig=document.createElement('div');tempConfig.className='ql-chat-image-temp-config';
-  const tempPresetLabel=document.createElement('label');tempPresetLabel.textContent='本次组合';const tempPreset=document.createElement('select');tempPreset.className='ql-chat-image-temp-preset';tempPresetLabel.append(tempPreset);
+  const tempPresetLabel=document.createElement('label');tempPresetLabel.textContent='重 Roll 配置';const tempPreset=document.createElement('select');tempPreset.className='ql-chat-image-temp-preset';tempPresetLabel.append(tempPreset);
   const tempSizeLabel=document.createElement('label');tempSizeLabel.textContent='本次尺寸';const tempSize=document.createElement('select');tempSize.className='ql-chat-image-temp-size';tempSizeLabel.append(tempSize);tempConfig.append(tempPresetLabel,tempSizeLabel);
   const textarea=document.createElement('textarea');textarea.className='ql-chat-image-tag-input';textarea.rows=3;textarea.value=String(prompt||'');textarea.setAttribute('aria-label','画面提示词');
   const saveTag=document.createElement('button');saveTag.type='button';saveTag.className='menu_button ql-chat-image-tag-save';saveTag.textContent='保存';
