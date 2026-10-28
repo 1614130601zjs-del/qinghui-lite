@@ -3883,3 +3883,55 @@ dialog.ql-viewfinder-lightbox .ql-gallery-detail-move select{width:100%;min-heig
  min-height:38px!important;
  padding:8px 14px!important;
 }
+
+
+/* 0.5.107: all 拾帧 buttons use the selected 拾帧 palette, not Tavern's global button skin. Auto mode leaves native Tavern styling untouched. */
+#qinghui-lite-panel button,
+#ql-image-cache-modal button,
+.ql-detail-choice-overlay button,
+dialog.ql-viewfinder-lightbox button,
+#chat .ql-chat-image-controls button,
+.ql-statusbar-card button {
+  background-color:var(--ql-button-bg, var(--SmartThemeBlurTintColor, rgba(127,127,127,.10)))!important;
+  border-color:var(--ql-button-border, var(--SmartThemeBorderColor, rgba(127,127,127,.35)))!important;
+  color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
+  background-image:none!important;
+  box-shadow:none;
+  text-shadow:none;
+  -webkit-tap-highlight-color:transparent;
+}
+#qinghui-lite-panel button:hover,
+#ql-image-cache-modal button:hover,
+.ql-detail-choice-overlay button:hover,
+dialog.ql-viewfinder-lightbox button:hover,
+#chat .ql-chat-image-controls button:hover,
+.ql-statusbar-card button:hover {
+  background-color:var(--ql-button-hover, var(--SmartThemeQuoteColor, rgba(127,127,127,.16)))!important;
+  color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
+}
+#qinghui-lite-panel button:focus,
+#qinghui-lite-panel button:focus-visible,
+#ql-image-cache-modal button:focus,
+#ql-image-cache-modal button:focus-visible,
+.ql-detail-choice-overlay button:focus,
+.ql-detail-choice-overlay button:focus-visible,
+dialog.ql-viewfinder-lightbox button:focus,
+dialog.ql-viewfinder-lightbox button:focus-visible {
+  outline-color:var(--ql-button-border, var(--SmartThemeUnderlineColor, currentColor))!important;
+}
+#qinghui-lite-panel button:active:not(:disabled),
+#ql-image-cache-modal button:active:not(:disabled),
+.ql-detail-choice-overlay button:active:not(:disabled),
+dialog.ql-viewfinder-lightbox button:active:not(:disabled),
+#chat .ql-chat-image-controls button:active:not(:disabled),
+.ql-statusbar-card button:active:not(:disabled) {
+  background-color:var(--ql-button-active, var(--SmartThemeQuoteColor, rgba(127,127,127,.22)))!important;
+  color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
+  transform:none;
+}
+#qinghui-lite-panel button:disabled,
+#ql-image-cache-modal button:disabled,
+.ql-detail-choice-overlay button:disabled,
+dialog.ql-viewfinder-lightbox button:disabled {
+  opacity:.48;
+}
