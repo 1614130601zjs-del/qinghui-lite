@@ -3893,6 +3893,9 @@ dialog.ql-viewfinder-lightbox button,
 #chat .ql-chat-image-controls button,
 .ql-statusbar-card button {
   background-color:var(--ql-button-bg, var(--SmartThemeBlurTintColor, rgba(127,127,127,.10)))!important;
+  border-width:1px!important;
+  border-style:solid!important;
+  border-color:var(--ql-button-border, var(--SmartThemeBorderColor, rgba(127,127,127,.24)))!important;
   color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
   background-image:none!important;
   box-shadow:none;
