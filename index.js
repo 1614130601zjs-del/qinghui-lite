@@ -1025,8 +1025,6 @@ async function processLatestAssistantMessage(){
     host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"],[data-ql-marker="'+CSS.escape(entry.markerKey)+'"]').forEach(button=>button.remove());
     continue;
    }
-   const removedFromBody=(cfg().records||[]).some(item=>item&&item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat');
-   if(removedFromBody){host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"],[data-ql-marker="'+CSS.escape(entry.markerKey)+'"]').forEach(button=>button.remove());continue;}
    if(existingByMarker)continue;
    if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
    if([...host.querySelectorAll('[data-ql-prompt]')].some(button=>button.dataset.qlPrompt===entry.prompt&&button.dataset.qlTrigger===entry.taskKey))continue;
