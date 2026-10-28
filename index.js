@@ -1236,10 +1236,15 @@ function history(){
  const promptEntries=Array.isArray(s.prompts)?s.prompts.filter(item=>item&&item.id):[];
  const visibleRecords=records.map((record,index)=>({...record,_cacheIndex:index})).filter(record=>{
   if(!record?.dataUrl)return false;
-  const linkedId=record.promptEntryId||record.sourcePromptEntryId;
-  if(linkedId&&promptEntries.some(item=>item.id===linkedId))return false;
+  const excludedIds=Array.isArray(record.promptGalleryExcludedIds)?record.promptGalleryExcludedIds.map(String):[];
+  const linkedId=String(record.promptEntryId||record.sourcePromptEntryId||'');
+  const linkedEntry=linkedId?promptEntries.find(item=>String(item.id)===linkedId):null;
+  // 已从关联词笺图集取消收藏的照片应回到底片；其他关联照片仍只显示在专属图集中。
+  if(linkedEntry)return excludedIds.includes(String(linkedEntry.id));
   const base=normalizePromptForAlbum(record.basePrompt||record.prompt||'');
-  return !base||!promptEntries.some(item=>normalizePromptForAlbum(item.promptEn||item.prompt||'')===base);
+  if(!base)return true;
+  const matchingEntry=promptEntries.find(item=>normalizePromptForAlbum(item.promptEn||item.prompt||'')===base);
+  return !matchingEntry||excludedIds.includes(String(matchingEntry.id));
  });
  host.innerHTML=(visibleRecords.length?'<div class="ql-cache-grid" data-columns="'+cols+'">'+visibleRecords.map(record=>'<article class="ql-cache-tile"><button type="button" class="ql-cache-image" data-ql-detail="'+record._cacheIndex+'" aria-label="查看影像详情"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="影像记录"></button></article>').join('')+'</div>':'<p class="ql-muted">暂无底片缓存影像。应用词笺生成的照片会单独保存在对应图集中。</p>');
  const albums=$('#ql-character-albums'),cacheView=host,viewTabs=document.querySelectorAll('[data-album-view]');
