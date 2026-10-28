@@ -632,7 +632,7 @@ async function saveCleanImage(src,filename,forceClean=false){
 }
 function applyChatAlbumStyle(card,style){if(!card)return;card.classList.remove('ql-album-classic','ql-album-film','ql-album-soft');const valid=['classic','film','soft'].includes(style)?style:'classic';card.classList.add('ql-album-'+valid);}
 function applyChatAlbumButtonStyle(button,style){if(!button)return;button.classList.remove('ql-album-classic','ql-album-film','ql-album-soft');const valid=['classic','film','soft'].includes(style)?style:'classic';button.classList.add('ql-album-'+valid);}
-function applyChatTheme(element){if(!element)return;const preset=cfg().themePreset||'auto';const palette=resolveThemePalette(preset,cfg().themeColor);const qlKeys=['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-muted','--ql-border','--ql-field'];const themeKeys=['--SmartThemeBodyColor','--SmartThemeBorderColor','--SmartThemeBlurTintColor','--SmartThemeEmColor','--SmartThemeQuoteColor','--SmartThemeUnderlineColor'];for(const key of [...qlKeys,...themeKeys])element.style.removeProperty(key);if(palette){element.style.setProperty('--ql-accent',palette.accent);element.style.setProperty('--ql-panel',palette.panel);element.style.setProperty('--ql-card',palette.card);element.style.setProperty('--ql-text',palette.text);element.style.setProperty('--ql-muted',palette.muted);element.style.setProperty('--ql-border',palette.border);element.style.setProperty('--ql-field',palette.field);element.style.setProperty('--SmartThemeBodyColor',palette.text);element.style.setProperty('--SmartThemeBorderColor',palette.border);element.style.setProperty('--SmartThemeBlurTintColor',palette.card);element.style.setProperty('--SmartThemeEmColor',palette.accent);element.style.setProperty('--SmartThemeQuoteColor',palette.muted);element.style.setProperty('--SmartThemeUnderlineColor',palette.accent);}}
+function applyChatTheme(element){if(!element)return;const preset=cfg().themePreset||'auto';const palette=themePalettes[preset];for(const key of ['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-muted','--ql-border','--ql-field'])element.style.removeProperty(key);if(palette){element.style.setProperty('--ql-accent',palette.accent);element.style.setProperty('--ql-panel',palette.panel);element.style.setProperty('--ql-card',palette.card);element.style.setProperty('--ql-text',palette.text);element.style.setProperty('--ql-muted',palette.muted);element.style.setProperty('--ql-border',palette.border);element.style.setProperty('--ql-field',palette.field);}}
 function applyChatAlbumStyleToAll(style){document.querySelectorAll('.ql-chat-image').forEach(card=>{applyChatAlbumStyle(card,style);applyChatTheme(card);});document.querySelectorAll('#chat .ql-inline-image-trigger').forEach(button=>{applyChatAlbumButtonStyle(button,style);applyChatTheme(button);});}
 function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
  if(!host)return;
@@ -977,7 +977,6 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   if(getComputedStyle(frame).position==='static')frame.style.position='relative';
   card=document.createElement('div');card.className='ql-statusbar-card';card.dataset.qlTask=taskKey;
   card.style.cssText='position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#000;z-index:6;';
-  applyChatTheme(card);
   const img=document.createElement('img');img.alt='轻绘状态栏画面';img.loading='eager';img.style.cssText='display:block;width:100%;height:100%;object-fit:contain;';
   card._qlPrompt=prompt;card._qlCandidates=[];card._qlIndex=0;
   const controls=document.createElement('div');controls.className='ql-statusbar-controls';
@@ -1153,9 +1152,8 @@ function observeStatusbarFrames(){
 }
 
 const themePalettes={mist:{accent:'#7f98ad',panel:'rgba(224,232,238,.96)',card:'rgba(239,243,246,.92)',text:'#344653',muted:'#657784',border:'rgba(100,125,145,.28)',field:'rgba(250,252,253,.92)'},sage:{accent:'#849b8c',panel:'rgba(225,234,226,.97)',card:'rgba(240,245,239,.94)',text:'#3c5044',muted:'#687a6d',border:'rgba(103,133,111,.28)',field:'rgba(250,252,248,.94)'},lavender:{accent:'#9a91b0',panel:'rgba(233,229,240,.97)',card:'rgba(246,243,249,.94)',text:'#4c465b',muted:'#777083',border:'rgba(140,127,164,.28)',field:'rgba(253,251,255,.94)'},oat:{accent:'#b09c82',panel:'rgba(239,232,220,.97)',card:'rgba(250,246,238,.94)',text:'#554b3e',muted:'#817565',border:'rgba(158,137,109,.28)',field:'rgba(255,252,246,.94)'},ink:{accent:'#8296aa',panel:'rgba(39,49,61,.98)',card:'rgba(49,61,74,.96)',text:'#e2e8ee',muted:'#aebbc7',border:'rgba(145,164,181,.25)',field:'rgba(31,41,52,.96)'}};
-function resolveThemePalette(preset,customColor){if(preset==='auto')return null;if(preset==='custom'){const accent=/^#[0-9a-f]{6}$/i.test(String(customColor||''))?customColor:'#9aaec2';return{accent,panel:'rgba(242,246,249,.98)',card:'rgba(252,253,254,.98)',text:'#35434d',muted:'#687680',border:'color-mix(in srgb, '+accent+' 32%, transparent)',field:'rgba(255,255,255,.98)'};}return themePalettes[preset]||null;}
 function albumCreateThemeStyle(){const preset=cfg().themePreset||'auto';let p=themePalettes[preset]||themePalettes.mist;if(preset==='custom'){const accent=/^#[0-9a-f]{6}$/i.test(String(cfg().themeColor||''))?cfg().themeColor:'#9aaec2';p={accent,card:'rgba(242,246,249,.98)',text:'#35434d',border:'transparent'};}return '--ql-create-bg:'+p.card+';--ql-create-text:'+p.text+';--ql-create-border:transparent;--ql-create-accent:'+p.accent+';';}
-function applyTheme(preset,customColor){const panel=$('#qinghui-lite-panel');if(!panel)return;panel.querySelectorAll('#ql-custom-theme-style').forEach(x=>x.remove());const qlKeys=['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-muted','--ql-border','--ql-field','--ql-button-bg','--ql-button-hover','--ql-button-active','--ql-button-border','--ql-button-text'];const themeKeys=['--SmartThemeBodyColor','--SmartThemeBorderColor','--SmartThemeBlurTintColor','--SmartThemeEmColor','--SmartThemeQuoteColor','--SmartThemeUnderlineColor'];for(const key of [...qlKeys,...themeKeys])panel.style.removeProperty(key);const themedRoots=[document.querySelector('#ql-overlay'),document.querySelector('#ql-image-cache-modal'),...document.querySelectorAll('dialog.ql-viewfinder-lightbox,.ql-detail-choice-overlay')].filter(Boolean);if(preset==='auto'){panel.style.removeProperty('color');panel.style.removeProperty('background');for(const root of themedRoots)for(const key of [...themeKeys,'--ql-button-bg','--ql-button-hover','--ql-button-active','--ql-button-border','--ql-button-text'])root.style.removeProperty(key);document.querySelectorAll('.ql-chat-image,#chat .ql-inline-image-trigger,.ql-statusbar-card,dialog.ql-viewfinder-lightbox').forEach(applyChatTheme);return;}const p=resolveThemePalette(preset,customColor);if(!p)return;const buttonBg='color-mix(in srgb, '+p.accent+' 15%, '+p.card+')';const buttonHover='color-mix(in srgb, '+p.accent+' 25%, '+p.card+')';const buttonActive='color-mix(in srgb, '+p.accent+' 34%, '+p.card+')';const applyVars=element=>{for(const [key,value] of Object.entries({'--SmartThemeBodyColor':p.text,'--SmartThemeBorderColor':p.border,'--SmartThemeBlurTintColor':p.card,'--SmartThemeEmColor':p.accent,'--SmartThemeQuoteColor':p.muted,'--SmartThemeUnderlineColor':p.accent,'--ql-button-bg':buttonBg,'--ql-button-hover':buttonHover,'--ql-button-active':buttonActive,'--ql-button-border':p.border,'--ql-button-text':p.text}))element.style.setProperty(key,value);};for(const root of themedRoots)applyVars(root);panel.style.setProperty('--ql-accent',p.accent);panel.style.setProperty('--ql-panel',p.panel);panel.style.setProperty('--ql-card',p.card);panel.style.setProperty('--ql-text',p.text);panel.style.setProperty('--ql-muted',p.muted);panel.style.setProperty('--ql-border',p.border);panel.style.setProperty('--ql-field',p.field);panel.style.setProperty('--ql-button-bg',buttonBg);panel.style.setProperty('--ql-button-hover',buttonHover);panel.style.setProperty('--ql-button-active',buttonActive);panel.style.setProperty('--ql-button-border',p.border);panel.style.setProperty('--ql-button-text',p.text);applyVars(panel);panel.style.color='var(--ql-text)';panel.style.background='var(--ql-panel)';document.querySelectorAll('.ql-chat-image,#chat .ql-inline-image-trigger,.ql-statusbar-card,dialog.ql-viewfinder-lightbox').forEach(applyChatTheme);}
+function applyTheme(preset,customColor){const panel=$('#qinghui-lite-panel');if(!panel)return;panel.querySelectorAll('#ql-custom-theme-style').forEach(x=>x.remove());if(preset==='auto'){for(const key of ['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-muted','--ql-border','--ql-field'])panel.style.removeProperty(key);panel.style.removeProperty('color');panel.style.removeProperty('background');return;}let p=themePalettes[preset];if(preset==='custom'){const accent=/^#[0-9a-f]{6}$/i.test(String(customColor||''))?customColor:'#9aaec2';p={accent,panel:'rgba(242,246,249,.98)',card:'rgba(252,253,254,.98)',text:'#35434d',muted:'#687680',border:'color-mix(in srgb, '+accent+' 32%, transparent)',field:'rgba(255,255,255,.98)'};}if(!p)return;panel.style.setProperty('--ql-accent',p.accent);panel.style.setProperty('--ql-panel',p.panel);panel.style.setProperty('--ql-card',p.card);panel.style.setProperty('--ql-text',p.text);panel.style.setProperty('--ql-muted',p.muted);panel.style.setProperty('--ql-border',p.border);panel.style.setProperty('--ql-field',p.field);panel.style.color='var(--ql-text)';panel.style.background='var(--ql-panel)';}
 function save(){ saveSettingsDebounced(); }
 function downloadJson(value,filename){const blob=new Blob([JSON.stringify(value,null,2)],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function exportVibeGroups(hideOriginalImages=false,sourceGroups=cfg().vibes||[]){
@@ -1194,16 +1192,16 @@ function exportVibeGroups(hideOriginalImages=false,sourceGroups=cfg().vibes||[])
 function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-panel">
 <header class="ql-header"><div class="ql-brand"><strong>拾帧</strong><span>故事仍在继续，快门为你停留。</span></div><button id="ql-close" class="menu_button" type="button">关闭</button></header>
 <nav class="ql-tabs" aria-label="拾帧功能导航" role="tablist">
-<button type="button" class="ql-tab active" data-page="generate" role="tab" aria-selected="true">取景</button>
+<button type="button" class="ql-tab" data-page="generate" role="tab" aria-selected="false">取景</button>
 <button type="button" class="ql-tab" data-page="library" role="tab" aria-selected="false">参数</button>
 <button type="button" class="ql-tab" data-page="wordbank" role="tab" aria-selected="false">词笺</button>
 <button type="button" class="ql-tab" data-page="history" role="tab" aria-selected="false">底片</button>
-<button type="button" class="ql-tab" data-page="albums" role="tab" aria-selected="false">拾帧</button>
+<button type="button" class="ql-tab active" data-page="albums" role="tab" aria-selected="true">拾帧</button>
 <button type="button" class="ql-tab" data-page="settings" role="tab" aria-selected="false">偏好</button>
 <button type="button" class="ql-tab" data-page="prompt-gallery" role="tab" aria-selected="false" style="display:none">提示词图集</button>
 </nav>
-<div class="ql-page active" data-page-panel="generate" role="tabpanel">
-<div class="ql-card ql-viewfinder-card"><div class="ql-viewfinder-heading"><h3>图片放置区</h3><div class="ql-viewfinder-actions" role="group" aria-label="图片操作"><button id="ql-generate" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="生成一张" title="生成一张"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 10v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/><path d="M17.5 11h.01"/></svg></button><button id="ql-result-favorite" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="收藏到角色相册" title="收藏到角色相册" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></button><button id="ql-result-enlarge" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="放大查看" title="放大查看" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.5 15.5 5 5"/></svg></button></div></div><p class="ql-muted">生成后可收藏图片，或自适应屏幕查看大图。</p><div class="ql-viewfinder-layout"><div id="ql-result" class="ql-image-stage"><div class="ql-image-placeholder">等待生成图片</div></div></div></div>
+<div class="ql-page" data-page-panel="generate" role="tabpanel" hidden>
+<div class="ql-card ql-viewfinder-card"><div class="ql-viewfinder-heading"><h3>图片放置区</h3><div class="ql-viewfinder-actions" role="group" aria-label="图片操作"><button id="ql-generate" class="menu_button ql-primary ql-viewfinder-icon-button" type="button" aria-label="生成一张" title="生成一张"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 10v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/><path d="M17.5 11h.01"/></svg></button><button id="ql-result-favorite" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="收藏到角色相册" title="收藏到角色相册" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></button><button id="ql-result-enlarge" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="放大查看" title="放大查看" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.5 15.5 5 5"/></svg></button></div></div><p class="ql-muted">生成后可收藏图片，或自适应屏幕查看大图。</p><div class="ql-viewfinder-layout"><div id="ql-result" class="ql-image-stage"><div class="ql-image-placeholder">等待生成图片</div></div></div></div>
 <div class="ql-card"><h3>生图提示词</h3><p class="ql-muted">提示词库、角色词和画师串都直接写入下方正向/负向提示词，不另设 Tag 列表。</p><label for="ql-prompt">正向提示词</label><textarea id="ql-prompt" placeholder="输入完整提示词；从提示词库应用的内容会填入这里"></textarea><label for="ql-negative">负向提示词</label><textarea id="ql-negative" placeholder="可选"></textarea></div>
 <div class="ql-card"><h3>影像配置</h3><label for="ql-active-config-mode">选择方式</label><select id="ql-active-config-mode"><option value="combo">选择组合（使用预设）</option><option value="separate">选择画师串 + 选择 Vibe</option></select><div id="ql-combo-config-row"><label for="ql-active-preset">选择预设组合</label><select id="ql-active-preset"><option value="-1">不使用组合</option></select></div><div id="ql-separate-config-row" hidden><label for="ql-active-artist">选择画师串</label><select id="ql-active-artist"><option value="-1">不使用画师串</option></select><label for="ql-active-vibe">选择 Vibe</label><select id="ql-active-vibe"><option value="-1">不使用 Vibe</option></select></div><div class="ql-row"><button id="ql-apply-preset" class="menu_button" type="button">应用组合</button><button id="ql-open-preset" class="menu_button" type="button">管理配置</button></div><p class="ql-muted">第一种直接使用已保存的预设组合；第二种分别选择画师串和 Vibe，两项可以独立设置。角色卡默认组合在「配置 → 预设」中管理。</p></div>
 <div class="ql-card"><h3>模型参数</h3><label for="ql-fast-provider">生图后端</label><select id="ql-fast-provider"><option value="novelai">NovelAI 官网</option><option value="novelai-thirdparty">NovelAI 第三方</option></select><div id="ql-fast-openai" hidden><input id="ql-fast-model" value="gpt-image-1"><select id="ql-fast-size"><option value="auto">auto</option><option>1024x1024</option></select><select id="ql-fast-quality"><option>medium</option></select></div><div id="ql-fast-nai" hidden><label>NovelAI 模型</label><select id="ql-fast-nai-model"><option>nai-diffusion-4-5-full</option><option>nai-diffusion-4-5-curated</option><option>nai-diffusion-4-full</option><option>nai-diffusion-4-curated</option><option>nai-diffusion-3</option></select><div class="ql-row"><div><label>步数</label><input id="ql-fast-nai-steps" type="number" min="1" max="50"></div><div><label>CFG Scale</label><input id="ql-fast-nai-scale" type="number" min="1" max="20" step="0.5"></div></div><div class="ql-row"><div><label>画面尺寸预设</label><select id="ql-fast-nai-size-preset"><option value="832x1216">竖版 · 832 × 1216</option><option value="768x1344">长竖版 · 768 × 1344</option><option value="1024x1024">正方形 · 1024 × 1024</option><option value="1216x832">横版 · 1216 × 832</option><option value="1344x768">宽横版 · 1344 × 768</option></select><input id="ql-fast-nai-width" type="hidden"><input id="ql-fast-nai-height" type="hidden"></div></div><div class="ql-row"><div><label>采样器</label><select id="ql-fast-nai-sampler"><option value="k_euler_ancestral">Euler Ancestral</option><option value="k_euler">Euler</option><option value="k_dpmpp_2m">DPM++ 2M</option><option value="k_dpmpp_2s_ancestral">DPM++ 2S Ancestral</option></select></div><div><label>调度器</label><select id="ql-fast-nai-scheduler"><option value="karras">Karras</option><option value="native">Native</option></select></div></div><label class="ql-inline-check"><input id="ql-fast-nai-normalize" type="checkbox"> 归一化 Vibe 参考强度</label><p class="ql-muted">开启后会自动归一化 V4/V4.5 多条 Vibe 的强度；关闭则按每条参考的原始强度发送。</p></div><p id="ql-status" class="ql-muted" role="status"></p></div>
@@ -1219,7 +1217,7 @@ function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-pa
 <section class="ql-subpage" data-subpage-panel="character-library" hidden><div class="ql-card"><h3>角色词条库</h3><p class="ql-muted">先选择一张角色卡，再进入这张卡的角色词条编辑。角色名称和生图词由你手动添加，避免自动识别产生错误词条。</p><label for="ql-character-card">选择要编辑的角色卡</label><div class="ql-row"><select id="ql-character-card"><option value="">请选择角色卡</option></select><button type="button" id="ql-character-start" class="menu_button">开始编辑</button></div><div id="ql-character-editor" hidden><label for="ql-character-name">角色名称</label><input id="ql-character-name" placeholder="例如：角色名 / 卡内角色名"><label for="ql-character-appearance">生图词 / 固定外貌词</label><textarea id="ql-character-appearance" placeholder="填写外貌、发色、瞳色、服装等固定生图词"></textarea><div class="ql-row"><button id="ql-character-save" class="menu_button">保存角色词条</button><button type="button" id="ql-character-cancel" class="menu_button">取消</button></div></div><p class="ql-muted" id="ql-character-status" role="status"></p><div class="ql-row ql-library-tools"><button type="button" id="ql-character-export" class="menu_button">导出所选</button><button type="button" id="ql-character-bulk-delete" class="menu_button">批量删除</button></div><div id="ql-characters-list"></div></div></section>
 </div>
 <div class="ql-page" data-page-panel="history" role="tabpanel" hidden><div class="ql-card"><h3>影像缓存</h3><p class="ql-muted">这里保存生成过的影像记录；点击缩略图可查看提示词、参考图与生成参数。</p><label for="ql-history-columns">每行影像数量</label><select id="ql-history-columns"><option value="1">1 张</option><option value="2">2 张</option><option value="3">3 张</option><option value="4">4 张</option><option value="5">5 张</option></select><div id="ql-history"></div></div><div id="ql-cache-footer" class="ql-cache-bulk-tools"><button type="button" class="menu_button" id="ql-cache-select-mode" aria-pressed="false">多选</button><label class="ql-cache-select-all" hidden><input type="checkbox" data-ql-select-all disabled> 全选</label><span class="ql-cache-selected-count" data-ql-selected-count hidden>已选 0 张</span><button type="button" class="menu_button" data-ql-bulk-download disabled hidden>逐张下载</button><button type="button" class="menu_button" data-ql-bulk-delete disabled hidden>删除所选</button><button type="button" class="menu_button" id="ql-clear">清空影像缓存</button></div></div>
-<div class="ql-page" data-page-panel="albums" role="tabpanel" hidden><div class="ql-card ql-album-library-card"><div id="ql-character-albums"></div></div></div>
+<div class="ql-page active" data-page-panel="albums" role="tabpanel"><div class="ql-card ql-album-library-card"><div id="ql-character-albums"></div></div></div>
 <div class="ql-page" data-page-panel="prompt-gallery" role="tabpanel" hidden><div class="ql-card ql-prompt-gallery-page-card"><h3 id="ql-prompt-gallery-title" class="ql-muted" hidden>提示词图集</h3><p class="ql-muted" id="ql-prompt-gallery-description" hidden></p><div id="ql-prompt-gallery-content"></div></div></div>
 <div class="ql-page" data-page-panel="settings" role="tabpanel" hidden><div class="ql-card"><h3>插件运行状态</h3><p class="ql-muted">关闭后会暂停拾帧的状态栏扫描、正文标记自动触发和自动生图；已有影像、相册与设置会保留。</p><div class="ql-row"><button id="ql-plugin-toggle" class="menu_button ql-primary" type="button" aria-pressed="true">插件：已启用</button></div></div><div class="ql-card"><h3>数据导出与导入</h3><p class="ql-muted">在这里导出或导入拾帧数据备份。导入备份会替换当前拾帧数据，请先备份现有内容。</p><div class="ql-row"><button id="ql-export-all-data" type="button" class="menu_button">导出拾帧数据</button><button id="ql-import-all-data" type="button" class="menu_button">导入拾帧备份</button></div><input id="ql-import-all-file" type="file" accept=".json,application/json" hidden><p id="ql-export-all-status" class="ql-muted" role="status"></p></div><div class="ql-card"><h3>图片下载选项</h3><p class="ql-muted">可选择保存为 PNG 或 JPG。PNG 保留原始文件及其元数据；JPG 会重新编码图像，不保留原 PNG 的提示词与生成参数数据块。</p><label for="ql-download-format">下载文件格式</label><select id="ql-download-format"><option value="png">PNG（.png）</option><option value="jpg">JPG（.jpg）</option></select><button id="ql-png-download-save" type="button" class="menu_button ql-primary">保存下载格式</button><p id="ql-png-download-status" class="ql-muted" role="status"></p></div><div class="ql-card"><h3>聊天相册样式</h3><p class="ql-muted">选择正文生图卡片的相册边框风格，保存后会应用到现有图片和新图片。</p><label for="ql-chat-album-style">相册外观</label><select id="ql-chat-album-style"><option value="classic">经典相册（白边留白）</option><option value="film">胶片相册（深色边框）</option><option value="soft">柔和卡片（圆角浅色）</option></select><button id="ql-chat-album-style-save" type="button" class="menu_button">应用相册样式</button><p id="ql-chat-album-style-status" class="ql-muted" role="status"></p></div><div class="ql-card"><h3>外观与配色</h3><p class="ql-muted">内置配色均为浅色、低饱和风格，避免深色边框影响图片展示；也可以用色环自选点缀色。</p><label for="ql-theme-preset">配色预设</label><select id="ql-theme-preset"><option value="auto">自适配酒馆美化</option><option value="mist">雾灰蓝</option><option value="sage">鼠尾草绿</option><option value="lavender">灰紫</option><option value="oat">燕麦奶茶</option><option value="custom">自选颜色</option></select><div id="ql-custom-color-row" hidden><label for="ql-theme-color">拖动色环选择点缀色</label><div class="ql-color-picker-row"><input id="ql-theme-color" type="color" value="#9aaec2" aria-label="自选点缀色"><span id="ql-theme-color-value">#9AAEC2</span></div><p class="ql-muted">只调整拾帧界面的点缀色，卡片和图片周围保持浅色底，不会把相框变成深色。</p></div><div class="ql-row"><button id="ql-theme-apply" type="button" class="menu_button">应用配色</button><button id="ql-theme-reset" type="button" class="menu_button">恢复自适配</button></div><p id="ql-theme-status" class="ql-muted" role="status"></p></div><div class="ql-card"><h3>接口连接设置</h3><nav class="ql-subtabs" role="tablist" aria-label="接口类型"><button type="button" class="ql-subtab active" data-subpage="conn-nai-official" aria-selected="true">NAI 官网</button><button type="button" class="ql-subtab" data-subpage="conn-nai-third" aria-selected="false">NAI 第三方</button></nav><section class="ql-subpage active" data-subpage-panel="conn-nai-official"><p class="ql-muted">官网模式使用 NovelAI 官方 API，Key 仅保存在当前酒馆扩展设置中。</p><label for="ql-nai-key">NovelAI 官网 Key</label><input id="ql-nai-key" type="password" autocomplete="off" placeholder="NovelAI Persistent API Token"><button id="ql-save-nai" class="menu_button ql-primary">保存 NAI 官网连接</button></section><section class="ql-subpage" data-subpage-panel="conn-nai-third" hidden><p class="ql-muted">第三方 NAI 兼容服务需要填写服务商提供的地址与 Key。</p><label for="ql-nai-third-endpoint">第三方 API 地址</label><input id="ql-nai-third-endpoint" placeholder="https://服务商地址"><label for="ql-nai-third-key">第三方 API Key</label><input id="ql-nai-third-key" type="password" autocomplete="off" placeholder="服务商提供的 Key"><button id="ql-save-nai-third" class="menu_button ql-primary">保存 NAI 第三方连接</button></section><div hidden><input id="ql-endpoint"><input id="ql-key"><input id="ql-gpt-endpoint"><input id="ql-gpt-key"></div></div><div hidden><select id="ql-provider"><option value="novelai">NovelAI 官网</option><option value="novelai-thirdparty">NovelAI 第三方</option></select><input id="ql-model"><select id="ql-size"><option value="auto">auto</option><option>1024x1024</option><option>1536x1024</option><option>1024x1536</option><option>2048x2048</option><option>2048x1152</option><option>3840x2160</option><option>2160x3840</option></select><select id="ql-quality"><option>low</option><option>medium</option><option>high</option></select><input id="ql-nai-model"><input id="ql-nai-steps"><input id="ql-nai-scale"><input id="ql-nai-width" type="hidden"><input id="ql-nai-height" type="hidden"><select id="ql-nai-sampler"><option value="k_euler_ancestral">Euler Ancestral</option><option value="k_euler">Euler</option><option value="k_dpmpp_2m">DPM++ 2M</option><option value="k_dpmpp_2s_ancestral">DPM++ 2S Ancestral</option></select><select id="ql-nai-scheduler"><option value="karras">Karras</option><option value="native">Native</option></select><input id="ql-nai-normalize" type="checkbox"><div id="ql-openai-settings" hidden></div><div id="ql-nai-settings" hidden></div></div></div>
 </section></div>`;}
@@ -1238,15 +1236,10 @@ function history(){
  const promptEntries=Array.isArray(s.prompts)?s.prompts.filter(item=>item&&item.id):[];
  const visibleRecords=records.map((record,index)=>({...record,_cacheIndex:index})).filter(record=>{
   if(!record?.dataUrl)return false;
-  const excludedIds=Array.isArray(record.promptGalleryExcludedIds)?record.promptGalleryExcludedIds.map(String):[];
-  const linkedId=String(record.promptEntryId||record.sourcePromptEntryId||'');
-  const linkedEntry=linkedId?promptEntries.find(item=>String(item.id)===linkedId):null;
-  // 已从关联词笺图集取消收藏的照片应回到底片；其他关联照片仍只显示在专属图集中。
-  if(linkedEntry)return excludedIds.includes(String(linkedEntry.id));
+  const linkedId=record.promptEntryId||record.sourcePromptEntryId;
+  if(linkedId&&promptEntries.some(item=>item.id===linkedId))return false;
   const base=normalizePromptForAlbum(record.basePrompt||record.prompt||'');
-  if(!base)return true;
-  const matchingEntry=promptEntries.find(item=>normalizePromptForAlbum(item.promptEn||item.prompt||'')===base);
-  return !matchingEntry||excludedIds.includes(String(matchingEntry.id));
+  return !base||!promptEntries.some(item=>normalizePromptForAlbum(item.promptEn||item.prompt||'')===base);
  });
  host.innerHTML=(visibleRecords.length?'<div class="ql-cache-grid" data-columns="'+cols+'">'+visibleRecords.map(record=>'<article class="ql-cache-tile"><button type="button" class="ql-cache-image" data-ql-detail="'+record._cacheIndex+'" aria-label="查看影像详情"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="影像记录"></button></article>').join('')+'</div>':'<p class="ql-muted">暂无底片缓存影像。应用词笺生成的照片会单独保存在对应图集中。</p>');
  const albums=$('#ql-character-albums'),cacheView=host,viewTabs=document.querySelectorAll('[data-album-view]');
@@ -1290,7 +1283,7 @@ function history(){
    albums.querySelectorAll('[data-album-step]').forEach(button=>button.addEventListener('click',()=>{pageIndex=Math.max(0,Math.min(items.length-1,pageIndex+Number(button.dataset.albumStep)));paintFlip();}));
    let spreadPage=0;const spreadGrid=albums.querySelector('.ql-album-spread-grid'),spreadNumber=albums.querySelector('[data-spread-page-number]');
    const paintSpread=()=>{if(!spreadGrid)return;const totalPages=Math.max(1,Math.ceil(items.length/6));spreadPage=Math.max(0,Math.min(totalPages-1,spreadPage));spreadGrid.innerHTML=items.slice(spreadPage*6,spreadPage*6+6).map(record=>imageTile(record,record._cacheIndex)).join('');if(spreadNumber)spreadNumber.textContent=String(spreadPage+1)+'/'+String(totalPages);const prev=albums.querySelector('[data-spread-step="-1"]'),next=albums.querySelector('[data-spread-step="1"]');if(prev)prev.disabled=spreadPage===0;if(next)next.disabled=spreadPage>=totalPages-1;};
-   const handlePhotoClick=event=>{const photo=event.target?.closest?.('[data-album-photo]');if(!photo)return;if(albums.dataset.albumMoveMode==='select'){event.preventDefault();event.stopPropagation();const index=Number(photo.dataset.albumPhoto),chosen=selectedPhotos();setSelectedPhotos(chosen.includes(index)?chosen.filter(value=>value!==index):[...chosen,index]);photo.closest('.ql-album-photo')?.classList.toggle('is-selected',selectedPhotos().includes(index));const hint=albums.querySelector('.ql-album-toolbar')?.nextElementSibling;if(hint?.matches('.ql-muted'))hint.textContent='已选择 '+selectedPhotos().length+' 张照片，点击照片进行多选；再次点击「完成选择并移动」选择目标相册。';return;}openDetail(Number(photo.dataset.albumPhoto),null,'roleAlbum');};
+   const handlePhotoClick=event=>{const photo=event.target?.closest?.('[data-album-photo]');if(!photo)return;if(albums.dataset.albumMoveMode==='select'){event.preventDefault();event.stopPropagation();const index=Number(photo.dataset.albumPhoto),chosen=selectedPhotos();setSelectedPhotos(chosen.includes(index)?chosen.filter(value=>value!==index):[...chosen,index]);photo.closest('.ql-album-photo')?.classList.toggle('is-selected',selectedPhotos().includes(index));const hint=albums.querySelector('.ql-album-toolbar')?.nextElementSibling;if(hint?.matches('.ql-muted'))hint.textContent='已选择 '+selectedPhotos().length+' 张照片，点击照片进行多选；再次点击「完成选择并移动」选择目标相册。';return;}openDetail(Number(photo.dataset.albumPhoto));};
    albums.addEventListener('click',handlePhotoClick);
    const handleRemove=event=>{const remove=event.target?.closest?.('[data-ql-unfavorite]');if(!remove)return;event.preventDefault();event.stopPropagation();const record=settings.records[Number(remove.dataset.qlUnfavorite)];if(record){delete record.albumCharacterName;delete record.albumCharacterKey;save();history();renderAlbums();status('已从相册移除，缓存图片仍保留。');}};
    spreadGrid?.addEventListener('click',handleRemove);
@@ -1355,12 +1348,12 @@ function history(){
   modal.querySelector('.ql-cache-modal-close').addEventListener('click',()=>{modal.hidden=true;modal.style.display='';});
   modal.addEventListener('click',e=>{if(e.target===modal){modal.hidden=true;modal.style.display='';}});
  }
- const openDetail=(index,galleryContext=null,detailContext='cache')=>{
+ const openDetail=index=>{
   const r=records[index];if(!r)return;
   const preset=r.preset||null,vibe=r.vibe||null,meta=r.config||{};
   const content=modal.querySelector('.ql-cache-modal-content');
   const themePanel=document.querySelector('#qinghui-lite-panel');
-  if(themePanel){const theme=getComputedStyle(themePanel);for(const name of ['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-border','--ql-muted','--ql-field','--ql-button-bg','--ql-button-hover','--ql-button-active','--ql-button-border','--ql-button-text','--SmartThemeBodyColor','--SmartThemeBorderColor','--SmartThemeBlurTintColor','--SmartThemeEmColor','--SmartThemeQuoteColor','--SmartThemeUnderlineColor']){modal.style.removeProperty(name);const value=theme.getPropertyValue(name).trim();if(value)modal.style.setProperty(name,value);}}
+  if(themePanel){const theme=getComputedStyle(themePanel);for(const name of ['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-border','--ql-muted']){const value=theme.getPropertyValue(name).trim();if(value)modal.style.setProperty(name,value);}}
   const createdAt=new Date(r.at||Date.now());
   const promptText=String(r.basePrompt||r.prompt||'');
   const promptWords=promptText.split(/[,，\\n]+/).map(x=>x.trim()).filter(Boolean).length;
@@ -1369,96 +1362,9 @@ function history(){
   content.querySelector('[data-copy-positive]').onclick=async()=>{const value=String(r.basePrompt||r.prompt||'');try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);}else{const area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('浏览器未允许复制');}const button=content.querySelector('[data-copy-positive]');button.classList.add('is-copied');button.setAttribute('title','已复制');button.setAttribute('aria-label','已复制正向提示词');status('已复制画面提示词。');setTimeout(()=>{button.classList.remove('is-copied');button.setAttribute('title','复制画面提示词');button.setAttribute('aria-label','复制画面提示词');},1300);}catch(error){status('复制失败：请长按画面提示词文本手动复制。');}};
   const detailImage=content.querySelector('.ql-cache-large');if(detailImage){detailImage.title='点击放大查看原图';detailImage.style.cursor='zoom-in';detailImage.addEventListener('click',()=>openViewfinderImage(r.dataUrl||detailImage.currentSrc||detailImage.src));}
   content.querySelector('[data-modal-load]').onclick=()=>{$('#ql-prompt').value=r.basePrompt||r.prompt||'';$('#ql-negative').value=r.negative||'';read();modal.hidden=true;modal.style.display='';status('基础提示词已载入；记录中的画师串不会自动切换，请确认当前画师串后再生成。');};
-  content.querySelector('[data-gallery-detail-actions]')?.remove();
-  const detailActions=document.createElement('div');
-  detailActions.className='ql-cache-detail-actions ql-prompt-gallery-existing-detail-actions';
-  detailActions.dataset.galleryDetailActions='1';
-  const hideDetail=()=>{modal.hidden=true;modal.style.display='';};
-  const showDetailChoice=(title,description,choices,confirmLabel,onConfirm)=>{
-   if(!Array.isArray(choices)||!choices.length){status('没有可选择的目标。');return;}
-   document.querySelector('.ql-detail-choice-overlay')?.remove();
-   const overlay=document.createElement('div');
-   overlay.className='ql-detail-choice-overlay';
-   overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.48);';
-   const panel=document.createElement('div');
-   panel.style.cssText='width:min(100%,380px);max-height:80vh;overflow:auto;background:var(--SmartThemeBlurTintColor,#fff);color:var(--SmartThemeBodyColor,#333);border:1px solid var(--SmartThemeBorderColor,#ccc);border-radius:14px;padding:18px;box-shadow:0 12px 40px #0005;';
-   const heading=document.createElement('h3');heading.textContent=title;heading.style.marginTop='0';
-   const note=document.createElement('p');note.textContent=description;note.style.cssText='margin:0 0 12px;opacity:.78;font-size:13px;';
-   const select=document.createElement('select');
-   select.style.cssText='width:100%;min-height:42px;padding:8px;border-radius:8px;border:1px solid var(--SmartThemeBorderColor,#ccc);background:var(--SmartThemeBlurTintColor,#fff);color:inherit;';
-   choices.forEach((choice,index)=>{const option=document.createElement('option');option.value=String(index);option.textContent=choice.name;select.append(option);});
-   const buttons=document.createElement('div');buttons.style.cssText='display:flex;justify-content:flex-end;gap:8px;margin-top:16px;';
-   const cancel=document.createElement('button');cancel.type='button';cancel.className='menu_button';cancel.textContent='取消';
-   const confirm=document.createElement('button');confirm.type='button';confirm.className='menu_button ql-cache-action-primary';confirm.textContent=confirmLabel;
-   const close=()=>overlay.remove();
-   cancel.onclick=close;overlay.addEventListener('click',event=>{if(event.target===overlay)close();});
-   confirm.onclick=()=>{const choice=choices[Number(select.value)];if(!choice)return;onConfirm(choice);close();};
-   buttons.append(cancel,confirm);panel.append(heading,note,select,buttons);overlay.append(panel);modal.append(overlay);
-  };
-  const roleChoices=()=>getCharacterCards().map((character,index)=>({key:String(index),name:String(character?.name||character?.avatar||('角色 '+(index+1)))}));
-  const galleryChoices=()=>promptEntries.map(entry=>({key:String(entry.id),name:String(entry.name||'未命名图集')}));
-  const setRoleAlbum=(live,choice)=>{
-   const character=getCharacterCards()[Number(choice.key)];
-   if(!live||!character){status('请选择有效的角色卡。');return;}
-   live.albumCharacterName=String(character.name||character.avatar||('角色 '+(Number(choice.key)+1)));
-   live.albumCharacterKey=String(choice.key);
-   if(galleryContext?.promptId){
-    live.promptGalleryExcludedIds=Array.isArray(live.promptGalleryExcludedIds)?live.promptGalleryExcludedIds:[];
-    if(!live.promptGalleryExcludedIds.includes(String(galleryContext.promptId)))live.promptGalleryExcludedIds.push(String(galleryContext.promptId));
-   }
-   save();hideDetail();history();renderAlbums?.();
-   status('照片已移动到「'+live.albumCharacterName+'」角色相册；原图仍保留。');
-   galleryContext?.onChange?.();
-  };
-  const setPromptGallery=(live,choice)=>{
-   if(!live)return;
-   const targetId=String(choice.key);
-   live.promptEntryId=targetId;
-   live.sourcePromptEntryId=targetId;
-   live.promptGalleryExcludedIds=Array.isArray(live.promptGalleryExcludedIds)?live.promptGalleryExcludedIds.filter(id=>String(id)!==targetId):[];
-   delete live.albumCharacterName;delete live.albumCharacterKey;
-   save();hideDetail();history();renderAlbums?.();
-   status('照片已移动到「'+choice.name+'」图集。');
-   galleryContext?.onChange?.();
-  };
-  if(galleryContext){
-   detailActions.innerHTML='<button type="button" class="menu_button" data-gallery-cancel>取消收藏</button><button type="button" class="menu_button ql-cache-action-primary" data-gallery-move>移动到角色卡相册</button>';
-   content.querySelector('.ql-cache-detail-actions')?.after(detailActions);
-   detailActions.querySelector('[data-gallery-cancel]').onclick=()=>{
-    const live=cfg().records?.[index],promptId=String(galleryContext.promptId||'');if(!live)return;
-    if(promptId){live.promptGalleryExcludedIds=Array.isArray(live.promptGalleryExcludedIds)?live.promptGalleryExcludedIds:[];if(!live.promptGalleryExcludedIds.includes(promptId))live.promptGalleryExcludedIds.push(promptId);}
-    delete live.albumCharacterName;delete live.albumCharacterKey;save();hideDetail();history();status('已从当前图集取消收藏；照片仍保留在底片中。');galleryContext.onChange?.();
-   };
-   detailActions.querySelector('[data-gallery-move]').onclick=()=>{
-    const choices=roleChoices();
-    showDetailChoice('移动到角色卡相册','请选择要存放这张照片的角色相册。',choices,'确认移动',choice=>setRoleAlbum(cfg().records?.[index],choice));
-   };
-  }else if(detailContext==='roleAlbum'){
-   detailActions.innerHTML='<button type="button" class="menu_button" data-role-cancel>取消收藏</button><button type="button" class="menu_button ql-cache-action-primary" data-role-move-gallery>移动到图集</button>';
-   content.querySelector('.ql-cache-detail-actions')?.after(detailActions);
-   detailActions.querySelector('[data-role-cancel]').onclick=()=>{
-    const live=cfg().records?.[index];if(!live)return;
-    delete live.albumCharacterName;delete live.albumCharacterKey;
-    save();hideDetail();history();renderAlbums?.();
-    status('已取消收藏；照片仍保留在底片中。');
-   };
-   detailActions.querySelector('[data-role-move-gallery]').onclick=()=>{
-    showDetailChoice('移动到图集','请选择要存放这张照片的提示词图集。',galleryChoices(),'确定移动',choice=>setPromptGallery(cfg().records?.[index],choice));
-   };
-  }else{
-   detailActions.innerHTML='<button type="button" class="menu_button ql-cache-action-primary" data-detail-save-gallery>收藏到图集</button><button type="button" class="menu_button" data-detail-save-album>收藏到角色相册</button>';
-   content.querySelector('.ql-cache-detail-actions')?.after(detailActions);
-   detailActions.querySelector('[data-detail-save-gallery]').onclick=()=>{
-    showDetailChoice('收藏到图集','请选择要收藏到的提示词图集。',galleryChoices(),'确认收藏',choice=>setPromptGallery(cfg().records?.[index],choice));
-   };
-   detailActions.querySelector('[data-detail-save-album]').onclick=()=>{
-    showDetailChoice('收藏到角色相册','请选择要收藏到的角色相册。',roleChoices(),'确认收藏',choice=>setRoleAlbum(cfg().records?.[index],choice));
-   };
-  }
   content.querySelector('[data-modal-save]').onclick=async e=>{e.preventDefault();e.stopPropagation();const button=e.currentTarget;if(button.dataset.busy==='1')return;button.dataset.busy='1';try{const imageUrl=String(r.dataUrl||content.querySelector('.ql-cache-large')?.currentSrc||content.querySelector('.ql-cache-large')?.src||'');const result=await saveCleanImage(imageUrl,'shizhen-'+(r.at||Date.now()),true);status((result?.edgeFallback?'已打开下载面板，请点击面板中的“保存图片”。':result?.downloadStarted?'已发起图片下载；请在浏览器下载列表或系统下载目录查看。':'已发起图片下载。')+(lastPngCleanReport?' '+lastPngCleanReport:''));}catch(e){status(e.message||String(e));}finally{delete button.dataset.busy;}};
   modal.hidden=false;modal.style.display='flex';
  };
- host.openDetail=openDetail;
  const modeButton=footer?.querySelector('#ql-cache-select-mode');let selectionMode=false;const setSelectionMode=enabled=>{selectionMode=enabled;if(modeButton){modeButton.textContent=enabled?'完成选择':'多选';modeButton.setAttribute('aria-pressed',String(enabled));}const allLabel=footer?.querySelector('.ql-cache-select-all'),count=footer?.querySelector('[data-ql-selected-count]'),bulkDelete=footer?.querySelector('[data-ql-bulk-delete]'),bulkDownload=footer?.querySelector('[data-ql-bulk-download]');if(allLabel)allLabel.hidden=!enabled;if(count)count.hidden=!enabled;if(bulkDelete)bulkDelete.hidden=!enabled;if(bulkDownload)bulkDownload.hidden=!enabled;host.classList.toggle('ql-cache-selection-mode',enabled);if(!enabled){host.querySelectorAll('.ql-cache-tile.is-selected').forEach(tile=>tile.classList.remove('is-selected'));host.querySelectorAll('[data-ql-select]').forEach(input=>input.checked=false);}updateSelection();};if(modeButton)modeButton.onclick=()=>setSelectionMode(!selectionMode);
  host.querySelectorAll('[data-ql-detail]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const i=Number(b.dataset.qlDetail);if(selectionMode&&b.classList.contains('ql-cache-image')){const tile=b.closest('.ql-cache-tile');const input=tile?.querySelector('[data-ql-select]');if(input)input.checked=!input.checked;else{const hidden=document.createElement('input');hidden.type='checkbox';hidden.dataset.qlSelect=String(i);hidden.checked=true;hidden.hidden=true;tile?.append(hidden);}tile?.classList.toggle('is-selected',!!tile?.querySelector('[data-ql-select]')?.checked);updateSelection();return;}openDetail(i);});
  host.querySelectorAll('[data-ql-download]').forEach(b=>b.onclick=async e=>{e.preventDefault();e.stopPropagation();const button=e.currentTarget;if(button.dataset.busy==='1')return;button.dataset.busy='1';try{const r=records[Number(button.dataset.qlDownload)];if(!r)throw new Error('找不到这条缓存记录。');const result=await saveCleanImage(r.dataUrl,'shizhen-'+(r.at||Date.now()));status((result?.edgeFallback?'已打开下载面板，请点击面板中的“保存图片”。':result?.downloadStarted?'已发起图片下载；请在浏览器下载列表或系统下载目录查看。':'已发起图片下载。')+(lastPngCleanReport?' '+lastPngCleanReport:''));}catch(e){status(e.message||String(e));}finally{delete button.dataset.busy;}});
@@ -1585,35 +1491,25 @@ function renderLibrary(){
   if(!root)return;
   const normalizePrompt=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();
   const targetPrompt=normalizePrompt(promptEntry.promptEn||promptEntry.prompt||'');
-  const galleryId=String(promptEntry.id||('prompt-index-'+promptIndex));
-  let items=(settings.records||[]).map((record,cacheIndex)=>({...record,_cacheIndex:cacheIndex})).filter(record=>{
+  const items=(settings.records||[]).map((record,cacheIndex)=>({...record,_cacheIndex:cacheIndex})).filter(record=>{
    if(!record?.dataUrl)return false;
-   if(Array.isArray(record.promptGalleryExcludedIds)&&record.promptGalleryExcludedIds.includes(galleryId))return false;
    if(record.promptEntryId===promptEntry.id||record.sourcePromptEntryId===promptEntry.id)return true;
    // 若旧记录携带了失效/错误的词笺 ID，仍以基础画面提示词匹配，避免照片只出现在缓存区。
    return Boolean(targetPrompt&&normalizePrompt(record.basePrompt||record.prompt||'')===targetPrompt);
   });
-  root.dataset.activePromptGalleryId=galleryId;
+  root.dataset.activePromptGalleryId=promptEntry.id||'';
   root.dataset.activePromptGalleryIndex=String(promptIndex);
   const title=$('#ql-prompt-gallery-title'),description=$('#ql-prompt-gallery-description'),content=$('#ql-prompt-gallery-content');
   if(title)title.textContent=(promptEntry.name||'未命名提示词')+' · 图集';
-  if(description)description.textContent='点击照片查看现有影像详情与提示词，再点击详情中的图片可放大查看。';
+  if(description)description.textContent='仅铺开显示当前提示词关联的全部照片；点击照片只放大预览，不跳转影像缓存。';
   if(content){
    const pageSize=6;
-   let pageCount=Math.max(1,Math.ceil(items.length/pageSize));
+   const pageCount=Math.max(1,Math.ceil(items.length/pageSize));
    const renderPromptGalleryPage=page=>{
-    const currentRecords=cfg().records||[];
-    items=currentRecords.map((record,cacheIndex)=>({...record,_cacheIndex:cacheIndex})).filter(record=>{
-     if(!record?.dataUrl)return false;
-     if(Array.isArray(record.promptGalleryExcludedIds)&&record.promptGalleryExcludedIds.includes(galleryId))return false;
-     if(record.promptEntryId===promptEntry.id||record.sourcePromptEntryId===promptEntry.id)return true;
-     return Boolean(targetPrompt&&normalizePrompt(record.basePrompt||record.prompt||'')===targetPrompt);
-    });
-    pageCount=Math.max(1,Math.ceil(items.length/pageSize));
     const safePage=Math.max(0,Math.min(pageCount-1,Number(page)||0));
     const visibleItems=items.slice(safePage*pageSize,(safePage+1)*pageSize);
-    const photoButton=record=>'<article class="ql-cache-tile ql-album-photo ql-prompt-gallery-photo"><button type="button" class="ql-cache-image" data-prompt-record="'+record._cacheIndex+'" aria-label="查看照片"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="提示词图集照片"></button></article>';
-    content.innerHTML='<div class="ql-album-toolbar"><button type="button" class="menu_button" data-prompt-gallery-back>‹ 返回提示词库</button><div class="ql-album-toolbar-title"><span>PHOTO ALBUM</span><strong>'+esc(promptEntry.name||'未命名提示词')+' 图集</strong><small>'+items.length+' 张照片</small></div></div><div class="ql-album-paper is-spread">'+(items.length?'<div class="ql-album-spread-book"><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-prev ql-album-page-arrow" data-prompt-gallery-step="-1" aria-label="上一页" '+(safePage===0?'disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><div class="ql-album-spread-grid" data-columns="2">'+visibleItems.map(photoButton).join('')+'</div><span class="ql-album-page-number">'+(safePage+1)+'/'+pageCount+'</span><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-next ql-album-page-arrow" data-prompt-gallery-step="1" aria-label="下一页" '+(safePage>=pageCount-1?'disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div>':'<div class="ql-album-empty-book"><div class="ql-album-empty-cover"><span>PHOTO ALBUM</span><strong>这本图集还没有照片</strong><small>应用该提示词生成图片后，关联的影像会自动收录在这里，不需要进入影像缓存。</small></div></div>')+'</div>';
+    const photoButton=record=>'<article class="ql-album-photo ql-prompt-gallery-photo"><button type="button" class="ql-prompt-gallery-photo-button" data-prompt-record="'+record._cacheIndex+'" aria-label="放大预览照片"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="提示词图集照片"></button></article>';
+    content.innerHTML='<div class="ql-album-toolbar"><button type="button" class="menu_button" data-prompt-gallery-back>‹ 返回提示词库</button><div class="ql-album-toolbar-title"><span>PHOTO ALBUM</span><strong>'+esc(promptEntry.name||'未命名提示词')+' 图集</strong><small>'+items.length+' 张照片</small></div></div><div class="ql-album-paper is-spread">'+(items.length?'<div class="ql-album-spread-book"><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-prev ql-album-page-arrow" data-prompt-gallery-step="-1" aria-label="上一页" '+(safePage===0?'disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button><div class="ql-album-spread-grid ql-prompt-gallery-spread" data-columns="2">'+visibleItems.map(photoButton).join('')+'</div><span class="ql-album-page-number">'+(safePage+1)+'/'+pageCount+'</span><button type="button" class="menu_button ql-chat-image-arrow ql-chat-image-arrow-next ql-album-page-arrow" data-prompt-gallery-step="1" aria-label="下一页" '+(safePage>=pageCount-1?'disabled':'')+'><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button></div>':'<div class="ql-album-empty-book"><div class="ql-album-empty-cover"><span>PHOTO ALBUM</span><strong>这本图集还没有照片</strong><small>应用该提示词生成图片后，关联的影像会自动收录在这里，不需要进入影像缓存。</small></div></div>')+'</div>';
     content.querySelector('[data-prompt-gallery-back]')?.addEventListener('click',()=>{
      root.querySelectorAll('button.ql-tab').forEach(item=>{const active=item.dataset.page==='wordbank';item.classList.toggle('active',active);item.setAttribute('aria-selected',String(active));});
      root.querySelectorAll('[data-page-panel]').forEach(node=>{const active=node.dataset.pagePanel==='wordbank';node.hidden=!active;node.classList.toggle('active',active);});
@@ -1623,10 +1519,7 @@ function renderLibrary(){
     content.querySelectorAll('[data-prompt-gallery-step]').forEach(button=>button.addEventListener('click',()=>renderPromptGalleryPage(safePage+Number(button.dataset.promptGalleryStep))));
     content.querySelectorAll('[data-prompt-record]').forEach(photo=>photo.addEventListener('click',()=>{
      const record=items.find(item=>item._cacheIndex===Number(photo.dataset.promptRecord));
-     if(!record?.dataUrl)return;
-     history();
-     const cacheHost=$('#ql-history');
-     if(cacheHost?.openDetail)cacheHost.openDetail(record._cacheIndex,{promptId:galleryId,onChange:()=>renderPromptGalleryPage(safePage)});
+     if(record?.dataUrl)openViewfinderImage(record.dataUrl);
     }));
    };
    renderPromptGalleryPage(0);
@@ -1821,53 +1714,34 @@ function openViewfinderImage(url){
  let overlay=document.querySelector('.ql-viewfinder-lightbox');
  if(!overlay){
   overlay=document.createElement('dialog');overlay.className='ql-viewfinder-lightbox';overlay.setAttribute('aria-label','放大查看图片');
-  overlay.innerHTML='<div class="ql-album-paper is-flip"><div class="ql-album-single-page"><div class="ql-album-single-photo"><img alt="放大查看的生成图片"></div></div></div><button type="button" class="ql-viewfinder-lightbox-close" aria-label="关闭图片" title="关闭">×</button>';
-  overlay.addEventListener('click',event=>{if(event.target===overlay||event.target.closest('.ql-viewfinder-lightbox-close')){if(overlay.open)overlay.close();else overlay.removeAttribute('open');}});
-  overlay.addEventListener('close',()=>{overlay.querySelector('img')?.removeAttribute('src');$('#ql-result-enlarge')?.classList.remove('is-enlarged');});
+  overlay.innerHTML='<div class="ql-album-paper is-flip ql-lightbox-album-paper"><div class="ql-album-single-page ql-lightbox-album-page"><img class="ql-lightbox-album-image" alt="放大查看的生成图片"></div></div><button type="button" class="ql-viewfinder-lightbox-close" aria-label="关闭图片" title="关闭">×</button>';
+  overlay.addEventListener('click',event=>{if(event.target===overlay||event.target.closest('.ql-viewfinder-lightbox-close')){if(overlay.open)overlay.close();}});
+  overlay.addEventListener('close',()=>{overlay.querySelector('img')?.removeAttribute('src');});
   document.body.append(overlay);
  }
- applyChatTheme(overlay);
  overlay.querySelector('img').src=url;
  if(!overlay.open){
   if(typeof overlay.showModal==='function')overlay.showModal();
   else{overlay.setAttribute('open','');overlay.style.position='fixed';}
  }
- $('#ql-result-enlarge')?.classList.add('is-enlarged');
 }
 function syncViewfinderActions(){
  const result=$('#ql-result'),favorite=$('#ql-result-favorite'),enlarge=$('#ql-result-enlarge');
  if(!result||!favorite||!enlarge)return;
  const img=result.querySelector('img');
  favorite.disabled=!img;enlarge.disabled=!img;
- const imageSources=img?[img.dataset.qlStoredSrc,img.currentSrc,img.src,img.getAttribute('src')].filter(Boolean):[];
- const matches=img?(cfg().records||[]).filter(item=>item&&imageSources.some(source=>sameImageSource(item.dataUrl,source))):[];
- const saved=matches.some(record=>!!record.albumCharacterName);
+ const record=img?(cfg().records||[]).find(item=>item&&sameImageSource(item.dataUrl,img.src)):null;
+ const saved=!!record?.albumCharacterName;
  const label=saved?'取消角色相册收藏':'收藏到角色相册';
- favorite.classList.toggle('is-favorite',saved);
  favorite.setAttribute('aria-label',label);favorite.title=label;
- // Match the status-bar favorite implementation: persist the state with inline !important
- // so touch :active styles and older stylesheet rules cannot override it after release.
- favorite.style.setProperty('background',saved?'#38424b':'','important');
- favorite.style.setProperty('color',saved?'#fff':'','important');
- favorite.style.setProperty('border-color',saved?'#38424b':'','important');
- favorite.style.setProperty('border-style',saved?'solid':'','important');
- favorite.style.setProperty('border-width',saved?'1px':'','important');
- favorite.style.setProperty('box-shadow',saved?'inset 0 1px 3px rgba(0,0,0,.16)':'','important');
- favorite.style.setProperty('filter','none','important');
- favorite.style.setProperty('transform','none','important');
- favorite.style.setProperty('opacity','1','important');
+ favorite.classList.toggle('is-favorite',saved);
  const star=favorite.querySelector('svg path');
- if(star){
-  star.style.setProperty('fill',saved?'#fff':'none','important');
-  star.style.setProperty('stroke',saved?'#fff':'currentColor','important');
-  star.style.setProperty('color',saved?'#fff':'','important');
- }
+ if(star){star.style.fill=saved?'currentColor':'none';star.style.stroke='currentColor';}
 }
 function toggleViewfinderFavorite(){
  const img=$('#ql-result img');if(!img)return;
  const settings=cfg(),records=settings.records||[];
- const imageSources=[img.dataset.qlStoredSrc,img.currentSrc,img.src,img.getAttribute('src')].filter(Boolean);
- const matches=records.filter(item=>item&&imageSources.some(source=>sameImageSource(item.dataUrl,source)));
+ const matches=records.filter(item=>item&&sameImageSource(item.dataUrl,img.src));
  if(!matches.length){status('暂时找不到这张图片的缓存记录。');return;}
  if(matches.some(item=>item.albumCharacterName)){
   for(const item of matches){delete item.albumCharacterName;delete item.albumCharacterKey;}
@@ -1884,14 +1758,14 @@ $('#ql-generate').onclick=async()=>{
  if(busy)return;try{read();}catch(error){status('读取生图参数失败：'+(error?.message||String(error)));return;}const conf=cfg();
  if(!conf.prompt.trim()){status('请填写正向提示词。');return;}
  if(conf.provider==='novelai'&&!conf.naiApiKey){status('请在接口设置中填写 NovelAI 官网 Key。');return;}if(conf.provider==='novelai-thirdparty'&&(!conf.naiThirdEndpoint||!conf.naiThirdKey)){status('请填写 NAI 第三方接口地址和 Key。');return;}
- busy=true;$('#ql-generate').disabled=true;$('#ql-generate').classList.add('is-generating');$('#ql-result').replaceChildren();status('正在请求生图接口……');
+ busy=true;$('#ql-generate').disabled=true;$('#ql-result').replaceChildren();status('正在请求生图接口……');
  try{
   const activeIndex=Number(conf.activeVibeIndex??-1);const activeVibe=activeIndex>=0?conf.vibes[activeIndex]:null;const activePresetIndex=Number(conf.activePresetIndex??-1);const activePreset=activePresetIndex>=0?conf.presets[activePresetIndex]:null;const finalPrompt=[conf.prompt.trim(),activePreset?.positive].filter(Boolean).join(', ');const finalNegative=[conf.negative.trim(),activePreset?.negative].filter(Boolean).join(', ');const normalizePromptEntry=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();const normalizedBasePrompt=normalizePromptEntry(conf.prompt);const selectedPrompt=(conf.prompts||[]).find(item=>item&&item.id&&item.id===conf.activePromptEntryId);const matchedPrompt=normalizedBasePrompt?(conf.prompts||[]).find(item=>item&&normalizePromptEntry(item.promptEn||item.prompt||'')===normalizedBasePrompt):null;const promptEntryId=selectedPrompt?.id||matchedPrompt?.id||null;const url=await requestImage(finalPrompt,finalNegative,activeVibe);const storedUrl=await persistImageToTavern(url,'manual-'+Date.now());
-  const img=document.createElement('img');img.alt='轻绘生成结果';img.dataset.qlStoredSrc=storedUrl;img.src=url;$('#ql-result').append(img);
+  const img=document.createElement('img');img.alt='轻绘生成结果';img.src=url;$('#ql-result').append(img);
   conf.records.unshift({at:Date.now(),prompt:finalPrompt,basePrompt:conf.prompt.trim(),negative:finalNegative,provider:conf.provider,model:conf.provider!=='openai'?conf.naiModel:conf.model,size:conf.provider!=='openai'?(conf.naiWidth+'x'+conf.naiHeight):conf.size,quality:conf.quality,dataUrl:storedUrl,preset:activePreset?{name:activePreset.name||'',positive:activePreset.positive||'',negative:activePreset.negative||'',index:activePresetIndex,source:activePreset.source||'local'}:null,vibe:activeVibe?{name:activeVibe.name||'',entries:(activeVibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,config:snapshotConfig(finalPrompt,finalNegative),promptEntryId,sourcePromptEntryId:promptEntryId,sourcePromptEntryAppliedAt:conf.activePromptEntryAppliedAt||null});
   save();history();renderLibrary();status('生成完成。记录已保存在酒馆扩展设置中。');
  }catch(e){console.error('[轻绘 Lite] 生图失败',e);status('生成失败：'+(e?.message||String(e))+'。请检查接口地址、Key、模型名和网络连接。')}
- finally{busy=false;$('#ql-generate').disabled=false;$('#ql-generate').classList.remove('is-generating');}
+ finally{busy=false;$('#ql-generate').disabled=false;}
 }
 $('#ql-prompt-category').onchange=()=>{$('#ql-prompt-category-custom').hidden=$('#ql-prompt-category').value!=='自定义';};
 $('#ql-preset-batch-toggle').onclick=()=>{presetBatchMode=!presetBatchMode;selectedPresets.clear();$('#ql-preset-batch-toggle').textContent=presetBatchMode?'退出批量编辑':'批量编辑';renderLibrary();};

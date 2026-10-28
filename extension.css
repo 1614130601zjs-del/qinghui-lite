@@ -1487,7 +1487,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #qinghui-lite-panel .ql-album-mode{display:flex;justify-content:center;gap:8px;margin:10px 0 14px;}
 #qinghui-lite-panel .ql-album-mode .menu_button{flex:1;max-width:170px;padding:8px 10px!important;border-radius:999px!important;font-size:12px!important;}
 #qinghui-lite-panel .ql-album-mode .menu_button.active{background:var(--ql-accent, var(--SmartThemeQuoteColor,#c58fa9))!important;color:#fff!important;border-color:transparent!important;}
-#qinghui-lite-panel .ql-album-paper,dialog.ql-viewfinder-lightbox .ql-album-paper{position:relative;padding:clamp(12px,3.5vw,20px);border:1px solid #d8c7b8;border-radius:5px 13px 13px 5px;background:repeating-linear-gradient(0deg,rgba(143,113,91,.025) 0,rgba(143,113,91,.025) 1px,transparent 1px,transparent 5px),linear-gradient(100deg,#e8ddcd,#fffaf0 6%,#f8f0e4 95%,#e6d8c8);box-shadow:inset 7px 0 12px rgba(99,70,47,.10),0 6px 15px rgba(60,43,32,.08);}
+#qinghui-lite-panel .ql-album-paper{position:relative;padding:clamp(12px,3.5vw,20px);border:1px solid #d8c7b8;border-radius:5px 13px 13px 5px;background:repeating-linear-gradient(0deg,rgba(143,113,91,.025) 0,rgba(143,113,91,.025) 1px,transparent 1px,transparent 5px),linear-gradient(100deg,#e8ddcd,#fffaf0 6%,#f8f0e4 95%,#e6d8c8);box-shadow:inset 7px 0 12px rgba(99,70,47,.10),0 6px 15px rgba(60,43,32,.08);}
 #qinghui-lite-panel .ql-album-spread-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(12px,3vw,20px);align-items:start;}
 #qinghui-lite-panel .ql-album-photo{padding:7px 7px 16px!important;background:#fffdf9!important;border:1px solid rgba(105,84,65,.18)!important;border-radius:1px!important;box-shadow:0 2px 6px rgba(58,43,30,.13)!important;transform:rotate(-1deg);}
 #qinghui-lite-panel .ql-album-photo:nth-child(4n+2){transform:rotate(1.3deg);}
@@ -1666,21 +1666,21 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 }
 #qinghui-lite-panel .ql-viewfinder-heading h3{margin:0;min-width:0;}
 #qinghui-lite-panel .ql-viewfinder-actions{
- display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto;gap:5px;margin:0;
+ display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto;gap:8px;margin:0;
 }
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button{
- display:inline-flex;align-items:center;justify-content:center;flex:0 0 24px;
- width:24px;height:24px;min-width:24px;min-height:24px;padding:4px;margin:0;
+ display:inline-flex;align-items:center;justify-content:center;flex:0 0 40px;
+ width:40px;height:40px;min-width:40px;min-height:40px;padding:9px;margin:0;
  border:1px solid var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.35)));
- border-radius:7px;background:color-mix(in srgb,var(--ql-card,transparent) 88%,var(--ql-accent,transparent));
+ border-radius:11px;background:color-mix(in srgb,var(--ql-card,transparent) 88%,var(--ql-accent,transparent));
  color:var(--ql-text,var(--SmartThemeBodyColor));box-shadow:none;touch-action:manipulation;
 }
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button svg{
- display:block;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+ display:block;width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
 }
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:disabled{opacity:.36;cursor:default;}
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):active{transform:scale(.96);}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate{flex-basis:24px;width:24px;min-width:24px;max-width:24px;height:24px;min-height:24px;padding:4px;margin:0;background:color-mix(in srgb,var(--ql-accent) 20%,var(--ql-card));color:var(--ql-text);border-color:var(--ql-accent);}
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate{width:40px;min-width:40px;max-width:40px;margin:0;background:color-mix(in srgb,var(--ql-accent) 20%,var(--ql-card));color:var(--ql-text);border-color:var(--ql-accent);}
 #qinghui-lite-panel #ql-result-favorite.is-favorite{color:#c99b35;border-color:color-mix(in srgb,#c99b35 55%,var(--ql-border));}
 #qinghui-lite-panel .ql-viewfinder-card>p.ql-muted{margin:8px 0 10px;}
 #qinghui-lite-panel .ql-viewfinder-layout{display:block;min-width:0;}
@@ -3141,7 +3141,7 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;
  width:100%!important;min-width:0!important;margin:14px auto!important;padding:0!important;overflow:visible!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page,dialog.ql-viewfinder-lightbox .ql-album-single-page{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page{
  position:relative!important;isolation:isolate!important;box-sizing:border-box!important;display:block!important;
  width:min(100%,560px)!important;max-width:100%!important;min-width:0!important;margin:0 auto!important;padding:15px!important;
  border:1px solid color-mix(in srgb,var(--ql-accent,#7f98ad) 34%,var(--ql-border,rgba(100,125,145,.28)))!important;
@@ -3150,11 +3150,11 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  box-shadow:0 12px 26px rgba(0,0,0,.15),0 3px 7px rgba(0,0,0,.08),inset 0 0 0 1px rgba(255,255,255,.30),inset 0 0 0 5px rgba(255,255,255,.10)!important;
  overflow:hidden!important;transform:none!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-photo,dialog.ql-viewfinder-lightbox .ql-album-single-photo{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-photo{
  position:relative!important;display:block!important;width:100%!important;min-width:0!important;margin:0!important;padding:0!important;
  border:0!important;border-radius:8px!important;overflow:hidden!important;background:transparent!important;box-shadow:none!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-photo img,dialog.ql-viewfinder-lightbox .ql-album-single-photo img{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-photo img{
  display:block!important;width:100%!important;height:auto!important;max-height:78vh!important;object-fit:contain!important;
  border-radius:8px!important;background:transparent!important;touch-action:pan-y!important;
 }
@@ -3185,13 +3185,13 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 
 
 /* Faithful body-renderer frame for album flip browsing: same title, frame, corner, and arrow placement. */
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page::before,dialog.ql-viewfinder-lightbox .ql-album-single-page::before{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page::before{
  content:"✦ 拾帧相册  /  PHOTO ALBUM";
  display:flex!important;align-items:center!important;min-height:21px!important;
  padding:0 5px 10px!important;color:var(--ql-text,#555)!important;opacity:.76!important;
  font-size:10px!important;font-weight:750!important;letter-spacing:.14em!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page::after,dialog.ql-viewfinder-lightbox .ql-album-single-page::after{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page::after{
  content:"";position:absolute!important;z-index:2!important;top:10px!important;right:11px!important;
  width:28px!important;height:28px!important;
  border-top:2px solid color-mix(in srgb,var(--ql-accent,#7f98ad) 62%,transparent)!important;
@@ -3576,458 +3576,3 @@ dialog.ql-viewfinder-lightbox img{
   dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-shell{max-width:calc(100vw - 22px)!important;max-height:calc(100dvh - 22px)!important;padding:8px!important;}
   dialog.ql-viewfinder-lightbox img{max-width:calc(100vw - 42px)!important;max-height:calc(100dvh - 120px)!important;}
 }
-
-
-/* 0.5.97: persistent favorite contrast, dark generate control, and album-page image viewer */
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
-#qinghui-lite-panel #ql-result-favorite.is-favorite{
-  color:#6f4c00!important;background:#ffe08a!important;border:2px solid #b98516!important;
-  box-shadow:0 0 0 3px rgba(255,204,74,.30),0 2px 10px rgba(80,55,0,.28)!important;
-  opacity:1!important;filter:none!important;transform:none!important;
-}
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg path,
-#qinghui-lite-panel #ql-result-favorite.is-favorite svg path{
-  fill:currentColor!important;stroke:currentColor!important;
-}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:hover,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus-visible{
-  background:#38424b!important;border-color:#26313a!important;color:#fff!important;
-  box-shadow:0 2px 6px rgba(20,28,35,.24)!important;filter:none!important;opacity:1!important;
-}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate svg{color:#fff!important;stroke:#fff!important;}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:disabled{opacity:.45!important;}
-/* Reuse the album flip-page look in the viewer, without arrows or page number. */
-dialog.ql-viewfinder-lightbox[open]{
-  position:fixed!important;inset:0!important;margin:auto!important;box-sizing:border-box!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  width:max-content!important;height:max-content!important;max-width:calc(100vw - 16px)!important;
-  max-height:calc(100dvh - 16px)!important;padding:0!important;overflow:visible!important;transform:none!important;
-  border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
-}
-dialog.ql-viewfinder-lightbox::backdrop{background:rgba(12,12,14,.78)!important;backdrop-filter:blur(3px);}
-/* Viewer-only sizing: the paper, photo mat, title and corner reuse the album flip-mode rules above. */
-dialog.ql-viewfinder-lightbox .ql-album-paper{
-  display:block!important;width:fit-content!important;max-width:calc(100vw - 16px)!important;
-  max-height:calc(100dvh - 16px)!important;padding:15px!important;
-}
-dialog.ql-viewfinder-lightbox .ql-album-single-page{
-  width:fit-content!important;max-width:100%!important;max-height:calc(100dvh - 52px)!important;
-  margin:0 auto!important;padding:15px!important;overflow:visible!important;
-}
-dialog.ql-viewfinder-lightbox .ql-album-single-photo{
-  width:fit-content!important;max-width:100%!important;margin:0 auto!important;
-}
-dialog.ql-viewfinder-lightbox .ql-album-single-photo img{
-  width:auto!important;height:auto!important;max-width:calc(100vw - 64px)!important;
-  max-height:calc(100dvh - 104px)!important;object-fit:contain!important;
-}
-dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
-  position:fixed!important;top:max(8px,env(safe-area-inset-top))!important;right:max(8px,env(safe-area-inset-right))!important;
-  z-index:2!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;
-  border:1px solid rgba(255,255,255,.55)!important;border-radius:50%!important;background:rgba(25,25,27,.82)!important;
-  color:#fff!important;font-size:24px!important;
-}
-@media(max-width:480px){
-  dialog.ql-viewfinder-lightbox[open]{max-width:calc(100vw - 10px)!important;max-height:calc(100dvh - 10px)!important;}
-  dialog.ql-viewfinder-lightbox .ql-album-paper{max-width:calc(100vw - 10px)!important;max-height:calc(100dvh - 10px)!important;}
-  dialog.ql-viewfinder-lightbox .ql-album-single-page{max-height:calc(100dvh - 38px)!important;}
-  dialog.ql-viewfinder-lightbox .ql-album-single-photo img{max-width:calc(100vw - 36px)!important;max-height:calc(100dvh - 48px)!important;}
-}
-
-
-/* 0.5.98: all three viewfinder actions share the exact same idle surface, including disabled actions. */
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:hover,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:hover,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:hover,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:focus,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:focus,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus-visible,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:focus-visible,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:focus-visible{
-  background:color-mix(in srgb,var(--ql-card,var(--SmartThemeBlurTintColor,transparent)) 88%,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)))!important;
-  border-color:var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.35)))!important;
-  color:var(--ql-text,var(--SmartThemeBodyColor,#30313a))!important;
-  box-shadow:none!important;filter:none!important;transform:none!important;
-  opacity:1!important;
-}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate svg,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite svg,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge svg{
-  color:currentColor!important;stroke:currentColor!important;
-}
-
-
-/* 0.5.99: unify viewfinder button borders and provide a clear pressed state on touch and mouse. */
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:hover,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:hover,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:hover,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:focus,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:focus,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:focus-visible,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:focus-visible,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:focus-visible {
-  border:1px solid var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.35)))!important;
-  box-shadow:none!important;
-  filter:none!important;
-  transform:none!important;
-  -webkit-tap-highlight-color:transparent!important;
-}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:not(:disabled):active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(:disabled):active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:not(:disabled):active {
-  background:color-mix(in srgb,#26313a 82%,var(--ql-card,var(--SmartThemeBlurTintColor,#fff)))!important;
-  border-color:color-mix(in srgb,#26313a 82%,var(--ql-border,var(--SmartThemeBorderColor,#cbd1cf)))!important;
-  color:#fff!important;
-  box-shadow:inset 0 2px 4px rgba(0,0,0,.24)!important;
-  transform:translateY(1px) scale(.97)!important;
-  transition:background-color .08s ease,border-color .08s ease,transform .08s ease,box-shadow .08s ease!important;
-}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:not(:disabled):active svg,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(:disabled):active svg,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:not(:disabled):active svg {
-  color:#fff!important;
-  stroke:#fff!important;
-}
-
-
-/* 0.5.100: persistent action states, not momentary press feedback. */
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate.is-generating,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge.is-enlarged {
-  background:#38424b!important;
-  border:1px solid #38424b!important;
-  color:#fff!important;
-  box-shadow:inset 0 1px 3px rgba(0,0,0,.16)!important;
-  filter:none!important;
-  transform:none!important;
-  opacity:1!important;
-}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate.is-generating svg,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite svg,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge.is-enlarged svg {
-  color:#fff!important;
-  stroke:#fff!important;
-}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite svg path {
-  fill:currentColor!important;
-}
-
-/* Fix: persistent favorite state must outrank every legacy viewfinder favorite selector. */
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:hover,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus-visible {
-  background:#38424b!important;
-  border:1px solid #38424b!important;
-  color:#fff!important;
-  box-shadow:inset 0 1px 3px rgba(0,0,0,.16)!important;
-  filter:none!important;
-  transform:none!important;
-  opacity:1!important;
-}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite svg,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite svg path {
-  color:#fff!important;
-  stroke:#fff!important;
-}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite svg path {
-  fill:currentColor!important;
-}
-
-/* Final override: keep viewfinder action buttons compact on mobile too. */
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge{
- flex:0 0 24px!important;
- width:24px!important;min-width:24px!important;max-width:24px!important;
- height:24px!important;min-height:24px!important;max-height:24px!important;
- padding:3px!important;border-radius:7px!important;box-sizing:border-box!important;
-}
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate svg,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite svg,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge svg{
- flex:0 0 14px!important;width:14px!important;min-width:14px!important;max-width:14px!important;
- height:14px!important;min-height:14px!important;max-height:14px!important;
-}
-@media(max-width:420px){
- #qinghui-lite-panel .ql-viewfinder-actions #ql-generate,
- #qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite,
- #qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge{
-  flex:0 0 24px!important;width:24px!important;min-width:24px!important;max-width:24px!important;
-  height:24px!important;min-height:24px!important;max-height:24px!important;padding:3px!important;
- }
- #qinghui-lite-panel .ql-viewfinder-actions #ql-generate svg,
- #qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite svg,
- #qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge svg{
-  flex:0 0 14px!important;width:14px!important;min-width:14px!important;max-width:14px!important;
-  height:14px!important;min-height:14px!important;max-height:14px!important;
- }
-}
-
-
-/* 提示词图集照片详情页操作：取消收藏或移动到角色卡相册。 */
-dialog.ql-viewfinder-lightbox .ql-gallery-detail-actions{display:flex;flex-direction:column;gap:8px;width:100%;max-width:720px;margin:10px auto 0;}
-dialog.ql-viewfinder-lightbox .ql-gallery-detail-main{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;}
-dialog.ql-viewfinder-lightbox .ql-gallery-detail-main[hidden],dialog.ql-viewfinder-lightbox .ql-gallery-detail-move[hidden]{display:none!important;}
-dialog.ql-viewfinder-lightbox .ql-gallery-detail-actions button{min-height:36px;padding:7px 14px;border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.35));border-radius:10px;background:var(--SmartThemeBlurTintColor,#fff);color:var(--SmartThemeBodyColor,#333);}
-dialog.ql-viewfinder-lightbox .ql-gallery-detail-move{display:flex;flex-direction:column;gap:8px;}
-dialog.ql-viewfinder-lightbox .ql-gallery-detail-move label{display:flex;flex-direction:column;gap:5px;font-size:13px;}
-dialog.ql-viewfinder-lightbox .ql-gallery-detail-move select{width:100%;min-height:38px;padding:6px 10px;border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.35));border-radius:8px;background:var(--SmartThemeBlurTintColor,#fff);color:var(--SmartThemeBodyColor,#333);}
-
-/* Prompt gallery photo detail page */
-#qinghui-lite-panel .ql-prompt-photo-detail-paper{max-width:760px;margin:0 auto;padding:clamp(12px,3vw,22px);border:1px solid #d8c7b8;border-radius:8px;background:linear-gradient(110deg,#eee3d5,#fffaf1 8%,#f8f0e4 94%,#e5d7c7);box-shadow:0 5px 16px rgba(60,43,32,.08);}
-#qinghui-lite-panel .ql-prompt-photo-detail-image{display:block;width:100%;max-height:58vh;margin:0 auto 18px;padding:8px;border:1px solid rgba(105,84,65,.2);background:#fffdf9;box-shadow:0 2px 8px rgba(58,43,30,.12);cursor:zoom-in;}
-#qinghui-lite-panel .ql-prompt-photo-detail-image img{display:block;width:100%;max-height:55vh;object-fit:contain;}
-#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-cache-prompt-section{margin:14px 0;}
-#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-main{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px;}
-#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-main button{min-height:38px;padding:8px 16px;border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.35));border-radius:10px;}
-#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-move{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
-#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-move[hidden]{display:none!important;}
-#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-move label{display:flex;flex-direction:column;gap:6px;}
-#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-move select{min-height:38px;padding:6px 10px;}
-
-/* Reused prompt-gallery actions inside the existing cache detail modal */
-#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions{margin-top:12px;}
-#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-move{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
-#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-move[hidden]{display:none!important;}
-#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-move label{display:flex;flex-direction:column;gap:6px;}
-#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-move select{width:100%;min-height:38px;padding:6px 10px;}
-#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-main{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
-
-
-/* 修复提示词图集：铺开展示沿用角色相册的相纸样式与原图比例。 */
-#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-grid{
- display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
- align-items:start!important;gap:clamp(12px,3vw,20px)!important;
- width:100%!important;min-width:0!important;padding:0!important;box-sizing:border-box!important;
-}
-#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo{
- display:block!important;min-width:0!important;margin:0!important;
- padding:7px 7px 16px!important;border:1px solid rgba(105,84,65,.18)!important;
- border-radius:1px!important;background:#fffdf9!important;
- box-shadow:0 2px 6px rgba(58,43,30,.13)!important;box-sizing:border-box!important;
-}
-#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo .ql-cache-image{
- display:block!important;width:100%!important;height:auto!important;aspect-ratio:auto!important;
- min-width:0!important;margin:0!important;padding:0!important;overflow:visible!important;
- border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
-}
-#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo .ql-cache-image img{
- display:block!important;width:100%!important;height:auto!important;max-width:100%!important;max-height:none!important;
- object-fit:contain!important;border-radius:0!important;background:transparent!important;
-}
-#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo .ql-cache-image:focus-visible{
- outline:2px solid var(--ql-accent,#a86f8b)!important;outline-offset:2px!important;
-}
-
-
-/* 拾帧自有配色：选择内置/自选配色时，覆盖酒馆主题变量；auto 才继承酒馆主题。 */
-#qinghui-lite-panel .ql-card,
-#qinghui-lite-panel input,
-#qinghui-lite-panel textarea,
-#qinghui-lite-panel select,
-#ql-image-cache-modal,
-#ql-image-cache-modal input,
-#ql-image-cache-modal textarea,
-#ql-image-cache-modal select,
-.ql-detail-choice-overlay,
-.ql-detail-choice-overlay select {
- color:var(--SmartThemeBodyColor,#354653);
-}
-#ql-image-cache-modal,
-.ql-detail-choice-overlay>div {
- background:var(--SmartThemeBlurTintColor,#fcfdfe);
- border-color:var(--SmartThemeBorderColor,rgba(100,125,145,.28));
-}
-#ql-image-cache-modal button,
-.ql-detail-choice-overlay button,
-#qinghui-lite-panel .ql-gallery-detail-actions button,
-#qinghui-lite-panel .ql-prompt-gallery-existing-detail-actions button {
- writing-mode:horizontal-tb!important;
- text-orientation:mixed!important;
- white-space:nowrap!important;
- word-break:keep-all!important;
- overflow-wrap:normal!important;
- flex-direction:row!important;
- min-width:max-content!important;
- width:auto!important;
-}
-#ql-image-cache-modal .ql-cache-detail-actions,
-#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-main,
-.ql-detail-choice-overlay>div>div:last-child {
- display:flex!important;
- flex-direction:row!important;
- align-items:center!important;
- justify-content:flex-end!important;
- flex-wrap:wrap!important;
- gap:8px!important;
-}
-#ql-image-cache-modal .ql-cache-detail-actions button,
-.ql-detail-choice-overlay button {
- flex:0 0 auto!important;
- min-height:38px!important;
- padding:8px 14px!important;
-}
-
-
-/* 0.5.107: all 拾帧 buttons use the selected 拾帧 palette, not Tavern's global button skin. Auto mode leaves native Tavern styling untouched. */
-#qinghui-lite-panel button,
-#ql-image-cache-modal button,
-.ql-detail-choice-overlay button,
-dialog.ql-viewfinder-lightbox button,
-#chat .ql-chat-image-controls button,
-.ql-statusbar-card button {
-  background-color:var(--ql-button-bg, var(--SmartThemeBlurTintColor, rgba(127,127,127,.10)))!important;
-  border-width:1px!important;
-  border-style:solid!important;
-  border-color:var(--ql-button-border, var(--SmartThemeBorderColor, rgba(127,127,127,.24)))!important;
-  color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
-  background-image:none!important;
-  box-shadow:none;
-  text-shadow:none;
-  -webkit-tap-highlight-color:transparent;
-}
-#qinghui-lite-panel button:hover,
-#ql-image-cache-modal button:hover,
-.ql-detail-choice-overlay button:hover,
-dialog.ql-viewfinder-lightbox button:hover,
-#chat .ql-chat-image-controls button:hover,
-.ql-statusbar-card button:hover {
-  background-color:var(--ql-button-hover, var(--SmartThemeQuoteColor, rgba(127,127,127,.16)))!important;
-  color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
-}
-#qinghui-lite-panel button:focus,
-#qinghui-lite-panel button:focus-visible,
-#ql-image-cache-modal button:focus,
-#ql-image-cache-modal button:focus-visible,
-.ql-detail-choice-overlay button:focus,
-.ql-detail-choice-overlay button:focus-visible,
-dialog.ql-viewfinder-lightbox button:focus,
-dialog.ql-viewfinder-lightbox button:focus-visible {
-  outline-color:var(--ql-button-border, var(--SmartThemeUnderlineColor, currentColor))!important;
-}
-#qinghui-lite-panel button:active:not(:disabled),
-#ql-image-cache-modal button:active:not(:disabled),
-.ql-detail-choice-overlay button:active:not(:disabled),
-dialog.ql-viewfinder-lightbox button:active:not(:disabled),
-#chat .ql-chat-image-controls button:active:not(:disabled),
-.ql-statusbar-card button:active:not(:disabled) {
-  background-color:var(--ql-button-active, var(--SmartThemeQuoteColor, rgba(127,127,127,.22)))!important;
-  color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
-  transform:none;
-}
-#qinghui-lite-panel button:disabled,
-#ql-image-cache-modal button:disabled,
-.ql-detail-choice-overlay button:disabled,
-dialog.ql-viewfinder-lightbox button:disabled {
-  opacity:.48;
-}
-
-
-/* 0.5.108: keep prompt-library actions on one line and stabilize detail-page action layout/colors. */
-#qinghui-lite-panel .ql-prompt-tile-actions{
- display:flex!important;
- flex-flow:row nowrap!important;
- align-items:stretch!important;
- gap:5px!important;
- width:100%!important;
- min-width:0!important;
-}
-#qinghui-lite-panel .ql-prompt-tile-actions button{
- display:inline-flex!important;
- flex:1 1 0!important;
- align-items:center!important;
- justify-content:center!important;
- min-width:0!important;
- max-width:100%!important;
- width:0!important;
- margin:0!important;
- padding:7px 2px!important;
- box-sizing:border-box!important;
- white-space:nowrap!important;
- word-break:keep-all!important;
- overflow-wrap:normal!important;
- font-size:clamp(10px,2.8vw,12px)!important;
- line-height:1.2!important;
-}
-#ql-image-cache-modal .ql-cache-modal-content,
-#ql-image-cache-modal .ql-cache-modal-content h3,
-#ql-image-cache-modal .ql-cache-modal-content h4,
-#ql-image-cache-modal .ql-cache-modal-content p,
-#ql-image-cache-modal .ql-cache-modal-content label,
-#ql-image-cache-modal .ql-cache-modal-content small,
-#ql-image-cache-modal .ql-cache-modal-content span,
-#ql-image-cache-modal .ql-cache-modal-content pre,
-#ql-image-cache-modal .ql-cache-modal-content summary,
-.ql-detail-choice-overlay,
-.ql-detail-choice-overlay h3,
-.ql-detail-choice-overlay p,
-.ql-detail-choice-overlay label{
- color:var(--ql-text,var(--SmartThemeBodyColor,#354653));
-}
-#ql-image-cache-modal .ql-cache-detail-actions,
-#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-main,
-#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-move-actions,
-#ql-image-cache-modal .ql-cache-modal-content .ql-gallery-detail-main{
- display:flex!important;
- flex-flow:row nowrap!important;
- align-items:center!important;
- justify-content:center!important;
- gap:8px!important;
- width:100%!important;
- min-width:0!important;
-}
-#ql-image-cache-modal .ql-cache-detail-actions button,
-#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-main button,
-#ql-image-cache-modal .ql-cache-modal-content .ql-gallery-detail-main button,
-.ql-detail-choice-overlay button{
- display:inline-flex!important;
- flex:1 1 0!important;
- align-items:center!important;
- justify-content:center!important;
- min-width:0!important;
- max-width:100%!important;
- width:auto!important;
- margin:0!important;
- padding:8px 10px!important;
- box-sizing:border-box!important;
- white-space:nowrap!important;
- writing-mode:horizontal-tb!important;
- text-orientation:mixed!important;
- word-break:keep-all!important;
- overflow-wrap:normal!important;
- line-height:1.25!important;
-}
-#ql-image-cache-modal .ql-cache-modal-content .ql-gallery-detail-move{
- display:flex!important;
- flex-direction:column!important;
- gap:8px!important;
-}
-#ql-image-cache-modal .ql-cache-modal-content .ql-gallery-detail-move select,
-.ql-detail-choice-overlay select{
- color:var(--ql-text,var(--SmartThemeBodyColor,#354653))!important;
- background:var(--ql-field,var(--ql-card,var(--SmartThemeBlurTintColor,#fff)))!important;
- border-color:var(--ql-border,var(--SmartThemeBorderColor,#ccc))!important;
-}
-@media(max-width:360px){
- #qinghui-lite-panel .ql-prompt-tile-actions{gap:3px!important}
- #qinghui-lite-panel .ql-prompt-tile-actions button{padding:6px 1px!important;font-size:10px!important}
-}
-
-
-/* 0.5.109 的透明按钮边框覆盖已撤销：恢复 0.5.107 的完整按钮主题隔离。 */
