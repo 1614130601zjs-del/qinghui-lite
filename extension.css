@@ -3479,8 +3479,6 @@ r. */
     width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;flex-basis:25px!important;padding:4px!important;
   }
 }
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-favorite.is-favorite{color:#ffe18a!important;}
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action-bar .ql-statusbar-favorite.is-favorite svg path{fill:currentColor!important;}
 /* 0.5.95: remove the internal prompt-gallery tab from the top navigation. */
 #qinghui-lite-panel .ql-tabs > .ql-tab[data-page="prompt-gallery"]{display:none!important;}
 
@@ -4081,24 +4079,6 @@ dialog.ql-viewfinder-lightbox button:disabled {
  #qinghui-lite-panel .ql-viewfinder-album-target{gap:5px!important;padding-right:4px;}
  #qinghui-lite-panel #ql-result-album-target{padding:4px 5px!important;font-size:11px;}
  #qinghui-lite-panel #ql-result-album-target-save{padding:4px 8px!important;font-size:11px;}
-}
-
-
-/* 覆盖旧版高优先级 active 规则：取景页与状态栏所有操作键均保持常态底色。 */
-#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:not(:disabled):active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(:disabled):active,
-#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:not(:disabled):active,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action:active:not(:disabled) {
-  background:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
-  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
-  background-image:none!important;
-  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24)))!important;
-  color:var(--ql-button-text,var(--SmartThemeBodyColor,inherit))!important;
-  box-shadow:none!important;
-  filter:none!important;
-  transform:none!important;
-  opacity:1!important;
 }
 
 
