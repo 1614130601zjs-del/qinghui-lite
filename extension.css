@@ -91,7 +91,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #shizhen-panel .ql-subtabs{position:relative;z-index:25;pointer-events:auto}
 #shizhen-panel .ql-subtab{position:relative;z-index:26;pointer-events:auto;touch-action:manipulation}
 #shizhen-panel .ql-subpage{position:relative;z-index:1}
-#shizhen-panel #ql-theme-css{min-height:130px;font-family:monospace;font-size:12px}
+#shizhen-panel #ql-theme-css{min-height:130px;font-family:inherit;font-size:12px}
 #shizhen-panel #ql-theme-apply,#shizhen-panel #ql-theme-reset{min-height:40px}
 #shizhen-panel .ql-secondary{background:var(--ql-card);border:1px solid var(--ql-border)}
 
@@ -1466,7 +1466,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #shizhen-panel .ql-album-cover-photo.photo-0{left:2%;top:8%;transform:rotate(-9deg);}
 #shizhen-panel .ql-album-cover-photo.photo-1{right:0;top:1%;transform:rotate(8deg);}
 #shizhen-panel .ql-album-cover-photo.photo-2{left:17%;top:19%;transform:rotate(-1deg);}
-#shizhen-panel .ql-album-cover-title{position:relative;z-index:4;margin:0 14px 8px 20px;padding:8px 3px 5px;text-align:center;color:#68495b;font-family:Georgia,serif;font-size:clamp(13px,3.5vw,18px);font-weight:700;line-height:1.2;overflow-wrap:anywhere;text-shadow:0 1px rgba(255,255,255,.5);}
+#shizhen-panel .ql-album-cover-title{position:relative;z-index:4;margin:0 14px 8px 20px;padding:8px 3px 5px;text-align:center;color:#68495b;font-family:inherit;font-size:clamp(13px,3.5vw,18px);font-weight:700;line-height:1.2;overflow-wrap:anywhere;text-shadow:0 1px rgba(255,255,255,.5);}
 #shizhen-panel .ql-album-cover-count{position:relative;z-index:4;margin:0 16px 17px 20px;text-align:center;font-size:8px;letter-spacing:.16em;color:#795e6b;opacity:.82;}
 #shizhen-panel .ql-album-book-caption{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 6px;align-items:center;padding:8px 2px 0;color:var(--ql-text,var(--SmartThemeBodyColor,#51434b));}
 #shizhen-panel .ql-album-book-caption strong{min-width:0;font-size:12px;overflow-wrap:anywhere;}
@@ -4214,7 +4214,7 @@ dialog.ql-viewfinder-lightbox button:disabled {
 [class*=" ql-"] *,
 #chat .ql-inline-image-trigger,
 #extensionsMenu #ql-chat-launch {
-  font-family: Arial, "Noto Sans", sans-serif !important;
+  font-family: inherit !important;
   letter-spacing: normal !important;
   text-transform: none !important;
   text-shadow: none !important;
