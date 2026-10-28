@@ -1404,7 +1404,7 @@ function history(){
   detailActions.className='ql-cache-detail-actions ql-prompt-gallery-existing-detail-actions';
   detailActions.dataset.galleryDetailActions='1';
   const hideDetail=()=>{modal.hidden=true;modal.style.display='';};
-  const showDetailChoice=(title,description,choices,confirmLabel,onConfirm)=>{
+  const showDetailChoice=(title,description,choices,confirmLabel,onConfirm,defaultKey=null)=>{
    if(!Array.isArray(choices)||!choices.length){status('没有可选择的目标。');return;}
    document.querySelector('.ql-detail-choice-overlay')?.remove();
    const overlay=document.createElement('div');
@@ -1417,6 +1417,7 @@ function history(){
    const select=document.createElement('select');
    select.style.cssText='width:100%;min-height:42px;padding:8px;border-radius:8px;border:1px solid var(--SmartThemeBorderColor,#ccc);background:var(--SmartThemeBlurTintColor,#fff);color:inherit;';
    choices.forEach((choice,index)=>{const option=document.createElement('option');option.value=String(index);option.textContent=choice.name;select.append(option);});
+   if(defaultKey!=null){const preferredIndex=choices.findIndex(choice=>String(choice.key)===String(defaultKey));if(preferredIndex>=0)select.value=String(preferredIndex);}
    const buttons=document.createElement('div');buttons.style.cssText='display:flex;justify-content:flex-end;gap:8px;margin-top:16px;';
    const cancel=document.createElement('button');cancel.type='button';cancel.className='menu_button';cancel.textContent='取消';
    const confirm=document.createElement('button');confirm.type='button';confirm.className='menu_button ql-cache-action-primary';confirm.textContent=confirmLabel;
@@ -1461,7 +1462,13 @@ function history(){
    };
    detailActions.querySelector('[data-gallery-move]').onclick=()=>{
     const choices=roleChoices();
-    showDetailChoice('移动到角色卡相册','请选择要存放这张照片的角色相册。',choices,'确认移动',choice=>setRoleAlbum(cfg().records?.[index],choice));
+    const live=cfg().records?.[index];
+    const sourceName=String(live?.characterName||live?.character||'').trim();
+    const sourceChoice=choices.find(choice=>choice.name.trim()===sourceName);
+    const current=currentCharacter();
+    const currentChoice=choices.find(choice=>String(choice.key)===String(current.id)&&(!sourceName||choice.name.trim()===sourceName));
+    const defaultKey=sourceChoice?.key??currentChoice?.key??null;
+    showDetailChoice('移动到角色卡相册','已优先选中这张照片原本生成时所属的角色卡；也可以手动更改。',choices,'确认移动',choice=>setRoleAlbum(cfg().records?.[index],choice),defaultKey);
    };
   }else if(detailContext==='roleAlbum'){
    detailActions.innerHTML='<button type="button" class="menu_button" data-role-cancel>取消收藏</button><button type="button" class="menu_button ql-cache-action-primary" data-role-move-gallery>移动到图集</button>';
