@@ -4180,3 +4180,24 @@ dialog.ql-viewfinder-lightbox button:disabled {
   word-break:break-word!important;
   overflow:visible!important;
 }
+
+
+/* Keep image-detail prompt area fixed-height; scroll long text inside like a typing field. */
+#ql-image-cache-modal .ql-cache-prompt-section .ql-cache-prompt-box{
+  height:190px!important;
+  min-height:190px!important;
+  max-height:190px!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+#ql-image-cache-modal .ql-cache-prompt-section .ql-cache-prompt-box pre{
+  height:auto!important;
+  min-height:100%!important;
+  max-height:none!important;
+  overflow:visible!important;
+  white-space:pre-wrap!important;
+  overflow-wrap:anywhere!important;
+  word-break:break-word!important;
+}
