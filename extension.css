@@ -15,7 +15,9 @@
 
 
 /* 拾帧 Lite chat launcher and modal workspace */
-#extensionsMenu #ql-chat-launch{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;padding:10px 12px;cursor:pointer;white-space:nowrap;border-radius:6px}#extensionsMenu #ql-chat-launch:hover{background:var(--SmartThemeQuoteColor,rgba(127,127,127,.16))}#extensionsMenu #ql-chat-launch:focus-visible{outline:2px solid var(--SmartThemeUnderlineColor);outline-offset:-2px}
+#extensionsMenu #ql-chat-launch{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;padding:10px 12px;cursor:pointer;white-space:nowrap;border-radius:6px}
+#extensionsMenu #ql-chat-launch{color:var(--SmartThemeBodyColor,var(--SmartThemeTextColor,var(--text-color,inherit)))!important}
+#extensionsMenu #ql-chat-launch svg{color:inherit;stroke:currentColor;flex:0 0 18px}#extensionsMenu #ql-chat-launch:hover{background:var(--SmartThemeQuoteColor,rgba(127,127,127,.16))}#extensionsMenu #ql-chat-launch:focus-visible{outline:2px solid var(--SmartThemeUnderlineColor);outline-offset:-2px}
 #ql-overlay[hidden]{display:none!important}
 /* 独立挂到 documentElement，避免酒馆/移动端容器的 transform 影响 fixed 定位。 */
 #ql-overlay{position:fixed!important;inset:0!important;z-index:2147483000;display:flex;align-items:center;justify-content:center;width:100vw;height:100vh;height:100dvh;min-height:0;padding:12px;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);}
