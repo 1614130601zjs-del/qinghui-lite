@@ -2129,7 +2129,7 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 
 /* Prompt library: flexible tags and isolated per-prompt galleries */
 #qinghui-lite-panel .ql-prompt-tags{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:5px 0;}
-#qinghui-lite-panel .ql-prompt-tag{display:inline-flex;align-items:center;max-width:100%;padding:3px 8px;border:1px solid var(--ql-border);border-radius:999px;background:color-mix(in srgb,var(--ql-accent) 10%,transparent);font-size:10px;line-height:1.35;overflow-wrap:anywhere;}
+#qinghui-lite-panel .ql-prompt-tag{display:inline-flex;align-items:center;min-height:17px;max-width:100%;padding:1px 6px;border:1px solid var(--ql-border);border-radius:999px;background:color-mix(in srgb,var(--ql-accent) 10%,transparent);font-size:9px;line-height:1.2;overflow-wrap:anywhere;}
 #qinghui-lite-panel .ql-prompt-tile-actions button{min-height:24px!important;height:24px!important;padding:2px 6px!important;line-height:1.1!important;}
 #qinghui-lite-panel .ql-prompt-gallery{margin-top:8px;padding:8px;border:1px solid var(--ql-border);border-radius:10px;background:var(--ql-field);}
 #qinghui-lite-panel .ql-prompt-gallery-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;font-size:11px;}
