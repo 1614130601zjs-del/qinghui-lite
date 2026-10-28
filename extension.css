@@ -3141,7 +3141,7 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;
  width:100%!important;min-width:0!important;margin:14px auto!important;padding:0!important;overflow:visible!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page,dialog.ql-viewfinder-lightbox .ql-album-single-page{
  position:relative!important;isolation:isolate!important;box-sizing:border-box!important;display:block!important;
  width:min(100%,560px)!important;max-width:100%!important;min-width:0!important;margin:0 auto!important;padding:15px!important;
  border:1px solid color-mix(in srgb,var(--ql-accent,#7f98ad) 34%,var(--ql-border,rgba(100,125,145,.28)))!important;
@@ -3150,11 +3150,11 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
  box-shadow:0 12px 26px rgba(0,0,0,.15),0 3px 7px rgba(0,0,0,.08),inset 0 0 0 1px rgba(255,255,255,.30),inset 0 0 0 5px rgba(255,255,255,.10)!important;
  overflow:hidden!important;transform:none!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-photo{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-photo,dialog.ql-viewfinder-lightbox .ql-album-single-photo{
  position:relative!important;display:block!important;width:100%!important;min-width:0!important;margin:0!important;padding:0!important;
  border:0!important;border-radius:8px!important;overflow:hidden!important;background:transparent!important;box-shadow:none!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-photo img{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-photo img,dialog.ql-viewfinder-lightbox .ql-album-single-photo img{
  display:block!important;width:100%!important;height:auto!important;max-height:78vh!important;object-fit:contain!important;
  border-radius:8px!important;background:transparent!important;touch-action:pan-y!important;
 }
@@ -3185,13 +3185,13 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 
 
 /* Faithful body-renderer frame for album flip browsing: same title, frame, corner, and arrow placement. */
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page::before{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page::before,dialog.ql-viewfinder-lightbox .ql-album-single-page::before{
  content:"✦ 拾帧相册  /  PHOTO ALBUM";
  display:flex!important;align-items:center!important;min-height:21px!important;
  padding:0 5px 10px!important;color:var(--ql-text,#555)!important;opacity:.76!important;
  font-size:10px!important;font-weight:750!important;letter-spacing:.14em!important;
 }
-#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page::after{
+#qinghui-lite-panel [data-page-panel="albums"] .ql-album-single-page::after,dialog.ql-viewfinder-lightbox .ql-album-single-page::after{
  content:"";position:absolute!important;z-index:2!important;top:10px!important;right:11px!important;
  width:28px!important;height:28px!important;
  border-top:2px solid color-mix(in srgb,var(--ql-accent,#7f98ad) 62%,transparent)!important;
@@ -3608,23 +3608,21 @@ dialog.ql-viewfinder-lightbox[open]{
   border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
 }
 dialog.ql-viewfinder-lightbox::backdrop{background:rgba(12,12,14,.78)!important;backdrop-filter:blur(3px);}
-dialog.ql-viewfinder-lightbox .ql-lightbox-album-paper{
-  box-sizing:border-box!important;position:relative!important;display:block!important;width:max-content!important;
-  max-width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;padding:clamp(10px,3vw,20px)!important;
-  border:1px solid #d8c7b8!important;border-radius:5px 13px 13px 5px!important;
-  background:repeating-linear-gradient(0deg,rgba(143,113,91,.025) 0,rgba(143,113,91,.025) 1px,transparent 1px,transparent 5px),linear-gradient(100deg,#e8ddcd,#fffaf0 6%,#f8f0e4 95%,#e6d8c8)!important;
-  box-shadow:inset 7px 0 12px rgba(99,70,47,.10),0 10px 32px rgba(0,0,0,.32)!important;
+/* Viewer-only sizing: the paper, photo mat, title and corner reuse the album flip-mode rules above. */
+dialog.ql-viewfinder-lightbox .ql-album-paper{
+  display:block!important;width:fit-content!important;max-width:calc(100vw - 16px)!important;
+  max-height:calc(100dvh - 16px)!important;padding:15px!important;
 }
-dialog.ql-viewfinder-lightbox .ql-lightbox-album-page{
-  box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
-  width:fit-content!important;max-width:100%!important;max-height:calc(100dvh - 52px)!important;min-width:0!important;
-  margin:0!important;padding:clamp(8px,2.5vw,14px)!important;background:#fffdf8!important;
-  border:1px solid rgba(117,91,69,.18)!important;box-shadow:0 3px 10px rgba(64,44,29,.12)!important;transform:rotate(-.5deg);
+dialog.ql-viewfinder-lightbox .ql-album-single-page{
+  width:fit-content!important;max-width:100%!important;max-height:calc(100dvh - 52px)!important;
+  margin:0 auto!important;padding:15px!important;overflow:visible!important;
 }
-dialog.ql-viewfinder-lightbox .ql-lightbox-album-image{
-  display:block!important;width:auto!important;height:auto!important;max-width:calc(100vw - 64px)!important;
-  max-height:calc(100dvh - 76px)!important;object-fit:contain!important;margin:0!important;border:0!important;
-  border-radius:0!important;background:#eee5da!important;box-shadow:none!important;
+dialog.ql-viewfinder-lightbox .ql-album-single-photo{
+  width:fit-content!important;max-width:100%!important;margin:0 auto!important;
+}
+dialog.ql-viewfinder-lightbox .ql-album-single-photo img{
+  width:auto!important;height:auto!important;max-width:calc(100vw - 64px)!important;
+  max-height:calc(100dvh - 104px)!important;object-fit:contain!important;
 }
 dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
   position:fixed!important;top:max(8px,env(safe-area-inset-top))!important;right:max(8px,env(safe-area-inset-right))!important;
