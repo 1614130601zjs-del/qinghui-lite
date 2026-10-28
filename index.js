@@ -1368,14 +1368,88 @@ function history(){
   const detailImage=content.querySelector('.ql-cache-large');if(detailImage){detailImage.title='点击放大查看原图';detailImage.style.cursor='zoom-in';detailImage.addEventListener('click',()=>openViewfinderImage(r.dataUrl||detailImage.currentSrc||detailImage.src));}
   content.querySelector('[data-modal-load]').onclick=()=>{$('#ql-prompt').value=r.basePrompt||r.prompt||'';$('#ql-negative').value=r.negative||'';read();modal.hidden=true;modal.style.display='';status('基础提示词已载入；记录中的画师串不会自动切换，请确认当前画师串后再生成。');};
   content.querySelector('[data-gallery-detail-actions]')?.remove();
+  const detailActions=document.createElement('div');
+  detailActions.className='ql-cache-detail-actions ql-prompt-gallery-existing-detail-actions';
+  detailActions.dataset.galleryDetailActions='1';
+  const hideDetail=()=>{modal.hidden=true;modal.style.display='';};
+  const showDetailChoice=(title,description,choices,confirmLabel,onConfirm)=>{
+   if(!Array.isArray(choices)||!choices.length){status('没有可选择的目标。');return;}
+   document.querySelector('.ql-detail-choice-overlay')?.remove();
+   const overlay=document.createElement('div');
+   overlay.className='ql-detail-choice-overlay';
+   overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.48);';
+   const panel=document.createElement('div');
+   panel.style.cssText='width:min(100%,380px);max-height:80vh;overflow:auto;background:var(--SmartThemeBlurTintColor,#fff);color:var(--SmartThemeBodyColor,#333);border:1px solid var(--SmartThemeBorderColor,#ccc);border-radius:14px;padding:18px;box-shadow:0 12px 40px #0005;';
+   const heading=document.createElement('h3');heading.textContent=title;heading.style.marginTop='0';
+   const note=document.createElement('p');note.textContent=description;note.style.cssText='margin:0 0 12px;opacity:.78;font-size:13px;';
+   const select=document.createElement('select');
+   select.style.cssText='width:100%;min-height:42px;padding:8px;border-radius:8px;border:1px solid var(--SmartThemeBorderColor,#ccc);background:var(--SmartThemeBlurTintColor,#fff);color:inherit;';
+   choices.forEach((choice,index)=>{const option=document.createElement('option');option.value=String(index);option.textContent=choice.name;select.append(option);});
+   const buttons=document.createElement('div');buttons.style.cssText='display:flex;justify-content:flex-end;gap:8px;margin-top:16px;';
+   const cancel=document.createElement('button');cancel.type='button';cancel.className='menu_button';cancel.textContent='取消';
+   const confirm=document.createElement('button');confirm.type='button';confirm.className='menu_button ql-cache-action-primary';confirm.textContent=confirmLabel;
+   const close=()=>overlay.remove();
+   cancel.onclick=close;overlay.addEventListener('click',event=>{if(event.target===overlay)close();});
+   confirm.onclick=()=>{const choice=choices[Number(select.value)];if(!choice)return;onConfirm(choice);close();};
+   buttons.append(cancel,confirm);panel.append(heading,note,select,buttons);overlay.append(panel);document.body.append(overlay);
+  };
+  const roleChoices=()=>getCharacterCards().map((character,index)=>({key:String(index),name:String(character?.name||character?.avatar||('角色 '+(index+1)))}));
+  const galleryChoices=()=>promptEntries.map(entry=>({key:String(entry.id),name:String(entry.name||'未命名图集')}));
+  const setRoleAlbum=(live,choice)=>{
+   const character=getCharacterCards()[Number(choice.key)];
+   if(!live||!character){status('请选择有效的角色卡。');return;}
+   live.albumCharacterName=String(character.name||character.avatar||('角色 '+(Number(choice.key)+1)));
+   live.albumCharacterKey=String(choice.key);
+   if(galleryContext?.promptId){
+    live.promptGalleryExcludedIds=Array.isArray(live.promptGalleryExcludedIds)?live.promptGalleryExcludedIds:[];
+    if(!live.promptGalleryExcludedIds.includes(String(galleryContext.promptId)))live.promptGalleryExcludedIds.push(String(galleryContext.promptId));
+   }
+   save();hideDetail();history();renderAlbums?.();
+   status('照片已移动到「'+live.albumCharacterName+'」角色相册；原图仍保留。');
+   galleryContext?.onChange?.();
+  };
+  const setPromptGallery=(live,choice)=>{
+   if(!live)return;
+   const targetId=String(choice.key);
+   live.promptEntryId=targetId;
+   live.sourcePromptEntryId=targetId;
+   live.promptGalleryExcludedIds=Array.isArray(live.promptGalleryExcludedIds)?live.promptGalleryExcludedIds.filter(id=>String(id)!==targetId):[];
+   delete live.albumCharacterName;delete live.albumCharacterKey;
+   save();hideDetail();history();renderAlbums?.();
+   status('照片已移动到「'+choice.name+'」图集。');
+   galleryContext?.onChange?.();
+  };
   if(galleryContext){
-   const actions=document.createElement('div');actions.className='ql-cache-detail-actions ql-prompt-gallery-existing-detail-actions';actions.dataset.galleryDetailActions='1';
-   actions.innerHTML='<button type="button" class="menu_button" data-gallery-cancel>取消收藏</button><button type="button" class="menu_button ql-cache-action-primary" data-gallery-move>移动到角色卡相册</button><div class="ql-gallery-detail-move" data-gallery-move-panel hidden><label>选择目标角色卡<select data-gallery-character></select></label><div class="ql-gallery-detail-main"><button type="button" class="menu_button ql-cache-action-primary" data-gallery-confirm>确认移动</button><button type="button" class="menu_button" data-gallery-move-back>返回</button></div></div>';
-   content.querySelector('.ql-cache-detail-actions')?.after(actions);
-   actions.querySelector('[data-gallery-cancel]').onclick=()=>{const live=cfg().records?.[index],promptId=String(galleryContext.promptId||'');if(!live)return;if(promptId){live.promptGalleryExcludedIds=Array.isArray(live.promptGalleryExcludedIds)?live.promptGalleryExcludedIds:[];if(!live.promptGalleryExcludedIds.includes(promptId))live.promptGalleryExcludedIds.push(promptId);}delete live.albumCharacterName;delete live.albumCharacterKey;save();modal.hidden=true;modal.style.display='';history();status('已从当前提示词图集中取消收藏；照片已保留在底片中。');galleryContext.onChange?.();};
-   actions.querySelector('[data-gallery-move]').onclick=()=>{const select=actions.querySelector('[data-gallery-character]'),chars=getCharacterCards();if(!chars.length){status('没有可选择的角色卡。');return;}select.innerHTML=chars.map((ch,i)=>'<option value="'+i+'">'+esc(ch?.name||ch?.avatar||('角色 '+(i+1)))+'</option>').join('');actions.querySelector('[data-gallery-move-panel]').hidden=false;actions.querySelector('[data-gallery-move]').hidden=true;};
-   actions.querySelector('[data-gallery-move-back]').onclick=()=>{actions.querySelector('[data-gallery-move-panel]').hidden=true;actions.querySelector('[data-gallery-move]').hidden=false;};
-   actions.querySelector('[data-gallery-confirm]').onclick=()=>{const live=cfg().records?.[index],select=actions.querySelector('[data-gallery-character]'),key=String(select.value),character=getCharacterCards()[Number(key)];if(!live||!character){status('请选择有效的角色卡。');return;}live.albumCharacterName=String(character.name||character.avatar||('角色 '+(Number(key)+1)));live.albumCharacterKey=key;if(galleryContext.promptId){live.promptGalleryExcludedIds=Array.isArray(live.promptGalleryExcludedIds)?live.promptGalleryExcludedIds:[];if(!live.promptGalleryExcludedIds.includes(galleryContext.promptId))live.promptGalleryExcludedIds.push(galleryContext.promptId);}save();modal.hidden=true;modal.style.display='';status('照片已移动到「'+live.albumCharacterName+'」角色相册；底片原图仍保留。');galleryContext.onChange?.();};
+   detailActions.innerHTML='<button type="button" class="menu_button" data-gallery-cancel>取消收藏</button><button type="button" class="menu_button ql-cache-action-primary" data-gallery-move>移动到角色卡相册</button>';
+   content.querySelector('.ql-cache-detail-actions')?.after(detailActions);
+   detailActions.querySelector('[data-gallery-cancel]').onclick=()=>{
+    const live=cfg().records?.[index],promptId=String(galleryContext.promptId||'');if(!live)return;
+    if(promptId){live.promptGalleryExcludedIds=Array.isArray(live.promptGalleryExcludedIds)?live.promptGalleryExcludedIds:[];if(!live.promptGalleryExcludedIds.includes(promptId))live.promptGalleryExcludedIds.push(promptId);}
+    delete live.albumCharacterName;delete live.albumCharacterKey;save();hideDetail();history();status('已从当前图集取消收藏；照片仍保留在底片中。');galleryContext.onChange?.();
+   };
+   detailActions.querySelector('[data-gallery-move]').onclick=()=>{
+    const choices=roleChoices();
+    showDetailChoice('移动到角色卡相册','请选择要存放这张照片的角色相册。',choices,'确认移动',choice=>setRoleAlbum(cfg().records?.[index],choice));
+   };
+  }else if(r.albumCharacterName){
+   detailActions.innerHTML='<button type="button" class="menu_button" data-detail-unfavorite>取消收藏</button><button type="button" class="menu_button ql-cache-action-primary" data-detail-move-gallery>移动到图集</button>';
+   content.querySelector('.ql-cache-detail-actions')?.after(detailActions);
+   detailActions.querySelector('[data-detail-unfavorite]').onclick=()=>{
+    const live=cfg().records?.[index];if(!live)return;
+    delete live.albumCharacterName;delete live.albumCharacterKey;save();hideDetail();history();renderAlbums?.();status('已从角色相册取消收藏；图片仍保留在缓存中。');
+   };
+   detailActions.querySelector('[data-detail-move-gallery]').onclick=()=>{
+    showDetailChoice('移动到图集','请选择要存放这张照片的提示词图集。',galleryChoices(),'确认移动',choice=>setPromptGallery(cfg().records?.[index],choice));
+   };
+  }else{
+   detailActions.innerHTML='<button type="button" class="menu_button ql-cache-action-primary" data-detail-save-gallery>收藏到图集</button><button type="button" class="menu_button" data-detail-save-album>收藏到角色相册</button>';
+   content.querySelector('.ql-cache-detail-actions')?.after(detailActions);
+   detailActions.querySelector('[data-detail-save-gallery]').onclick=()=>{
+    showDetailChoice('收藏到图集','请选择要收藏到的提示词图集。',galleryChoices(),'确认收藏',choice=>setPromptGallery(cfg().records?.[index],choice));
+   };
+   detailActions.querySelector('[data-detail-save-album]').onclick=()=>{
+    showDetailChoice('收藏到角色相册','请选择要收藏到的角色相册。',roleChoices(),'确认收藏',choice=>setRoleAlbum(cfg().records?.[index],choice));
+   };
   }
   content.querySelector('[data-modal-save]').onclick=async e=>{e.preventDefault();e.stopPropagation();const button=e.currentTarget;if(button.dataset.busy==='1')return;button.dataset.busy='1';try{const imageUrl=String(r.dataUrl||content.querySelector('.ql-cache-large')?.currentSrc||content.querySelector('.ql-cache-large')?.src||'');const result=await saveCleanImage(imageUrl,'shizhen-'+(r.at||Date.now()),true);status((result?.edgeFallback?'已打开下载面板，请点击面板中的“保存图片”。':result?.downloadStarted?'已发起图片下载；请在浏览器下载列表或系统下载目录查看。':'已发起图片下载。')+(lastPngCleanReport?' '+lastPngCleanReport:''));}catch(e){status(e.message||String(e));}finally{delete button.dataset.busy;}};
   modal.hidden=false;modal.style.display='flex';
