@@ -1503,7 +1503,7 @@ function renderLibrary(){
   const normalizePrompt=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();
   const targetPrompt=normalizePrompt(promptEntry.promptEn||promptEntry.prompt||'');
   const galleryId=String(promptEntry.id||('prompt-index-'+promptIndex));
-  const items=(settings.records||[]).map((record,cacheIndex)=>({...record,_cacheIndex:cacheIndex})).filter(record=>{
+  let items=(settings.records||[]).map((record,cacheIndex)=>({...record,_cacheIndex:cacheIndex})).filter(record=>{
    if(!record?.dataUrl)return false;
    if(Array.isArray(record.promptGalleryExcludedIds)&&record.promptGalleryExcludedIds.includes(galleryId))return false;
    if(record.promptEntryId===promptEntry.id||record.sourcePromptEntryId===promptEntry.id)return true;
@@ -1517,8 +1517,16 @@ function renderLibrary(){
   if(description)description.textContent='点击照片查看现有影像详情与提示词，再点击详情中的图片可放大查看。';
   if(content){
    const pageSize=6;
-   const pageCount=Math.max(1,Math.ceil(items.length/pageSize));
+   let pageCount=Math.max(1,Math.ceil(items.length/pageSize));
    const renderPromptGalleryPage=page=>{
+    const currentRecords=cfg().records||[];
+    items=currentRecords.map((record,cacheIndex)=>({...record,_cacheIndex:cacheIndex})).filter(record=>{
+     if(!record?.dataUrl)return false;
+     if(Array.isArray(record.promptGalleryExcludedIds)&&record.promptGalleryExcludedIds.includes(galleryId))return false;
+     if(record.promptEntryId===promptEntry.id||record.sourcePromptEntryId===promptEntry.id)return true;
+     return Boolean(targetPrompt&&normalizePrompt(record.basePrompt||record.prompt||'')===targetPrompt);
+    });
+    pageCount=Math.max(1,Math.ceil(items.length/pageSize));
     const safePage=Math.max(0,Math.min(pageCount-1,Number(page)||0));
     const visibleItems=items.slice(safePage*pageSize,(safePage+1)*pageSize);
     const photoButton=record=>'<article class="ql-cache-tile ql-album-photo ql-prompt-gallery-photo"><button type="button" class="ql-cache-image" data-prompt-record="'+record._cacheIndex+'" aria-label="查看照片"><img loading="lazy" src="'+esc(record.dataUrl||'')+'" alt="提示词图集照片"></button></article>';
@@ -1725,46 +1733,16 @@ function importChatu8Candidate(){
 }
 
 
-function openViewfinderImage(url,galleryContext=null){
+function openViewfinderImage(url){
  if(!url)return;
  let overlay=document.querySelector('.ql-viewfinder-lightbox');
  if(!overlay){
   overlay=document.createElement('dialog');overlay.className='ql-viewfinder-lightbox';overlay.setAttribute('aria-label','放大查看图片');
-  overlay.innerHTML='<div class="ql-album-paper is-flip"><div class="ql-album-single-page"><div class="ql-album-single-photo"><img alt="放大查看的生成图片"></div></div></div><div class="ql-gallery-detail-actions" hidden><div class="ql-gallery-detail-main"><button type="button" class="menu_button" data-gallery-cancel>取消收藏</button><button type="button" class="menu_button ql-primary" data-gallery-move>移动照片</button></div><div class="ql-gallery-detail-move" hidden><label>选择目标角色卡<select data-gallery-character></select></label><div class="ql-gallery-detail-main"><button type="button" class="menu_button ql-primary" data-gallery-confirm-move>确认移动</button><button type="button" class="menu_button" data-gallery-back>返回</button></div></div></div><button type="button" class="ql-viewfinder-lightbox-close" aria-label="关闭图片" title="关闭">×</button>';
-  overlay.addEventListener('click',event=>{if(event.target===overlay||event.target.closest('.ql-viewfinder-lightbox-close')){if(overlay.open)overlay.close();}});
-  overlay.querySelector('[data-gallery-cancel]').addEventListener('click',()=>{
-   const index=Number(overlay.dataset.qlGalleryRecordIndex),promptId=String(overlay.dataset.qlGalleryPromptId||'');
-   const record=cfg().records?.[index];if(!record){status('未找到这张照片的缓存记录。');return;}
-   if(promptId){record.promptGalleryExcludedIds=Array.isArray(record.promptGalleryExcludedIds)?record.promptGalleryExcludedIds:[];if(!record.promptGalleryExcludedIds.includes(promptId))record.promptGalleryExcludedIds.push(promptId);}
-   save();overlay.close();const photo=document.querySelector('#ql-prompt-gallery-content [data-prompt-record="'+index+'"]')?.closest('.ql-album-photo');photo?.remove();
-   const count=document.querySelector('#ql-prompt-gallery-content .ql-album-toolbar-title small');if(count&&photo)count.textContent=Math.max(0,Number.parseInt(count.textContent,10)-1)+' 张照片';
-   status('已从当前提示词图集中取消收藏；底片原图仍保留。');
-  });
-  overlay.querySelector('[data-gallery-move]').addEventListener('click',()=>{
-   const select=overlay.querySelector('[data-gallery-character]'),chars=getCharacterCards();
-   select.innerHTML=chars.map((ch,i)=>'<option value="'+i+'">'+esc(ch?.name||ch?.avatar||('角色 '+(i+1)))+'</option>').join('');
-   if(!chars.length){status('没有可选择的角色卡。');return;}
-   overlay.querySelector('.ql-gallery-detail-move').hidden=false;overlay.querySelector('.ql-gallery-detail-main').hidden=true;
-  });
-  overlay.querySelector('[data-gallery-back]').addEventListener('click',()=>{
-   overlay.querySelector('.ql-gallery-detail-move').hidden=true;overlay.querySelector('.ql-gallery-detail-main').hidden=false;
-  });
-  overlay.querySelector('[data-gallery-confirm-move]').addEventListener('click',()=>{
-   const index=Number(overlay.dataset.qlGalleryRecordIndex),promptId=String(overlay.dataset.qlGalleryPromptId||''),select=overlay.querySelector('[data-gallery-character]');
-   const record=cfg().records?.[index],key=String(select.value),character=getCharacterCards()[Number(key)];
-   if(!record||!character){status('请选择有效的角色卡。');return;}
-   record.albumCharacterName=String(character.name||character.avatar||('角色 '+(Number(key)+1)));record.albumCharacterKey=key;
-   if(promptId){record.promptGalleryExcludedIds=Array.isArray(record.promptGalleryExcludedIds)?record.promptGalleryExcludedIds:[];if(!record.promptGalleryExcludedIds.includes(promptId))record.promptGalleryExcludedIds.push(promptId);}
-   save();overlay.close();const photo=document.querySelector('#ql-prompt-gallery-content [data-prompt-record="'+index+'"]')?.closest('.ql-album-photo');photo?.remove();
-   const count=document.querySelector('#ql-prompt-gallery-content .ql-album-toolbar-title small');if(count&&photo)count.textContent=Math.max(0,Number.parseInt(count.textContent,10)-1)+' 张照片';
-   status('照片已移动到「'+record.albumCharacterName+'」角色相册。底片原图仍保留。');
-  });
-  overlay.addEventListener('close',()=>{overlay.querySelector('img')?.removeAttribute('src');$('#ql-result-enlarge')?.classList.remove('is-enlarged');overlay.querySelector('.ql-gallery-detail-actions').hidden=true;overlay.querySelector('.ql-gallery-detail-move').hidden=true;overlay.querySelector('.ql-gallery-detail-main').hidden=false;});
+  overlay.innerHTML='<div class="ql-album-paper is-flip"><div class="ql-album-single-page"><div class="ql-album-single-photo"><img alt="放大查看的生成图片"></div></div></div><button type="button" class="ql-viewfinder-lightbox-close" aria-label="关闭图片" title="关闭">×</button>';
+  overlay.addEventListener('click',event=>{if(event.target===overlay||event.target.closest('.ql-viewfinder-lightbox-close')){if(overlay.open)overlay.close();else overlay.removeAttribute('open');}});
+  overlay.addEventListener('close',()=>{overlay.querySelector('img')?.removeAttribute('src');$('#ql-result-enlarge')?.classList.remove('is-enlarged');});
   document.body.append(overlay);
  }
- overlay.dataset.qlGalleryRecordIndex=galleryContext?String(galleryContext.recordIndex):'';
- overlay.dataset.qlGalleryPromptId=galleryContext?String(galleryContext.promptId||''):'';
- overlay.querySelector('.ql-gallery-detail-actions').hidden=!galleryContext;
  overlay.querySelector('img').src=url;
  if(!overlay.open){
   if(typeof overlay.showModal==='function')overlay.showModal();
