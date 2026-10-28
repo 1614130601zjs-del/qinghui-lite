@@ -1669,14 +1669,14 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
  display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto;gap:8px;margin:0;
 }
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button{
- display:inline-flex;align-items:center;justify-content:center;flex:0 0 40px;
- width:40px;height:40px;min-width:40px;min-height:40px;padding:9px;margin:0;
+ display:inline-flex;align-items:center;justify-content:center;flex:0 0 34px;
+ width:34px;height:34px;min-width:34px;min-height:34px;padding:7px;margin:0;
  border:1px solid var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.35)));
  border-radius:11px;background:color-mix(in srgb,var(--ql-card,transparent) 88%,var(--ql-accent,transparent));
  color:var(--ql-text,var(--SmartThemeBodyColor));box-shadow:none;touch-action:manipulation;
 }
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button svg{
- display:block;width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+ display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
 }
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:disabled{opacity:.36;cursor:default;}
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):active{transform:scale(.96);}
