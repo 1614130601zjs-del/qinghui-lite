@@ -2174,7 +2174,7 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 }
 @media(max-width:420px){
  #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center;}
- #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar-title{order:initial;flex:initial;min-width:0;}
+ #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-toolbar-title{order:initial;flex:initial;min-width:0;transform:translateX(-8px);}
 }
 
 
