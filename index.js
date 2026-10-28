@@ -801,7 +801,7 @@ function storeChatRecord(url,prompt,taskKey,meta={}){
   id:taskKey+':'+Date.now(),at:Date.now(),prompt:resolved.prompt,basePrompt:prompt,negative:resolved.negative||c.negative||'',
   provider:c.provider,model:c.provider!=='openai'?c.naiModel:c.model,
   size:c.provider!=='openai'?(c.naiWidth+'x'+c.naiHeight):c.size,
-  quality:c.provider==='openai'?c.quality:null,dataUrl:url,
+  quality:c.provider==='openai'?c.quality:null,dataUrl:url,characterName:meta.characterName||getContext()?.name2||null,characterKey:meta.characterKey??getContext()?.characterId??null,
   preset:preset?{name:preset.name||'',positive:preset.positive||'',negative:preset.negative||'',index:presetIndex,source:preset.source||'local'}:null,
   vibe:vibe?{name:vibe.name||'',entries:(vibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,
   config:snapshotConfig(prompt,resolved.negative),source:meta.source||'chat',
@@ -904,7 +904,7 @@ async function runInlineImageTrigger(button,entry){
  const statusNode=document.createElement('span');statusNode.className='ql-chat-image-status';statusNode.textContent='正在提交给 NAI 生图…';button.after(statusNode);
  try{
   const context=getContext();
-  const meta={messageIndex:entry.messageIndex,character:context?.name||null,chatId:context?.chatId||null};
+  const meta={messageIndex:entry.messageIndex,character:context?.name||null,characterName:context?.name2||null,characterKey:context?.characterId??null,chatId:context?.chatId||null};
   const url=await requestWithActiveSettings(prompt);
   const host=button.closest('.mes_text')||document.querySelector('.mes[mesid="'+entry.messageIndex+'"] .mes_text');
   if(!host)throw new Error('找不到原消息正文，图片已生成但无法插入原消息。');
@@ -1463,11 +1463,13 @@ function history(){
    detailActions.querySelector('[data-gallery-move]').onclick=()=>{
     const choices=roleChoices();
     const live=cfg().records?.[index];
-    const sourceName=String(live?.characterName||live?.character||'').trim();
+    const sourceName=String(live?.characterName||'').trim();
     const sourceChoice=choices.find(choice=>choice.name.trim()===sourceName);
+    const sourceKey=live?.characterKey==null?'':String(live.characterKey);
+    const keyedSourceChoice=choices.find(choice=>sourceKey!==''&&String(choice.key)===sourceKey);
     const current=currentCharacter();
-    const currentChoice=choices.find(choice=>String(choice.key)===String(current.id)&&(!sourceName||choice.name.trim()===sourceName));
-    const defaultKey=sourceChoice?.key??currentChoice?.key??null;
+    const currentChoice=choices.find(choice=>String(choice.key)===String(current.id));
+    const defaultKey=sourceChoice?.key??keyedSourceChoice?.key??currentChoice?.key??null;
     showDetailChoice('移动到角色卡相册','已优先选中这张照片原本生成时所属的角色卡；也可以手动更改。',choices,'确认移动',choice=>setRoleAlbum(cfg().records?.[index],choice),defaultKey);
    };
   }else if(detailContext==='roleAlbum'){
