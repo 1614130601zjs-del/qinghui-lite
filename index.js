@@ -1946,7 +1946,7 @@ function syncViewfinderActions(){
  favorite.disabled=!img;enlarge.disabled=!img;
  const imageSources=img?[img.dataset.qlStoredSrc,img.currentSrc,img.src,img.getAttribute('src')].filter(Boolean):[];
  const matches=img?(cfg().records||[]).filter(item=>item&&imageSources.some(source=>sameImageSource(item.dataUrl,source))):[];
- const saved=matches.some(record=>!!record.albumCharacterName||record.collection==='character-album');
+ const saved=matches.some(record=>!!record.albumCharacterName);
  const label=saved?'取消角色相册收藏':'收藏到角色相册';
  favorite.classList.toggle('is-favorite',saved);
  favorite.setAttribute('aria-label',label);favorite.title=label;
