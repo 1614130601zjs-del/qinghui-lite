@@ -308,7 +308,7 @@ function resolveActiveGeneration(prompt, negativeOverride){
  const preset=presetIndex>=0?s.presets[presetIndex]:null;
  const vibeIndex=combo?Number(combo.vibeIndex??-1):Number(s.activeVibeIndex??-1);
  const vibe=vibeIndex>=0?s.vibes[vibeIndex]:null;
- const finalPrompt=[String(prompt??'').trim(),preset?.positive].filter(Boolean).join(', ');
+ const finalPrompt=[preset?.positive,String(prompt??'').trim()].filter(Boolean).join(', ');
  const baseNegative=String(negativeOverride??s.negative??'').trim();
  const finalNegative=negativeOverride==null
   ?[baseNegative,preset?.negative].filter(Boolean).join(', ')
@@ -326,7 +326,7 @@ function resolveCombinationGeneration(prompt, comboIndex, settings=cfg()){
  const index=Number(comboIndex),combo=Number.isInteger(index)&&index>=0?settings.combinations[index]:null;
  const presetIndex=combo?Number(combo.artistIndex??-1):-1,vibeIndex=combo?Number(combo.vibeIndex??-1):-1;
  const preset=presetIndex>=0?settings.presets[presetIndex]:null,vibe=vibeIndex>=0?settings.vibes[vibeIndex]:null;
- return {prompt:[String(prompt??'').trim(),preset?.positive].filter(Boolean).join(', '),negative:String(preset?.negative??'').trim(),vibe,presetIndex,preset,vibeIndex,comboIndex:combo?index:-1};
+ return {prompt:[preset?.positive,String(prompt??'').trim()].filter(Boolean).join(', '),negative:String(preset?.negative??'').trim(),vibe,presetIndex,preset,vibeIndex,comboIndex:combo?index:-1};
 }
 function resolveChatImageGeneration(prompt, context=getContext()){
  const s=cfg(),characterId=context?.characterId==null?'':String(context.characterId);
