@@ -102,7 +102,7 @@ function hideMarkersInTextNode(root,entries=[]){
    const entry=entries[entryCursor++],prompt=match[1].trim();
    if(!prompt){last=re.lastIndex;continue;}
    const button=document.createElement('button');
-   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='相册收录';button.title='点击生成图片并收录到当前消息';
+   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='点击生成图片并收录到当前消息';
    button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;
    // 稳定标识：只看“第几条消息的第几个标记”，不依赖 chatId 是否已就绪，避免刷新后 chatId 延迟到位时把同一个标记重复渲染成第二个按钮。
    if(entry&&entry.messageIndex!=null&&entry.markerOrdinal!=null)button.dataset.qlMarker=entry.messageIndex+':'+entry.markerOrdinal;
@@ -809,6 +809,15 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
   reroll.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();runChatReroll();});
   card._qlRender=render;
  }
+ let albumHeader=card.querySelector(':scope > .ql-chat-image-header');
+ if(!albumHeader){
+  albumHeader=document.createElement('button');albumHeader.type='button';albumHeader.className='ql-chat-image-header';
+  albumHeader.innerHTML='<span class="ql-chat-image-header-title">拾帧相册</span><span class="ql-chat-image-header-subtitle">PHOTO ALBUM</span><span class="ql-chat-image-header-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 14 6-6 6 6"/></svg></span>';
+  card.insertBefore(albumHeader,card.firstChild);
+ }
+ const syncAlbumHeader=()=>{const collapsed=card.classList.contains('ql-image-collapsed');albumHeader.setAttribute('aria-expanded',String(!collapsed));albumHeader.setAttribute('aria-label',collapsed?'展开拾帧相册':'折叠拾帧相册');albumHeader.title=collapsed?'点击展开图片':'点击折叠图片';const toggle=albumHeader.querySelector('.ql-chat-image-header-toggle');if(toggle)toggle.innerHTML=collapsed?'<svg viewBox="0 0 24 24"><path d="m6 10 6 6 6-6"/></svg>':'<svg viewBox="0 0 24 24"><path d="m6 14 6-6 6 6"/></svg>';};
+ albumHeader.onclick=event=>{event.preventDefault();event.stopPropagation();card.classList.toggle('ql-image-collapsed');syncAlbumHeader();};
+ syncAlbumHeader();
  card.dataset.qlPrompt=String(prompt||card.dataset.qlPrompt||'');
  applyChatAlbumStyle(card,cfg().chatAlbumStyle||'classic');applyChatTheme(card);
  if(!card._qlCandidates.some(item=>item.url===url)){card._qlCandidates.push({url,at:Date.now()});card._qlIndex=card._qlCandidates.length-1;}
@@ -1034,7 +1043,7 @@ async function processLatestAssistantMessage(){
    if([...host.querySelectorAll('[data-ql-prompt]')].some(button=>button.dataset.qlPrompt===entry.prompt&&button.dataset.qlTrigger===entry.taskKey))continue;
    const button=document.createElement('button');
    button.type='button';button.className='menu_button ql-inline-image-trigger';
-   button.textContent='相册收录';
+   button.textContent='定格此刻';
    button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
    button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;button.dataset.qlMarker=entry.markerKey;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
