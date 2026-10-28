@@ -3788,3 +3788,15 @@ dialog.ql-viewfinder-lightbox .ql-gallery-detail-actions button{min-height:36px;
 dialog.ql-viewfinder-lightbox .ql-gallery-detail-move{display:flex;flex-direction:column;gap:8px;}
 dialog.ql-viewfinder-lightbox .ql-gallery-detail-move label{display:flex;flex-direction:column;gap:5px;font-size:13px;}
 dialog.ql-viewfinder-lightbox .ql-gallery-detail-move select{width:100%;min-height:38px;padding:6px 10px;border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.35));border-radius:8px;background:var(--SmartThemeBlurTintColor,#fff);color:var(--SmartThemeBodyColor,#333);}
+
+/* Prompt gallery photo detail page */
+#qinghui-lite-panel .ql-prompt-photo-detail-paper{max-width:760px;margin:0 auto;padding:clamp(12px,3vw,22px);border:1px solid #d8c7b8;border-radius:8px;background:linear-gradient(110deg,#eee3d5,#fffaf1 8%,#f8f0e4 94%,#e5d7c7);box-shadow:0 5px 16px rgba(60,43,32,.08);}
+#qinghui-lite-panel .ql-prompt-photo-detail-image{display:block;width:100%;max-height:58vh;margin:0 auto 18px;padding:8px;border:1px solid rgba(105,84,65,.2);background:#fffdf9;box-shadow:0 2px 8px rgba(58,43,30,.12);cursor:zoom-in;}
+#qinghui-lite-panel .ql-prompt-photo-detail-image img{display:block;width:100%;max-height:55vh;object-fit:contain;}
+#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-cache-prompt-section{margin:14px 0;}
+#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-main{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px;}
+#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-main button{min-height:38px;padding:8px 16px;border:1px solid var(--SmartThemeBorderColor,rgba(127,127,127,.35));border-radius:10px;}
+#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-move{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-move[hidden]{display:none!important;}
+#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-move label{display:flex;flex-direction:column;gap:6px;}
+#qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-move select{min-height:38px;padding:6px 10px;}
