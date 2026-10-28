@@ -949,16 +949,40 @@ async function processLatestAssistantMessage(){
    if(existingByMarker&&existingByMarker.dataset.qlTrigger!==entry.taskKey){
     existingByMarker.dataset.qlTrigger=entry.taskKey;existingByMarker.dataset.qlPrompt=entry.prompt;
    }
-   const allInlineRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&Number(item.messageIndex)===messageIndex&&(item.source||'chat')==='chat'&&(!item.chatId||!context.chatId||item.chatId===context.chatId));
-   let savedRecords=allInlineRecords.filter(item=>item.taskKey===entry.taskKey);
-   // 兼容刷新时 chatId / swipe_id 初始化时序不同导致 taskKey 不一致：先用消息序号+标记序号恢复；旧缓存没有标记序号时，仅在提示词候选唯一时兜底，避免串图。
+   const promptKey=String(entry.prompt||'').trim();
+   const recordPrompt=item=>String(item.basePrompt||item.prompt||'').trim();
+   const allChatRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&(item.source||'chat')==='chat');
+   const sameChatRecords=allChatRecords.filter(item=>!item.chatId||!context.chatId||item.chatId===context.chatId);
+   const samePositionRecords=sameChatRecords.filter(item=>Number(item.messageIndex)===messageIndex);
+   let savedRecords=samePositionRecords.filter(item=>item.taskKey===entry.taskKey);
+   // 分层恢复旧图片：优先精确任务标识，其次消息位置+标记序号/提示词；兼容旧缓存或聊天重绘后消息序号变化时，只接受不会造成串图的唯一提示词匹配。
    if(!savedRecords.length){
-    const byOrdinal=allInlineRecords.filter(item=>Number.isInteger(item.markerOrdinal)&&item.markerOrdinal===entry.markerOrdinal&&String(item.basePrompt||item.prompt||'').trim()===String(entry.prompt||'').trim());
+    const byOrdinal=samePositionRecords.filter(item=>Number.isInteger(item.markerOrdinal)&&item.markerOrdinal===entry.markerOrdinal&&recordPrompt(item)===promptKey);
     if(byOrdinal.length)savedRecords=byOrdinal;
     else{
-     const byPrompt=allInlineRecords.filter(item=>String(item.basePrompt||item.prompt||'').trim()===String(entry.prompt||'').trim());
+     const byPrompt=samePositionRecords.filter(item=>recordPrompt(item)===promptKey);
      if(byPrompt.length===1)savedRecords=byPrompt;
     }
+   }
+   // 酒馆删改/重排消息后，缓存里的 messageIndex 可能过期；同一聊天内提示词唯一时允许跨位置恢复。
+   if(!savedRecords.length){
+    const byChatPrompt=sameChatRecords.filter(item=>recordPrompt(item)===promptKey);
+    if(byChatPrompt.length===1)savedRecords=byChatPrompt;
+    else{
+     // 如果聊天 ID 也发生变化，只在整个缓存中提示词唯一时兜底，避免误拿其他聊天的同提示词图片。
+     const byGlobalPrompt=allChatRecords.filter(item=>recordPrompt(item)===promptKey);
+     if(byGlobalPrompt.length===1)savedRecords=byGlobalPrompt;
+    }
+   }
+   if(savedRecords.length){
+    for(const record of savedRecords){
+     if(record.taskKey!==entry.taskKey||Number(record.messageIndex)!==messageIndex||record.markerOrdinal!==entry.markerOrdinal||(!record.chatId&&context.chatId)){
+      record.taskKey=entry.taskKey;record.messageIndex=messageIndex;record.markerOrdinal=entry.markerOrdinal;
+      if(context.chatId)record.chatId=context.chatId;
+      if(!record.basePrompt)record.basePrompt=entry.prompt;
+     }
+    }
+    save();
    }
    savedRecords.sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
