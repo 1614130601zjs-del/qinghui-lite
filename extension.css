@@ -4212,3 +4212,13 @@ dialog.ql-viewfinder-lightbox button:disabled {
   transform:none!important;
   opacity:1!important;
 }
+
+/* 收藏中的状态栏星星按压时仍保持浅色底，不被通用 active 规则覆盖。 */
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active:not(:disabled) {
+  background:rgba(255,255,255,.18)!important;
+  background-color:rgba(255,255,255,.18)!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+}
