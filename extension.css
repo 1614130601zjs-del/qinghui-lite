@@ -3935,3 +3935,94 @@ dialog.ql-viewfinder-lightbox button:active:not(:disabled),
 dialog.ql-viewfinder-lightbox button:disabled {
   opacity:.48;
 }
+
+
+/* 0.5.108: keep prompt-library actions on one line and stabilize detail-page action layout/colors. */
+#qinghui-lite-panel .ql-prompt-tile-actions{
+ display:flex!important;
+ flex-flow:row nowrap!important;
+ align-items:stretch!important;
+ gap:5px!important;
+ width:100%!important;
+ min-width:0!important;
+}
+#qinghui-lite-panel .ql-prompt-tile-actions button{
+ display:inline-flex!important;
+ flex:1 1 0!important;
+ align-items:center!important;
+ justify-content:center!important;
+ min-width:0!important;
+ max-width:100%!important;
+ width:0!important;
+ margin:0!important;
+ padding:7px 2px!important;
+ box-sizing:border-box!important;
+ white-space:nowrap!important;
+ word-break:keep-all!important;
+ overflow-wrap:normal!important;
+ font-size:clamp(10px,2.8vw,12px)!important;
+ line-height:1.2!important;
+}
+#ql-image-cache-modal .ql-cache-modal-content,
+#ql-image-cache-modal .ql-cache-modal-content h3,
+#ql-image-cache-modal .ql-cache-modal-content h4,
+#ql-image-cache-modal .ql-cache-modal-content p,
+#ql-image-cache-modal .ql-cache-modal-content label,
+#ql-image-cache-modal .ql-cache-modal-content small,
+#ql-image-cache-modal .ql-cache-modal-content span,
+#ql-image-cache-modal .ql-cache-modal-content pre,
+#ql-image-cache-modal .ql-cache-modal-content summary,
+.ql-detail-choice-overlay,
+.ql-detail-choice-overlay h3,
+.ql-detail-choice-overlay p,
+.ql-detail-choice-overlay label{
+ color:var(--ql-text,var(--SmartThemeBodyColor,#354653));
+}
+#ql-image-cache-modal .ql-cache-detail-actions,
+#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-main,
+#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-move-actions,
+#ql-image-cache-modal .ql-cache-modal-content .ql-gallery-detail-main{
+ display:flex!important;
+ flex-flow:row nowrap!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:8px!important;
+ width:100%!important;
+ min-width:0!important;
+}
+#ql-image-cache-modal .ql-cache-detail-actions button,
+#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-main button,
+#ql-image-cache-modal .ql-cache-modal-content .ql-gallery-detail-main button,
+.ql-detail-choice-overlay button{
+ display:inline-flex!important;
+ flex:1 1 0!important;
+ align-items:center!important;
+ justify-content:center!important;
+ min-width:0!important;
+ max-width:100%!important;
+ width:auto!important;
+ margin:0!important;
+ padding:8px 10px!important;
+ box-sizing:border-box!important;
+ white-space:nowrap!important;
+ writing-mode:horizontal-tb!important;
+ text-orientation:mixed!important;
+ word-break:keep-all!important;
+ overflow-wrap:normal!important;
+ line-height:1.25!important;
+}
+#ql-image-cache-modal .ql-cache-modal-content .ql-gallery-detail-move{
+ display:flex!important;
+ flex-direction:column!important;
+ gap:8px!important;
+}
+#ql-image-cache-modal .ql-cache-modal-content .ql-gallery-detail-move select,
+.ql-detail-choice-overlay select{
+ color:var(--ql-text,var(--SmartThemeBodyColor,#354653))!important;
+ background:var(--ql-field,var(--ql-card,var(--SmartThemeBlurTintColor,#fff)))!important;
+ border-color:var(--ql-border,var(--SmartThemeBorderColor,#ccc))!important;
+}
+@media(max-width:360px){
+ #qinghui-lite-panel .ql-prompt-tile-actions{gap:3px!important}
+ #qinghui-lite-panel .ql-prompt-tile-actions button{padding:6px 1px!important;font-size:10px!important}
+}
