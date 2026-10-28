@@ -4357,3 +4357,62 @@ dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-cl
 dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close{
  -webkit-tap-highlight-color:transparent!important;
 }
+
+/* Shared close-button treatment: translucent frosted glass, with no hover/focus/press feedback. */
+#shizhen-panel #ql-close,
+#ql-image-cache-modal .ql-cache-modal-close,
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close,
+.ql-download-modal-close,
+#shizhen-panel #ql-close:hover,
+#shizhen-panel #ql-close:focus,
+#shizhen-panel #ql-close:focus-visible,
+#shizhen-panel #ql-close:active,
+#ql-image-cache-modal .ql-cache-modal-close:hover,
+#ql-image-cache-modal .ql-cache-modal-close:focus,
+#ql-image-cache-modal .ql-cache-modal-close:focus-visible,
+#ql-image-cache-modal .ql-cache-modal-close:active,
+.ql-download-modal-close:hover,
+.ql-download-modal-close:focus,
+.ql-download-modal-close:focus-visible,
+.ql-download-modal-close:active{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;
+ margin:0!important;padding:0!important;flex:0 0 32px!important;
+ border:1px solid rgba(255,255,255,.58)!important;border-radius:999px!important;
+ color:#fff!important;background:rgba(24,20,28,.28)!important;background-color:rgba(24,20,28,.28)!important;
+ box-shadow:0 1px 6px rgba(0,0,0,.15)!important;
+ backdrop-filter:blur(5px)!important;-webkit-backdrop-filter:blur(5px)!important;
+ outline:none!important;transform:none!important;filter:none!important;opacity:1!important;
+ transition:none!important;-webkit-tap-highlight-color:transparent!important;cursor:pointer!important;
+}
+#shizhen-panel #ql-close svg,
+#ql-image-cache-modal .ql-cache-modal-close svg,
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close svg,
+.ql-download-modal-close svg{
+ display:block!important;width:18px!important;height:18px!important;flex:none!important;
+ fill:none!important;stroke:currentColor!important;stroke-width:2.2!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#shizhen-panel #ql-close:hover,
+#shizhen-panel #ql-close:focus,
+#shizhen-panel #ql-close:focus-visible,
+#shizhen-panel #ql-close:active,
+#ql-image-cache-modal .ql-cache-modal-close:hover,
+#ql-image-cache-modal .ql-cache-modal-close:focus,
+#ql-image-cache-modal .ql-cache-modal-close:focus-visible,
+#ql-image-cache-modal .ql-cache-modal-close:active,
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close:hover,
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close:focus,
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close:focus-visible,
+dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close:active,
+.ql-download-modal-close:hover,
+.ql-download-modal-close:focus,
+.ql-download-modal-close:focus-visible,
+.ql-download-modal-close:active{
+ color:#fff!important;background:rgba(24,20,28,.28)!important;background-color:rgba(24,20,28,.28)!important;
+ border-color:rgba(255,255,255,.58)!important;box-shadow:0 1px 6px rgba(0,0,0,.15)!important;
+ outline:none!important;transform:none!important;filter:none!important;opacity:1!important;
+}
+#ql-image-cache-modal .ql-cache-modal-panel{padding-top:12px;}
+#ql-image-cache-modal .ql-cache-modal-close{display:flex!important;margin:0 0 8px auto!important;}
+.ql-download-modal-close{align-self:flex-start!important;}
