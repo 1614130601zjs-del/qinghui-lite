@@ -4488,3 +4488,14 @@ html > .ql-album-menu-portal .ql-album-more-menu-panel button:active{
  html > .ql-album-menu-portal:not([hidden]){padding:14px!important;}
  html > .ql-album-menu-portal .ql-album-more-menu-panel{max-height:calc(100vh - 28px)!important;max-height:calc(100dvh - 28px)!important;padding:15px!important;}
 }
+
+/* Viewfinder character appearance fields */
+#shizhen-panel .ql-viewfinder-roles-card .ql-section-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+#shizhen-panel .ql-viewfinder-roles-card .ql-section-heading>div{min-width:0;flex:1}
+#shizhen-panel .ql-viewfinder-roles-card .ql-section-heading button{flex:0 0 auto;margin-top:0}
+#shizhen-panel .ql-viewfinder-role{padding:10px 0;border-top:1px solid var(--SmartThemeBorderColor)}
+#shizhen-panel .ql-viewfinder-role:first-child{border-top:0}
+#shizhen-panel .ql-viewfinder-role-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#shizhen-panel .ql-viewfinder-role-head strong{font-size:13px}
+#shizhen-panel .ql-viewfinder-role-head button{margin:0;flex:0 0 auto}
+#shizhen-panel .ql-viewfinder-role textarea{min-height:72px}
