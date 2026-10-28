@@ -2045,7 +2045,7 @@ function toggleViewfinderFavorite(){
  const imageSources=[img.dataset.qlStoredSrc,img.currentSrc,img.src,img.getAttribute('src')].filter(Boolean);
  const matches=records.filter(item=>item&&imageSources.some(source=>sameImageSource(item.dataUrl,source)));
  if(!matches.length){status('暂时找不到这张图片的缓存记录。');return;}
- if(matches.some(item=>item.albumCharacterName)){
+ if(matches.some(item=>item.albumCharacterName||item.collection==='character-album')){
   for(const item of matches){delete item.albumCharacterName;delete item.albumCharacterKey;delete item.promptEntryId;delete item.sourcePromptEntryId;delete item.sourcePromptEntryAppliedAt;item.collection='cache';}
   save();history();syncViewfinderAlbumTargets();syncViewfinderActions();status('已取消收藏；图片已回到底片缓存。');return;
  }
