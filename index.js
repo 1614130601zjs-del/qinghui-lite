@@ -2053,7 +2053,7 @@ function toggleViewfinderFavorite(){
  if(matches.some(item=>isPromptGalleryRecord(item,settings))){
   status('这张照片已归入提示词图集，不会重复收藏到当前角色相册。');return;
  }
- const character=currentCharacter(),defaultName=String(character.name||getContext()?.name2||'当前角色').trim(),target=String(settings.viewfinderAlbumTargetKey||'__current__');
+ const character=currentCharacter(),defaultName=String(character.name||getContext()?.name2||'当前角色').trim(),target=String(settings.viewfinderAlbumTargetKey||$('#ql-result-album-target')?.value||'__current__');
  let key=character.id||'',name=defaultName;
  if(target!=='__current__'){
   key=target;
@@ -2263,7 +2263,7 @@ jQuery(()=>{
   if(eventName)eventSource.on(eventName,scheduleScan);
  }
  if(event_types.CHAT_CHANGED)eventSource.on(event_types.CHAT_CHANGED,()=>{autoTasks.clear();renderBindings();renderLibrary();applyCurrentBinding();});
- if(event_types.CHARACTER_SELECTED)eventSource.on(event_types.CHARACTER_SELECTED,()=>{renderBindings();renderLibrary();applyCurrentBinding();});
+ if(event_types.CHARACTER_SELECTED)eventSource.on(event_types.CHARACTER_SELECTED,()=>{renderBindings();renderLibrary();syncViewfinderAlbumTargets();applyCurrentBinding();});
  applyCurrentBinding();
 });
 
