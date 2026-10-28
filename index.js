@@ -2150,12 +2150,15 @@ jQuery(()=>{
  // 兼容热重载：旧版 #ql-overlay 已存在时，主初始化块会跳过 html() 与 init()。
  // 确保「参数 → 预设」里的全局通用预设卡片和保存事件仍然存在。
  function removeLegacyEnglishText(){
-  const walker=document.createTreeWalker(document,NodeFilter.SHOW_TEXT);
-  const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
-  for(const node of nodes){
-   if(!node.parentNode||!(/remove\\s+standalone\\s+reroll\\s+settings\\s+card/i.test(node.nodeValue||'')))continue;
-   node.nodeValue=(node.nodeValue||'').replace(/remove\\s+standalone\\s+reroll\\s+settings\\s+card/ig,'');
-   if(!node.nodeValue.trim()&&!node.parentElement?.children.length)node.parentElement?.remove();
+  const panels=[...document.querySelectorAll('#ql-overlay #qinghui-lite-panel')];
+  for(const panel of panels){
+   const walker=document.createTreeWalker(panel,NodeFilter.SHOW_TEXT);
+   const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+   for(const node of nodes){
+    if(!node.parentNode||!(/remove\s+standalone\s+reroll\s+settings\s+card/i.test(node.nodeValue||'')))continue;
+    node.nodeValue=(node.nodeValue||'').replace(/remove\s+standalone\s+reroll\s+settings\s+card/ig,'');
+    if(!node.nodeValue.trim()&&!node.parentElement?.children.length)node.parentElement?.remove();
+   }
   }
  }
  function ensureGlobalComboPresetUi(){
@@ -2192,6 +2195,7 @@ jQuery(()=>{
   };
  }
  ensureGlobalComboPresetUi();
+ removeLegacyEnglishText();
  if(restoreOverlayOpen){
   const overlay=$('#ql-overlay');
   if(overlay){overlay.hidden=false;document.body.classList.add('ql-modal-open');}
