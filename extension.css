@@ -3882,11 +3882,11 @@ dialog.ql-viewfinder-lightbox .ql-gallery-detail-move select{width:100%;min-heig
 }
 
 
-/* 0.5.107: all 拾帧 buttons use the selected 拾帧 palette, not Tavern's global button skin. Auto mode leaves native Tavern styling untouched. */
+/* 0.5.107: plugin panel buttons use the selected 拾帧 palette. Chat and statusbar controls retain their own original CSS. */
 #qinghui-lite-panel button,
 #ql-image-cache-modal button,
 .ql-detail-choice-overlay button,
-dialog.ql-viewfinder-lightbox button,
+dialog.ql-viewfinder-lightbox button {
   background-color:var(--ql-button-bg, var(--SmartThemeBlurTintColor, rgba(127,127,127,.10)))!important;
   border-width:1px!important;
   border-style:solid!important;
@@ -3900,7 +3900,7 @@ dialog.ql-viewfinder-lightbox button,
 #qinghui-lite-panel button:hover,
 #ql-image-cache-modal button:hover,
 .ql-detail-choice-overlay button:hover,
-dialog.ql-viewfinder-lightbox button:hover,
+dialog.ql-viewfinder-lightbox button:hover {
   background-color:var(--ql-button-hover, var(--SmartThemeQuoteColor, rgba(127,127,127,.16)))!important;
   color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
 }
@@ -3917,7 +3917,7 @@ dialog.ql-viewfinder-lightbox button:focus-visible {
 #qinghui-lite-panel button:active:not(:disabled),
 #ql-image-cache-modal button:active:not(:disabled),
 .ql-detail-choice-overlay button:active:not(:disabled),
-dialog.ql-viewfinder-lightbox button:active:not(:disabled),
+dialog.ql-viewfinder-lightbox button:active:not(:disabled) {
   background-color:var(--ql-button-active, var(--SmartThemeQuoteColor, rgba(127,127,127,.22)))!important;
   color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
   transform:none;
