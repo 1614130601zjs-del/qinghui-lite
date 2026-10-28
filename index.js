@@ -2141,7 +2141,7 @@ jQuery(()=>{
    launch.setAttribute('role','button');
    launch.setAttribute('tabindex','0');
    launch.title='打开拾帧';
-   launch.innerHTML='<i class="fa-solid fa-images"></i><span>拾帧</span>';
+   launch.innerHTML='<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 9v9A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18V9A1.5 1.5 0 0 1 4 7.5Z"/><circle cx="12" cy="13" r="3.5"/></svg><span>拾帧</span>';
   }
   if(launch.parentElement!==menu)menu.append(launch);
   launch.onclick=()=>{
@@ -2210,7 +2210,7 @@ jQuery(()=>{
     launch.setAttribute('role','button');
     launch.setAttribute('tabindex','0');
     launch.title='打开拾帧';
-    launch.innerHTML='<i class="fa-solid fa-images"></i><span>拾帧</span>';
+    launch.innerHTML='<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 9v9A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18V9A1.5 1.5 0 0 1 4 7.5Z"/><circle cx="12" cy="13" r="3.5"/></svg><span>拾帧</span>';
     launch.addEventListener('click',open);
     launch.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
    }
@@ -2311,7 +2311,7 @@ jQuery(() => {
    launch.setAttribute('role', 'button');
    launch.setAttribute('tabindex', '0');
    launch.title = '打开拾帧';
-   launch.innerHTML = '<i class="fa-solid fa-images"></i><span>拾帧</span>';
+   launch.innerHTML = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 9v9A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18V9A1.5 1.5 0 0 1 4 7.5Z"/><circle cx="12" cy="13" r="3.5"/></svg><span>拾帧</span>';
    launch.addEventListener('click', () => {
     const overlay = document.querySelector('#ql-overlay');
     if (!overlay) {
