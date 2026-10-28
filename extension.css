@@ -1647,7 +1647,6 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action{position:absolute!important;top:10px!important;z-index:2147483001!important;display:flex!important;visibility:visible!important;opacity:1!important;align-items:center!important;justify-content:center!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;padding:8px!important;border:1px solid var(--SmartThemeBorderColor,rgba(255,255,255,.65))!important;border-radius:50%!important;background:var(--SmartThemeQuoteColor,rgba(30,30,35,.55))!important;color:var(--SmartThemeBodyColor,#fff)!important;box-shadow:0 1px 5px rgba(0,0,0,.18)!important;pointer-events:auto!important;touch-action:manipulation!important;}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action svg{display:block!important;width:20px!important;height:20px!important;fill:none;stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important;}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite{right:56px!important;left:auto!important;}
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg path{fill:currentColor!important;}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-delete{right:10px!important;left:auto!important;}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action:disabled{opacity:.4!important;}
 @media(max-width:360px){
@@ -4127,34 +4126,9 @@ dialog.ql-viewfinder-lightbox button:disabled {
 #qinghui-lite-panel button.ql-tab[data-page="prompt-gallery"]{display:none!important;}
 
 
-/* 拾帧状态栏收藏：沿用拾帧按钮配色，外框不随收藏变金色，只让星星保持金色空心描边。 */
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite:hover:not(:disabled),
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:hover:not(:disabled) {
-  background:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
-  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
-  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24)))!important;
-  color:var(--ql-button-text,var(--SmartThemeBodyColor,inherit))!important;
-  box-shadow:none!important;
-  filter:none!important;
+/* Reuse the 7a4e843 chat favorite outline for the statusbar favorite icon. */
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite svg {
+ display:block!important;width:19px!important;height:19px!important;fill:none!important;
+ stroke:currentColor!important;stroke-width:1.8!important;stroke-linecap:round!important;stroke-linejoin:round!important;
 }
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:hover:not(:disabled) {
-  color:#d6a52f!important;
-}
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg path {
-  fill:none!important;
-  stroke:#d6a52f!important;
-}
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite:active:not(:disabled),
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active:not(:disabled) {
-  background:var(--ql-button-active,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
-  background-color:var(--ql-button-active,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
-  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24)))!important;
-  box-shadow:none!important;
-  filter:none!important;
-  transform:none!important;
-  opacity:1!important;
-}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite {color:#d6a52f!important;}
