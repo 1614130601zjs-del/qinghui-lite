@@ -325,7 +325,7 @@ function resolveCombinationGeneration(prompt, comboIndex, settings=cfg()){
  const index=Number(comboIndex),combo=Number.isInteger(index)&&index>=0?settings.combinations[index]:null;
  const presetIndex=combo?Number(combo.artistIndex??-1):-1,vibeIndex=combo?Number(combo.vibeIndex??-1):-1;
  const preset=presetIndex>=0?settings.presets[presetIndex]:null,vibe=vibeIndex>=0?settings.vibes[vibeIndex]:null;
- return {prompt:[String(prompt??'').trim(),preset?.positive].filter(Boolean).join(', '),negative:[String(settings.negative??'').trim(),preset?.negative].filter(Boolean).join(', '),vibe,presetIndex,preset,vibeIndex,comboIndex:combo?index:-1};
+ return {prompt:[String(prompt??'').trim(),preset?.positive].filter(Boolean).join(', '),negative:String(preset?.negative??'').trim(),vibe,presetIndex,preset,vibeIndex,comboIndex:combo?index:-1};
 }
 function resolveChatImageGeneration(prompt, context=getContext()){
  const s=cfg(),characterId=context?.characterId==null?'':String(context.characterId);
