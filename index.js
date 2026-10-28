@@ -2016,7 +2016,7 @@ function syncViewfinderAlbumTargets(){
  select.innerHTML='<option value="__current__">当前角色默认相册</option>'+[...albums.entries()].filter(([key])=>key!==currentKey).map(([key,name])=>'<option value="'+esc(key)+'">'+esc(name)+'</option>').join('');
  if(previous!=='__current__'&&[...select.options].some(option=>option.value===previous))select.value=previous;
  const target=select.closest('.ql-viewfinder-album-target');
- if(target)target.hidden=!s.viewfinderPromptUnlinked;
+ if(target)target.hidden=Boolean(s.activePromptEntryAppliedAt||s.activePromptEntryId);
 }
 function toggleViewfinderFavorite(){
  const img=$('#ql-result img');if(!img)return;
