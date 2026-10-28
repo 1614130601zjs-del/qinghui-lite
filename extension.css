@@ -4153,3 +4153,62 @@ dialog.ql-viewfinder-lightbox button:disabled {
   fill:none!important;
   stroke:#d6a52f!important;
 }
+
+
+/* 收藏状态只强调星星本身；正文与状态栏均取消外框金边和按钮按压变暗。 */
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:hover,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:active,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus-visible,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:hover,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus-visible {
+  color:#d6a52f!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  opacity:1!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:hover,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:active,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus-visible {
+  background:transparent!important;
+  background-color:transparent!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:hover,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus-visible {
+  background:rgba(255,255,255,.18)!important;
+  background-color:rgba(255,255,255,.18)!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg path,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg path {
+  fill:none!important;
+  stroke:#d6a52f!important;
+}
+
+/* 正文与状态栏控件在按下时沿用常态底色，不叠加酒馆的深色半透明 active 色。 */
+#chat .ql-chat-image-controls button:active:not(:disabled) {
+  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  opacity:1!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action:active:not(:disabled) {
+  background-color:var(--SmartThemeQuoteColor,rgba(30,30,35,.55))!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  opacity:1!important;
+}
