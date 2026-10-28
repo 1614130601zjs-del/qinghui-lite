@@ -4310,3 +4310,28 @@ dialog.ql-viewfinder-lightbox button:active:not(:disabled),
 #qinghui-lite-panel #ql-result-favorite.is-favorite:focus-visible {
   border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(255,255,255,.65)))!important;
 }
+
+
+/* 清除其余历史控件的缩放/按压阴影；所有拾帧控件按下时保持原位。 */
+#ql-image-cache-modal #ql-cache-copy-icon:active,
+#qinghui-lite-panel #ql-library-copy-icon:active,
+#qinghui-lite-panel #ql-history .ql-cache-tile:active,
+#chat .mes_text .ql-inline-image-trigger:active:not(:disabled),
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):active,
+#qinghui-lite-panel .ql-preset-compact.ql-preset-selectable:active,
+#qinghui-lite-panel .ql-album-shelf-pager .ql-album-create-open:active {
+  transform:none!important;
+  box-shadow:none!important;
+  filter:none!important;
+  opacity:1!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active:not(:disabled) {
+  background:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(255,255,255,.65)))!important;
+  color:#d6a52f!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+}
