@@ -4413,8 +4413,8 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close:active,
  border-color:rgba(255,255,255,.58)!important;box-shadow:0 1px 6px rgba(0,0,0,.15)!important;
  outline:none!important;transform:none!important;filter:none!important;opacity:1!important;
 }
-#ql-image-cache-modal .ql-cache-modal-panel{padding-top:12px;}
-#ql-image-cache-modal .ql-cache-modal-close{display:flex!important;margin:0 0 8px auto!important;}
+#ql-image-cache-modal .ql-cache-modal-panel{padding-top:48px;}
+#ql-image-cache-modal .ql-cache-modal-close{position:absolute!important;top:12px!important;right:12px!important;z-index:5!important;display:flex!important;margin:0!important;}
 .ql-download-modal-close{align-self:flex-start!important;}
 
 /* Album three-dot actions: use 拾帧's selected palette; keep the overlay above the plugin. */
