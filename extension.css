@@ -4314,3 +4314,28 @@ dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-cl
  dialog.ql-viewfinder-lightbox > .ql-album-paper.is-flip{max-width:calc(100vw - 10px)!important;max-height:calc(100dvh - 10px)!important;}
  dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close{top:8px!important;right:42px!important;width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;}
 }
+
+/* Exact body-renderer arrow treatment for the lightbox close control: same translucent surface and blur. */
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close{
+ position:absolute!important;top:12px!important;right:12px!important;left:auto!important;bottom:auto!important;
+ z-index:15!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ transform:none!important;
+ width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;
+ padding:0!important;margin:0!important;
+ border:1px solid rgba(255,255,255,.58)!important;border-radius:999px!important;
+ color:#fff!important;background:rgba(24,20,28,.28)!important;
+ box-shadow:0 1px 6px rgba(0,0,0,.15)!important;
+ backdrop-filter:blur(5px)!important;-webkit-backdrop-filter:blur(5px)!important;
+ cursor:pointer!important;
+}
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close svg{
+ display:block!important;width:18px!important;height:18px!important;flex:none!important;
+ fill:none!important;stroke:currentColor!important;stroke-width:2.2!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+@media(max-width:480px){
+ dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close{
+  top:12px!important;right:12px!important;left:auto!important;bottom:auto!important;
+  width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;
+ }
+}
