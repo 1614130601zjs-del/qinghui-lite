@@ -3893,7 +3893,6 @@ dialog.ql-viewfinder-lightbox button,
 #chat .ql-chat-image-controls button,
 .ql-statusbar-card button {
   background-color:var(--ql-button-bg, var(--SmartThemeBlurTintColor, rgba(127,127,127,.10)))!important;
-  border-color:var(--ql-button-border, var(--SmartThemeBorderColor, rgba(127,127,127,.35)))!important;
   color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
   background-image:none!important;
   box-shadow:none;
@@ -3909,16 +3908,7 @@ dialog.ql-viewfinder-lightbox button:hover,
   background-color:var(--ql-button-hover, var(--SmartThemeQuoteColor, rgba(127,127,127,.16)))!important;
   color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
 }
-#qinghui-lite-panel button:focus,
-#qinghui-lite-panel button:focus-visible,
-#ql-image-cache-modal button:focus,
-#ql-image-cache-modal button:focus-visible,
-.ql-detail-choice-overlay button:focus,
-.ql-detail-choice-overlay button:focus-visible,
-dialog.ql-viewfinder-lightbox button:focus,
-dialog.ql-viewfinder-lightbox button:focus-visible {
-  outline-color:var(--ql-button-border, var(--SmartThemeUnderlineColor, currentColor))!important;
-}
+/* 不强制覆盖按钮原有边框与焦点轮廓，避免透明按钮出现突兀描边。 */
 #qinghui-lite-panel button:active:not(:disabled),
 #ql-image-cache-modal button:active:not(:disabled),
 .ql-detail-choice-overlay button:active:not(:disabled),
@@ -4025,4 +4015,15 @@ dialog.ql-viewfinder-lightbox button:disabled {
 @media(max-width:360px){
  #qinghui-lite-panel .ql-prompt-tile-actions{gap:3px!important}
  #qinghui-lite-panel .ql-prompt-tile-actions button{padding:6px 1px!important;font-size:10px!important}
+}
+
+
+/* 0.5.109: preserve transparent button borders; only isolate fill and text colors. */
+#qinghui-lite-panel button,
+#ql-image-cache-modal button,
+.ql-detail-choice-overlay button,
+dialog.ql-viewfinder-lightbox button,
+#chat .ql-chat-image-controls button,
+.ql-statusbar-card button {
+  border-color:initial!important;
 }
