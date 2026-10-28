@@ -1475,7 +1475,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 #shizhen-panel .ql-album-empty-book{padding:12px 0 22px;}
 #shizhen-panel .ql-album-empty-cover{min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;border-radius:5px 14px 14px 5px;border:1px solid rgba(90,62,75,.35);background:linear-gradient(115deg,#d9b9c7,#f1dce4 20%,#ead0db 65%,#d5afc1);box-shadow:inset 8px 0 12px rgba(75,40,57,.16),0 8px 14px rgba(56,34,46,.14);color:#68495b;}
 #shizhen-panel .ql-album-empty-cover span{font-size:10px;letter-spacing:.22em;}
-#shizhen-panel .ql-album-empty-cover strong{font-family:Georgia,serif;font-size:20px;}
+#shizhen-panel .ql-album-empty-cover strong{font-family:inherit;font-size:20px;}
 #shizhen-panel .ql-album-empty-cover small{max-width:240px;line-height:1.7;}
 #shizhen-panel .ql-album-toolbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:7px;align-items:center;margin:0 0 12px;}
 #shizhen-panel .ql-album-toolbar>.menu_button{min-width:0;padding:7px 9px!important;font-size:11px!important;white-space:nowrap;}
