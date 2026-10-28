@@ -733,13 +733,12 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
    const current=card._qlCandidates?.[card._qlIndex];if(!current?.url)return;
    let records=(cfg().records||[]).filter(item=>item.taskKey===taskKey&&sameImageSource(item.dataUrl,current.url));
    if(!records.length){storeChatRecord(current.url,card.dataset.qlPrompt||prompt,taskKey,recordMeta);records=(cfg().records||[]).filter(item=>item.taskKey===taskKey&&sameImageSource(item.dataUrl,current.url));}
-   const record=records[0];if(!record){status('未能找到这张图片的缓存记录。');return;}
-   if(record.albumCharacterName){for(const item of records)delete item.albumCharacterName;save();render();history();status('已取消收藏；图片仍保留在缓存中。');return;}
-   const currentChar=currentCharacter();
-   const storedCharacter=typeof record.character==='string'?record.character:'';
-   const ctx=getContext()||{};
-   const name=String(record.characterName||storedCharacter||currentChar.name||recordMeta.characterName||recordMeta.character||ctx.name2||'当前角色').trim();
-   for(const item of records){item.albumCharacterName=name;item.albumCharacterKey=currentChar.id||'';}
+   if(!records.length){status('未能找到这张图片的缓存记录。');return;}
+   if(records.some(item=>item.albumCharacterName)){for(const item of records){delete item.albumCharacterName;delete item.albumCharacterKey;delete item.promptEntryId;delete item.sourcePromptEntryId;delete item.sourcePromptEntryAppliedAt;item.collection='cache';}save();render();history();status('已取消收藏；图片已回到底片缓存。');return;}
+   const currentChar=currentCharacter(),ctx=getContext()||{};
+   const storedCharacter=typeof records[0].character==='string'?records[0].character:'';
+   const name=String(records[0].characterName||storedCharacter||currentChar.name||recordMeta.characterName||recordMeta.character||ctx.name2||'当前角色').trim();
+   for(const item of records){item.albumCharacterName=name;item.albumCharacterKey=currentChar.id||records[0].characterKey||'';item.collection='character-album';delete item.promptEntryId;delete item.sourcePromptEntryId;delete item.sourcePromptEntryAppliedAt;}
    save();render();history();status('已收藏到「'+name+'」角色相册。');
   });
   let touchX=0,touchY=0;
@@ -1115,7 +1114,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   const actionBar=document.createElement('div');actionBar.className='ql-statusbar-action-bar';actionBar.style.cssText='position:absolute!important;top:7px!important;right:7px!important;left:auto!important;bottom:auto!important;transform:none!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:5px!important;width:max-content!important;max-width:96%!important;z-index:2147483647!important;pointer-events:auto!important;';
   for(const button of [favorite,remove]){button.style.cssText+=';position:static!important;top:auto!important;right:auto!important;left:auto!important;bottom:auto!important;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;flex:0 0 27px!important;width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important;padding:5px!important;border:1px solid rgba(255,255,255,.72)!important;border-radius:8px!important;background:rgba(20,16,22,.68)!important;color:#fff!important;touch-action:manipulation!important;';}
   actionBar.append(favorite,remove);controls.append(prev,count,next,actionBar);
-  favorite.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const current=card._qlCandidates[card._qlIndex];if(!current?.url)return;let records=matchingStatusRecords(current.url);if(!records.length){storeChatRecord(current.url,card._qlPrompt||prompt,taskKey,{source:'statusbar'});records=matchingStatusRecords(current.url);}if(!records.length){status('没有找到这张状态栏图片的缓存记录。');return;}if(records.some(item=>item.albumCharacterName)){for(const item of records){delete item.albumCharacterName;delete item.albumCharacterKey;}save();history();status('已取消收藏，图片仍保留在状态栏和缓存中。');}else{const character=currentCharacter();const name=String(character.name||getContext()?.name2||'当前角色').trim();for(const item of records){item.albumCharacterName=name;item.albumCharacterKey=character.id||'';}save();history();status('已收藏到「'+name+'」角色相册。');}updateStatusActions();});
+  favorite.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const current=card._qlCandidates[card._qlIndex];if(!current?.url)return;let records=matchingStatusRecords(current.url);if(!records.length){storeChatRecord(current.url,card._qlPrompt||prompt,taskKey,{source:'statusbar'});records=matchingStatusRecords(current.url);}if(!records.length){status('没有找到这张状态栏图片的缓存记录。');return;}if(records.some(item=>item.albumCharacterName)){for(const item of records){delete item.albumCharacterName;delete item.albumCharacterKey;delete item.promptEntryId;delete item.sourcePromptEntryId;delete item.sourcePromptEntryAppliedAt;item.collection='cache';}save();history();status('已取消收藏，图片已回到底片缓存。');}else{const character=currentCharacter();const name=String(character.name||getContext()?.name2||'当前角色').trim();for(const item of records){item.albumCharacterName=name;item.albumCharacterKey=character.id||'';item.collection='character-album';delete item.promptEntryId;delete item.sourcePromptEntryId;delete item.sourcePromptEntryAppliedAt;}save();history();status('已收藏到「'+name+'」角色相册。');}updateStatusActions();});
   remove.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const current=card._qlCandidates[card._qlIndex];if(!current?.url)return;const records=cfg().records||[];const before=records.length;cfg().records=records.filter(item=>!(item&&item.taskKey===taskKey&&sameImageSource(item.dataUrl,current.url)&&(item.source||'chat')==='statusbar'));card._qlCandidates.splice(card._qlIndex,1);if(card._qlIndex>=card._qlCandidates.length)card._qlIndex=card._qlCandidates.length-1;save();history();card._qlRender();status(before===cfg().records.length?'已从当前状态栏轮播中移除图片。':'已删除当前状态栏图片及其缓存记录。');});
   controls.addEventListener('dblclick',e=>{e.preventDefault();e.stopPropagation();});
   controls.addEventListener('click',e=>e.stopPropagation());
@@ -1382,7 +1381,7 @@ function history(){
    const paintSpread=()=>{if(!spreadGrid)return;const totalPages=Math.max(1,Math.ceil(items.length/6));spreadPage=Math.max(0,Math.min(totalPages-1,spreadPage));spreadGrid.innerHTML=items.slice(spreadPage*6,spreadPage*6+6).map(record=>imageTile(record,record._cacheIndex)).join('');if(spreadNumber)spreadNumber.textContent=String(spreadPage+1)+'/'+String(totalPages);const prev=albums.querySelector('[data-spread-step="-1"]'),next=albums.querySelector('[data-spread-step="1"]');if(prev)prev.disabled=spreadPage===0;if(next)next.disabled=spreadPage>=totalPages-1;};
    const handlePhotoClick=event=>{const photo=event.target?.closest?.('[data-album-photo]');if(!photo)return;if(albums.dataset.albumMoveMode==='select'){event.preventDefault();event.stopPropagation();const index=Number(photo.dataset.albumPhoto),chosen=selectedPhotos();setSelectedPhotos(chosen.includes(index)?chosen.filter(value=>value!==index):[...chosen,index]);photo.closest('.ql-album-photo')?.classList.toggle('is-selected',selectedPhotos().includes(index));const hint=albums.querySelector('.ql-album-toolbar')?.nextElementSibling;if(hint?.matches('.ql-muted'))hint.textContent='已选择 '+selectedPhotos().length+' 张照片，点击照片进行多选；再次点击「完成选择并移动」选择目标相册。';return;}openDetail(Number(photo.dataset.albumPhoto),null,'roleAlbum');};
    albums.addEventListener('click',handlePhotoClick);
-   const handleRemove=event=>{const remove=event.target?.closest?.('[data-ql-unfavorite]');if(!remove)return;event.preventDefault();event.stopPropagation();const record=settings.records[Number(remove.dataset.qlUnfavorite)];if(record){delete record.albumCharacterName;delete record.albumCharacterKey;save();history();renderAlbums();status('已从相册移除，缓存图片仍保留。');}};
+   const handleRemove=event=>{const remove=event.target?.closest?.('[data-ql-unfavorite]');if(!remove)return;event.preventDefault();event.stopPropagation();const record=cfg().records[Number(remove.dataset.qlUnfavorite)];if(record){delete record.albumCharacterName;delete record.albumCharacterKey;delete record.promptEntryId;delete record.sourcePromptEntryId;delete record.sourcePromptEntryAppliedAt;record.collection='cache';save();history();renderAlbums();renderLibrary();status('已取消收藏，照片已回到底片缓存。');}};
    spreadGrid?.addEventListener('click',handleRemove);
    albums.querySelectorAll('[data-spread-step]').forEach(button=>button.addEventListener('click',()=>{spreadPage=Math.max(0,Math.min(Math.max(0,Math.ceil(items.length/6)-1),spreadPage+Number(button.dataset.spreadStep)));paintSpread();}));
    const spreadArea=albums.querySelector('.ql-album-spread-grid');let spreadStartX=0;spreadArea?.addEventListener('touchstart',event=>{spreadStartX=event.changedTouches[0].clientX;},{passive:true});spreadArea?.addEventListener('touchend',event=>{const dx=event.changedTouches[0].clientX-spreadStartX;if(Math.abs(dx)>40){spreadPage=Math.max(0,Math.min(Math.max(0,Math.ceil(items.length/6)-1),spreadPage+(dx<0?1:-1)));paintSpread();}},{passive:true});
@@ -1545,7 +1544,7 @@ function history(){
    detailActions.querySelector('[data-gallery-cancel]').onclick=()=>{
     const live=cfg().records?.[index],promptId=String(galleryContext.promptId||'');if(!live)return;
     if(promptId){live.promptGalleryExcludedIds=Array.isArray(live.promptGalleryExcludedIds)?live.promptGalleryExcludedIds:[];if(!live.promptGalleryExcludedIds.includes(promptId))live.promptGalleryExcludedIds.push(promptId);}
-    delete live.albumCharacterName;delete live.albumCharacterKey;save();hideDetail();history();status('已从当前图集取消收藏；照片仍保留在底片中。');galleryContext.onChange?.();
+    delete live.albumCharacterName;delete live.albumCharacterKey;delete live.promptEntryId;delete live.sourcePromptEntryId;delete live.sourcePromptEntryAppliedAt;live.collection='cache';save();hideDetail();history();status('已取消图集收藏，照片已回到底片缓存。');galleryContext.onChange?.();
    };
    detailActions.querySelector('[data-gallery-move]').onclick=()=>{
     showRoleAlbumChoice(r,'移动到角色卡相册','已优先选中这张照片原本生成时所属的角色卡；也可以手动更改。','确认移动');
@@ -1555,9 +1554,9 @@ function history(){
    content.querySelector('.ql-cache-detail-actions')?.after(detailActions);
    detailActions.querySelector('[data-role-cancel]').onclick=()=>{
     const live=cfg().records?.[index];if(!live)return;
-    delete live.albumCharacterName;delete live.albumCharacterKey;
-    save();hideDetail();history();renderAlbums?.();
-    status('已取消收藏；照片仍保留在底片中。');
+    delete live.albumCharacterName;delete live.albumCharacterKey;delete live.promptEntryId;delete live.sourcePromptEntryId;delete live.sourcePromptEntryAppliedAt;live.collection='cache';
+    save();hideDetail();history();renderAlbums?.();renderLibrary();
+    status('已取消收藏，照片已回到底片缓存。');
    };
    detailActions.querySelector('[data-role-move-gallery]').onclick=()=>{
     showDetailChoice('移动到图集','请选择要存放这张照片的提示词图集。',galleryChoices(),'确定移动',choice=>setPromptGallery(cfg().records?.[index],choice));
