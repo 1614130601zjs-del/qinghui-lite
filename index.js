@@ -926,6 +926,15 @@ async function processLatestAssistantMessage(){
  const context=getContext();
  const chat=context?.chat;
  if(!Array.isArray(chat)||!chat.length)return;
+ // 统计提示词在当前聊天的楼层中出现次数，只有确实唯一时才允许跨 messageIndex 兼容旧缓存。
+ const promptOccurrenceCount=new Map();
+ for(const item of chat){
+  if(!item||item.is_user||item.is_system||typeof item.mes!=='string')continue;
+  for(const marker of markers(item.mes)){
+   const key=String(marker.prompt||'').trim();
+   if(key)promptOccurrenceCount.set(key,(promptOccurrenceCount.get(key)||0)+1);
+  }
+ }
  // 不只扫描最后一条消息：酒馆可能在扩展加载前已渲染消息，也可能在重绘时延迟更新 DOM。
  for(let messageIndex=0;messageIndex<chat.length;messageIndex++){
   const message=chat[messageIndex];
@@ -964,15 +973,10 @@ async function processLatestAssistantMessage(){
      if(byPrompt.length===1)savedRecords=byPrompt;
     }
    }
-   // 酒馆删改/重排消息后，缓存里的 messageIndex 可能过期；同一聊天内提示词唯一时允许跨位置恢复。
-   if(!savedRecords.length){
+   // 缓存里的 messageIndex 可能过期；仅当提示词在当前聊天的所有楼层中唯一时才允许跨位置恢复。
+   if(!savedRecords.length&&promptOccurrenceCount.get(promptKey)===1){
     const byChatPrompt=sameChatRecords.filter(item=>recordPrompt(item)===promptKey);
     if(byChatPrompt.length===1)savedRecords=byChatPrompt;
-    else{
-     // 如果聊天 ID 也发生变化，只在整个缓存中提示词唯一时兜底，避免误拿其他聊天的同提示词图片。
-     const byGlobalPrompt=allChatRecords.filter(item=>recordPrompt(item)===promptKey);
-     if(byGlobalPrompt.length===1)savedRecords=byGlobalPrompt;
-    }
    }
    if(savedRecords.length){
     for(const record of savedRecords){
