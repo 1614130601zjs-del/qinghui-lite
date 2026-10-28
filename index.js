@@ -805,7 +805,7 @@ function storeChatRecord(url,prompt,taskKey,meta={}){
   preset:preset?{name:preset.name||'',positive:preset.positive||'',negative:preset.negative||'',index:presetIndex,source:preset.source||'local'}:null,
   vibe:vibe?{name:vibe.name||'',entries:(vibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,
   config:snapshotConfig(prompt,resolved.negative),source:meta.source||'chat',
-  messageIndex:meta.messageIndex,taskKey,character:meta.character||null,chatId:getContext()?.chatId||null,promptEntryId:meta.promptEntryId||cfg().activePromptEntryId||null,sourcePromptEntryId:meta.sourcePromptEntryId||meta.promptEntryId||cfg().activePromptEntryId||null
+  messageIndex:meta.messageIndex,markerOrdinal:Number.isInteger(meta.markerOrdinal)?meta.markerOrdinal:null,taskKey,character:meta.character||null,chatId:getContext()?.chatId||null,promptEntryId:meta.promptEntryId||cfg().activePromptEntryId||null,sourcePromptEntryId:meta.sourcePromptEntryId||meta.promptEntryId||cfg().activePromptEntryId||null
  };
  c.records.unshift(record);save();history();
  if(typeof url==='string'&&/^data:image\//i.test(url)){
@@ -904,7 +904,7 @@ async function runInlineImageTrigger(button,entry){
  const statusNode=document.createElement('span');statusNode.className='ql-chat-image-status';statusNode.textContent='正在提交给 NAI 生图…';button.after(statusNode);
  try{
   const context=getContext();
-  const meta={messageIndex:entry.messageIndex,character:context?.name||null,chatId:context?.chatId||null};
+  const meta={messageIndex:entry.messageIndex,markerOrdinal:entry.markerOrdinal,character:context?.name||null,chatId:context?.chatId||null};
   const url=await requestWithActiveSettings(prompt);
   const host=button.closest('.mes_text')||document.querySelector('.mes[mesid="'+entry.messageIndex+'"] .mes_text');
   if(!host)throw new Error('找不到原消息正文，图片已生成但无法插入原消息。');
@@ -949,7 +949,18 @@ async function processLatestAssistantMessage(){
    if(existingByMarker&&existingByMarker.dataset.qlTrigger!==entry.taskKey){
     existingByMarker.dataset.qlTrigger=entry.taskKey;existingByMarker.dataset.qlPrompt=entry.prompt;
    }
-   const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+   const allInlineRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&Number(item.messageIndex)===messageIndex&&(item.source||'chat')==='chat'&&(!item.chatId||!context.chatId||item.chatId===context.chatId));
+   let savedRecords=allInlineRecords.filter(item=>item.taskKey===entry.taskKey);
+   // 兼容刷新时 chatId / swipe_id 初始化时序不同导致 taskKey 不一致：先用消息序号+标记序号恢复；旧缓存没有标记序号时，仅在提示词候选唯一时兜底，避免串图。
+   if(!savedRecords.length){
+    const byOrdinal=allInlineRecords.filter(item=>Number.isInteger(item.markerOrdinal)&&item.markerOrdinal===entry.markerOrdinal&&String(item.basePrompt||item.prompt||'').trim()===String(entry.prompt||'').trim());
+    if(byOrdinal.length)savedRecords=byOrdinal;
+    else{
+     const byPrompt=allInlineRecords.filter(item=>String(item.basePrompt||item.prompt||'').trim()===String(entry.prompt||'').trim());
+     if(byPrompt.length===1)savedRecords=byPrompt;
+    }
+   }
+   savedRecords.sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
     const latest=savedRecords[savedRecords.length-1];
     const markerButton=existingByMarker||host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
