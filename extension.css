@@ -4335,3 +4335,12 @@ dialog.ql-viewfinder-lightbox button:active:not(:disabled),
   filter:none!important;
   transform:none!important;
 }
+
+
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:not(:disabled):active svg,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(:disabled):active svg,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:not(:disabled):active svg {
+  color:var(--ql-button-text,var(--SmartThemeBodyColor,inherit))!important;
+  stroke:currentColor!important;
+  filter:none!important;
+}
