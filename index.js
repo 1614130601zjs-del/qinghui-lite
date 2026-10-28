@@ -1503,7 +1503,7 @@ function renderLibrary(){
   root.dataset.activePromptGalleryIndex=String(promptIndex);
   const title=$('#ql-prompt-gallery-title'),description=$('#ql-prompt-gallery-description'),content=$('#ql-prompt-gallery-content');
   if(title)title.textContent=(promptEntry.name||'未命名提示词')+' · 图集';
-  if(description)description.textContent='仅铺开显示当前提示词关联的全部照片；点击照片只放大预览，不跳转影像缓存。';
+  if(description)description.textContent='点击照片查看详情与画面提示词，再点击照片可放大查看。';
   if(content){
    const pageSize=6;
    const pageCount=Math.max(1,Math.ceil(items.length/pageSize));
@@ -1521,7 +1521,21 @@ function renderLibrary(){
     content.querySelectorAll('[data-prompt-gallery-step]').forEach(button=>button.addEventListener('click',()=>renderPromptGalleryPage(safePage+Number(button.dataset.promptGalleryStep))));
     content.querySelectorAll('[data-prompt-record]').forEach(photo=>photo.addEventListener('click',()=>{
      const record=items.find(item=>item._cacheIndex===Number(photo.dataset.promptRecord));
-     if(record?.dataUrl)openViewfinderImage(record.dataUrl,{recordIndex:record._cacheIndex,promptId:galleryId});
+     if(!record?.dataUrl)return;
+     const returnPage=safePage;
+     const renderDetail=()=>{
+      const current=cfg().records?.[record._cacheIndex]||record;
+      const prompt=String(current.basePrompt||current.prompt||'此记录没有保存画面提示词');
+      content.innerHTML='<div class="ql-prompt-photo-detail"><div class="ql-album-toolbar"><button type="button" class="menu_button" data-detail-back>‹ 返回图集</button><div class="ql-album-toolbar-title"><span>PHOTO DETAIL</span><strong>'+esc(promptEntry.name||'未命名提示词')+' · 照片详情</strong><small>照片详情与提示词</small></div></div><div class="ql-prompt-photo-detail-paper"><button type="button" class="ql-prompt-photo-detail-image" data-detail-zoom aria-label="点击放大图片"><img src="'+esc(current.dataUrl||'')+'" alt="照片详情图片"></button><section class="ql-cache-prompt-section"><div class="ql-cache-section-title"><div><span class="ql-cache-eyebrow">PROMPT</span><h4>画面提示词</h4></div><button type="button" class="menu_button" data-detail-copy>复制</button></div><div class="ql-cache-prompt-box"><pre>'+esc(prompt)+'</pre></div></section><details class="ql-prompt-photo-detail-extra"><summary>负向提示词</summary><div class="ql-cache-prompt-box"><pre>'+esc(current.negative||'未记录')+'</pre></div></details><div class="ql-gallery-detail-main"><button type="button" class="menu_button" data-detail-cancel>取消收藏</button><button type="button" class="menu_button ql-primary" data-detail-move>移动到角色卡相册</button></div><div class="ql-gallery-detail-move" data-detail-move-panel hidden><label>选择目标角色卡<select data-detail-character></select></label><div class="ql-gallery-detail-main"><button type="button" class="menu_button ql-primary" data-detail-confirm>确认移动</button><button type="button" class="menu_button" data-detail-move-back>返回</button></div></div></div></div>';
+      content.querySelector('[data-detail-back]').onclick=()=>renderPromptGalleryPage(returnPage);
+      content.querySelector('[data-detail-zoom]').onclick=()=>openViewfinderImage(current.dataUrl);
+      content.querySelector('[data-detail-copy]').onclick=async()=>{try{await navigator.clipboard.writeText(prompt);status('已复制画面提示词。');}catch{status('复制失败，请长按提示词文本复制。');}};
+      content.querySelector('[data-detail-cancel]').onclick=()=>{const live=cfg().records?.[record._cacheIndex];if(!live)return;if(!Array.isArray(live.promptGalleryExcludedIds))live.promptGalleryExcludedIds=[];if(!live.promptGalleryExcludedIds.includes(galleryId))live.promptGalleryExcludedIds.push(galleryId);save();status('已从当前提示词图集中取消收藏；底片仍保留。');renderPromptGalleryPage(returnPage);};
+      content.querySelector('[data-detail-move]').onclick=()=>{const select=content.querySelector('[data-detail-character]'),chars=getCharacterCards();if(!chars.length){status('没有可选择的角色卡。');return;}select.innerHTML=chars.map((ch,i)=>'<option value="'+i+'">'+esc(ch?.name||ch?.avatar||('角色 '+(i+1)))+'</option>').join('');content.querySelector('[data-detail-move-panel]').hidden=false;content.querySelector('[data-detail-move]').hidden=true;};
+      content.querySelector('[data-detail-move-back]').onclick=()=>{content.querySelector('[data-detail-move-panel]').hidden=true;content.querySelector('[data-detail-move]').hidden=false;};
+      content.querySelector('[data-detail-confirm]').onclick=()=>{const live=cfg().records?.[record._cacheIndex],select=content.querySelector('[data-detail-character]'),key=String(select.value),character=getCharacterCards()[Number(key)];if(!live||!character){status('请选择有效的角色卡。');return;}live.albumCharacterName=String(character.name||character.avatar||('角色 '+(Number(key)+1)));live.albumCharacterKey=key;if(!Array.isArray(live.promptGalleryExcludedIds))live.promptGalleryExcludedIds=[];if(!live.promptGalleryExcludedIds.includes(galleryId))live.promptGalleryExcludedIds.push(galleryId);save();status('照片已移动到「'+live.albumCharacterName+'」角色相册；底片仍保留。');renderPromptGalleryPage(returnPage);};
+     };
+     renderDetail();
     }));
    };
    renderPromptGalleryPage(0);
