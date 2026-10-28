@@ -4127,3 +4127,31 @@ dialog.ql-viewfinder-lightbox button:disabled {
 
 
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg path{fill:currentColor!important;}
+
+/* Fix: keep image detail positive prompt text inside its framed box. */
+#ql-image-cache-modal .ql-cache-prompt-section .ql-cache-prompt-box{
+ display:block!important;
+ position:relative!important;
+ box-sizing:border-box!important;
+ width:100%!important;
+ min-width:0!important;
+ min-height:76px!important;
+ margin:0!important;
+ padding:10px!important;
+ border:1px solid var(--ql-cache-border,rgba(127,127,127,.35))!important;
+ background:var(--ql-cache-card,rgba(127,127,127,.06))!important;
+ overflow:hidden!important;
+}
+#ql-image-cache-modal .ql-cache-prompt-section .ql-cache-prompt-box pre{
+ display:block!important;
+ position:static!important;
+ box-sizing:border-box!important;
+ width:100%!important;
+ max-width:100%!important;
+ margin:0!important;
+ padding:0!important;
+ white-space:pre-wrap!important;
+ overflow-wrap:anywhere!important;
+ word-break:normal!important;
+ background:transparent!important;
+}
