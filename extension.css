@@ -3523,27 +3523,6 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
   background:rgba(255,255,255,.1)!important;color:#fff!important;
   box-shadow:0 3px 12px rgba(0,0,0,.2);
 }
-
-
-/* 0.5.96: persistent, unmistakable favorite state and centered lightbox on mobile */
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
-#qinghui-lite-panel #ql-result-favorite.is-favorite{
-  color:#7b5700!important;
-  background:#ffe08a!important;
-  border:2px solid #b98516!important;
-  box-shadow:0 0 0 3px rgba(255,204,74,.28),0 2px 10px rgba(80,55,0,.28)!important;
-  opacity:1!important;
-  transform:none!important;
-}
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg path,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg path,
-#qinghui-lite-panel #ql-result-favorite.is-favorite svg path{
-  fill:currentColor!important;
-  stroke:currentColor!important;
-}
-#chat .ql-chat-image-controls .ql-chat-image-favorite:not(.is-favorite) svg path,
-#qinghui-lite-panel #ql-result-favorite:not(.is-favorite) svg path{fill:none!important;}
 /* Native dialog remains centered in the viewport; constrain the complete frame, not just the image. */
 dialog.ql-viewfinder-lightbox[open]{
   position:fixed!important;inset:0!important;margin:auto!important;
@@ -3572,19 +3551,6 @@ dialog.ql-viewfinder-lightbox img{
   dialog.ql-viewfinder-lightbox[open]{max-width:calc(100vw - 12px)!important;max-height:calc(100dvh - 12px)!important;padding:5px!important;}
   dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-shell{max-width:calc(100vw - 22px)!important;max-height:calc(100dvh - 22px)!important;padding:8px!important;}
   dialog.ql-viewfinder-lightbox img{max-width:calc(100vw - 42px)!important;max-height:calc(100dvh - 120px)!important;}
-}
-
-
-/* 0.5.97: persistent favorite contrast, dark generate control, and album-page image viewer */
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
-#qinghui-lite-panel #ql-result-favorite.is-favorite{
-  color:#6f4c00!important;background:#ffe08a!important;border:2px solid #b98516!important;
-  box-shadow:0 0 0 3px rgba(255,204,74,.30),0 2px 10px rgba(80,55,0,.28)!important;
-  opacity:1!important;filter:none!important;transform:none!important;
-}
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg path,
-#qinghui-lite-panel #ql-result-favorite.is-favorite svg path{
-  fill:currentColor!important;stroke:currentColor!important;
 }
 #qinghui-lite-panel .ql-viewfinder-actions #ql-generate,
 #qinghui-lite-panel .ql-viewfinder-actions #ql-generate:hover,
@@ -4118,110 +4084,6 @@ dialog.ql-viewfinder-lightbox button:disabled {
 }
 
 
-/* 正文收藏按钮：按压不套用统一深色；收藏后只显示空心金色轮廓。 */
-#chat .ql-chat-image-controls .ql-chat-image-favorite:active:not(:disabled){
-  background:transparent!important;
-  background-color:transparent!important;
-  box-shadow:none!important;
-  filter:none!important;
-  transform:none!important;
-}
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:hover,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:active,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus-visible{
-  color:#d6a52f!important;
-  background:transparent!important;
-  background-color:transparent!important;
-  border-color:#d6a52f!important;
-  box-shadow:none!important;
-  filter:none!important;
-  transform:none!important;
-}
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg path{
-  fill:none!important;
-  stroke:#d6a52f!important;
-}
-
-
-/* 收藏状态只强调星星本身；正文与状态栏均取消外框金边和按钮按压变暗。 */
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:hover,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:active,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus-visible,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:hover,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus-visible {
-  color:#d6a52f!important;
-  border-color:transparent!important;
-  box-shadow:none!important;
-  filter:none!important;
-  transform:none!important;
-  opacity:1!important;
-}
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:hover,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:active,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus-visible {
-  background:transparent!important;
-  background-color:transparent!important;
-}
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:hover,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus-visible {
-  background:rgba(255,255,255,.18)!important;
-  background-color:rgba(255,255,255,.18)!important;
-}
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg path,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg path {
-  fill:none!important;
-  stroke:#d6a52f!important;
-}
-
-/* 收藏只把星星本身变为金色空心描边；保留按钮原本的外框与常态底色。 */
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:hover,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:active,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus-visible,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:hover,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus-visible,
-#qinghui-lite-panel #ql-result-favorite.is-favorite,
-#qinghui-lite-panel #ql-result-favorite.is-favorite:hover,
-#qinghui-lite-panel #ql-result-favorite.is-favorite:active,
-#qinghui-lite-panel #ql-result-favorite.is-favorite:focus,
-#qinghui-lite-panel #ql-result-favorite.is-favorite:focus-visible {
-  color:#d6a52f!important;
-  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
-  box-shadow:none!important;
-  filter:none!important;
-  transform:none!important;
-  opacity:1!important;
-}
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg path,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg path,
-#qinghui-lite-panel #ql-result-favorite.is-favorite svg,
-#qinghui-lite-panel #ql-result-favorite.is-favorite svg path {
-  fill:none!important;
-  stroke:#d6a52f!important;
-}
-
-
 /* 覆盖旧版高优先级 active 规则：取景页与状态栏所有操作键均保持常态底色。 */
 #qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):active,
 #qinghui-lite-panel .ql-viewfinder-actions #ql-generate:not(:disabled):active,
@@ -4238,23 +4100,6 @@ dialog.ql-viewfinder-lightbox button:disabled {
   transform:none!important;
   opacity:1!important;
 }
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:hover,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:active,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus,
-#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus-visible,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:hover,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus,
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus-visible,
-#qinghui-lite-panel #ql-result-favorite.is-favorite,
-#qinghui-lite-panel #ql-result-favorite.is-favorite:hover,
-#qinghui-lite-panel #ql-result-favorite.is-favorite:active,
-#qinghui-lite-panel #ql-result-favorite.is-favorite:focus,
-#qinghui-lite-panel #ql-result-favorite.is-favorite:focus-visible {
-  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(255,255,255,.65)))!important;
-}
 
 
 /* 清除其余历史控件的缩放/按压阴影；所有拾帧控件按下时保持原位。 */
@@ -4270,15 +4115,6 @@ dialog.ql-viewfinder-lightbox button:disabled {
   filter:none!important;
   opacity:1!important;
   -webkit-tap-highlight-color:transparent!important;
-}
-.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active:not(:disabled) {
-  background:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
-  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
-  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(255,255,255,.65)))!important;
-  color:#d6a52f!important;
-  box-shadow:none!important;
-  filter:none!important;
-  transform:none!important;
 }
 
 
