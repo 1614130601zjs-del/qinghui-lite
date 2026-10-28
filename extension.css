@@ -3834,3 +3834,55 @@ dialog.ql-viewfinder-lightbox .ql-gallery-detail-move select{width:100%;min-heig
 #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo .ql-cache-image:focus-visible{
  outline:2px solid var(--ql-accent,#a86f8b)!important;outline-offset:2px!important;
 }
+
+
+/* 提示词图集直接复用角色相册「铺开浏览」样式：只保留图集自身的数据与点击事件。 */
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-paper{
+ border:1px solid #d8c7b8!important;
+ border-radius:5px 13px 13px 5px!important;
+ background:repeating-linear-gradient(0deg,rgba(143,113,91,.025) 0,rgba(143,113,91,.025) 1px,transparent 1px,transparent 5px),linear-gradient(100deg,#e8ddcd,#fffaf0 6%,#f8f0e4 95%,#e6d8c8)!important;
+ box-shadow:inset 7px 0 12px rgba(99,70,47,.10),0 6px 15px rgba(60,43,32,.08)!important;
+}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-grid{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:clamp(12px,3vw,20px)!important;align-items:start!important;
+ width:100%!important;min-width:0!important;margin:0!important;padding:0!important;box-sizing:border-box!important;
+}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo{
+ display:block!important;min-width:0!important;margin:0!important;
+ padding:7px 7px 16px!important;background:#fffdf9!important;
+ border:1px solid rgba(105,84,65,.18)!important;border-radius:1px!important;
+ box-shadow:0 2px 6px rgba(58,43,30,.13)!important;box-sizing:border-box!important;
+}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo:nth-child(4n+2){transform:rotate(1.3deg)!important;}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo:nth-child(4n+3){transform:rotate(.6deg)!important;}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo:nth-child(4n){transform:rotate(-1.5deg)!important;}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo .ql-cache-image{
+ display:block!important;width:100%!important;height:auto!important;aspect-ratio:auto!important;
+ min-width:0!important;margin:0!important;padding:0!important;overflow:hidden!important;
+ border:0!important;border-radius:0!important;background:#eee5da!important;box-shadow:none!important;
+}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-prompt-gallery-photo .ql-cache-image img{
+ display:block!important;width:100%!important;height:auto!important;max-width:100%!important;max-height:none!important;
+ object-fit:cover!important;border-radius:0!important;background:transparent!important;
+}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-book > button.ql-album-page-arrow[data-prompt-gallery-step="-1"],
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-book > button.ql-album-page-arrow[data-prompt-gallery-step="1"]{
+ position:absolute!important;top:50%!important;z-index:30!important;display:flex!important;
+ align-items:center!important;justify-content:center!important;transform:translateY(-50%)!important;
+ width:38px!important;height:42px!important;min-width:38px!important;min-height:42px!important;
+ margin:0!important;padding:0!important;border:1px solid rgba(255,255,255,.58)!important;
+ border-radius:999px!important;color:#fff!important;background:rgba(24,20,28,.28)!important;
+ box-shadow:0 1px 6px rgba(0,0,0,.15)!important;backdrop-filter:blur(5px)!important;-webkit-backdrop-filter:blur(5px)!important;
+}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-book > button.ql-album-page-arrow[data-prompt-gallery-step="-1"]{left:-20px!important;right:auto!important;}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-book > button.ql-album-page-arrow[data-prompt-gallery-step="1"]{right:-20px!important;left:auto!important;}
+#qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-book > button.ql-album-page-arrow svg{
+ width:22px!important;height:22px!important;fill:none!important;stroke:currentColor!important;
+ stroke-width:2.2!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+@media(max-width:380px){
+ #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-book > button.ql-album-page-arrow{width:32px!important;height:36px!important;min-width:32px!important;min-height:36px!important;}
+ #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-book > button.ql-album-page-arrow[data-prompt-gallery-step="-1"]{left:-16px!important;}
+ #qinghui-lite-panel [data-page-panel="prompt-gallery"] .ql-album-spread-book > button.ql-album-page-arrow[data-prompt-gallery-step="1"]{right:-16px!important;}
+}
