@@ -1076,7 +1076,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 /* Album redesign: a layered photo mat, paper texture, glass controls and theme-linked accent. */
 #chat .mes_text .ql-inline-image-trigger{display:flex!important;align-items:center!important;justify-content:center!important;margin:14px auto!important;width:min(100%,280px)!important;min-height:48px!important;border:1px solid color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#9b9b9b)) 55%,var(--ql-border,var(--SmartThemeBorderColor,#888)))!important;border-radius:16px!important;background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#9b9b9b)) 22%,transparent)!important;color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;box-shadow:0 8px 18px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.35)!important;backdrop-filter:blur(16px) saturate(1.4)!important;-webkit-backdrop-filter:blur(16px) saturate(1.4)!important;}
 #chat .ql-chat-image{position:relative!important;isolation:isolate!important;box-sizing:border-box!important;display:block!important;width:min(100%,560px)!important;max-width:100%!important;margin:20px auto!important;padding:15px!important;border:1px solid color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#aaa)) 34%,var(--ql-border,var(--SmartThemeBorderColor,#888)))!important;border-radius:21px 21px 17px 17px!important;background:linear-gradient(135deg,rgba(255,255,255,.68),rgba(255,255,255,.12) 28%,transparent 50%),linear-gradient(145deg,var(--ql-panel,rgba(230,230,230,.68)),var(--ql-card,rgba(150,150,150,.12)))!important;box-shadow:0 12px 26px rgba(0,0,0,.15),0 3px 7px rgba(0,0,0,.08),inset 0 0 0 1px rgba(255,255,255,.30),inset 0 0 0 5px rgba(255,255,255,.10)!important;overflow:hidden!important;}
-#chat .ql-chat-image::before{content:"✦ 轻绘相册  /  PHOTO ALBUM";display:flex!important;align-items:center!important;min-height:21px!important;padding:0 5px 10px!important;color:var(--ql-text,var(--SmartThemeBodyColor,#555))!important;opacity:.76!important;font-size:10px!important;font-weight:750!important;letter-spacing:.14em!important;}
+#chat .ql-chat-image::before{content:"✦ 拾帧相册  /  PHOTO ALBUM";display:flex!important;align-items:center!important;min-height:21px!important;padding:0 5px 10px!important;color:var(--ql-text,var(--SmartThemeBodyColor,#555))!important;opacity:.76!important;font-size:10px!important;font-weight:750!important;letter-spacing:.14em!important;}
 #chat .ql-chat-image::after{content:"";position:absolute!important;z-index:2!important;top:10px!important;right:11px!important;width:28px!important;height:28px!important;border-top:2px solid color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#999)) 62%,transparent)!important;border-right:2px solid color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#999)) 62%,transparent)!important;border-radius:0 8px 0 0!important;pointer-events:none!important;opacity:.8!important;}
 #chat .ql-chat-image>img{position:relative!important;z-index:1!important;display:block!important;width:100%!important;height:auto!important;box-sizing:border-box!important;padding:5px!important;border:1px solid rgba(255,255,255,.68)!important;border-radius:12px!important;background:rgba(255,255,255,.72)!important;box-shadow:0 5px 15px rgba(0,0,0,.17),0 0 0 1px rgba(80,80,80,.12)!important;}
 #chat .ql-chat-image-controls{display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex-wrap:wrap!important;margin:13px 0 0!important;padding:9px 8px!important;border:1px solid color-mix(in srgb,var(--ql-accent,var(--SmartThemeBorderColor,#888)) 28%,transparent)!important;border-radius:15px!important;background:color-mix(in srgb,var(--ql-panel,rgba(150,150,150,.12)) 65%,transparent)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.28)!important;}
@@ -1259,10 +1259,7 @@ html:has(> #ql-overlay:not([hidden])){overflow:hidden}
 .ql-statusbar-card .ql-statusbar-arrow{pointer-events:auto!important;position:relative;z-index:21;min-width:30px;min-height:28px;}
 
 
-/* 0.5.18: separated translucent white arrows on the left/right of the statusbar cente/* 0.5.95: keep the redundant prompt-gallery page out of the top navigation. */
-#qinghui-lite-panel button.ql-tab[data-page="prompt-gallery"]{display:none!important;}
-
-/* 0.5.94: compact top-right statusbar favorite/delete controls. */
+/* 0.5.18: separated translucent white arrows on the left/right of the statusbar center. */
 .ql-statusbar-card .ql-statusbar-controls{display:block!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;z-index:2147483000!important;inset:0!important;width:100%!important;height:100%!important;left:0!important;top:0!important;bottom:auto!important;transform:none!important;background:transparent!important;border:0!important;padding:0!important}
 .ql-statusbar-card .ql-statusbar-controls button{display:flex!important;visibility:visible!important;pointer-events:auto!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;color:#fff!important;background:rgba(255,255,255,.34)!important;border:1px solid rgba(255,255,255,.52)!important;box-shadow:0 1px 5px rgba(0,0,0,.10)!important}
 .ql-statusbar-card .ql-statusbar-controls .ql-statusbar-arrow:first-child{left:8%!important;right:auto!important;top:50%!important;transform:translate(-50%,-50%)!important}
@@ -4343,4 +4340,47 @@ dialog.ql-viewfinder-lightbox button:active:not(:disabled),
   color:var(--ql-button-text,var(--SmartThemeBodyColor,inherit))!important;
   stroke:currentColor!important;
   filter:none!important;
+}
+
+
+/* Keep the redundant prompt-gallery page out of the top navigation. */
+#qinghui-lite-panel button.ql-tab[data-page="prompt-gallery"]{display:none!important;}
+
+
+/* 拾帧主题色优先：状态栏控件与正文相册按钮不再被旧的白色/黑色皮肤色覆盖。 */
+.ql-statusbar-card .ql-statusbar-controls button {
+  background:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24)))!important;
+  color:var(--ql-button-text,var(--SmartThemeBodyColor,inherit))!important;
+  box-shadow:none!important;
+}
+.ql-statusbar-card .ql-statusbar-controls button:hover:not(:disabled) {
+  background:var(--ql-button-hover,var(--SmartThemeQuoteColor,rgba(127,127,127,.16)))!important;
+  background-color:var(--ql-button-hover,var(--SmartThemeQuoteColor,rgba(127,127,127,.16)))!important;
+  color:var(--ql-button-text,var(--SmartThemeBodyColor,inherit))!important;
+}
+.ql-statusbar-card .ql-statusbar-controls button:active:not(:disabled) {
+  background:var(--ql-button-active,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  background-color:var(--ql-button-active,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24)))!important;
+  color:var(--ql-button-text,var(--SmartThemeBodyColor,inherit))!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  opacity:1!important;
+}
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active:not(:disabled) {
+  background:var(--ql-button-active,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  background-color:var(--ql-button-active,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24)))!important;
+  color:#d6a52f!important;
+}
+#chat .mes_text .ql-inline-image-trigger.ql-album-classic,
+#chat .mes_text .ql-inline-image-trigger.ql-album-film,
+#chat .mes_text .ql-inline-image-trigger.ql-album-soft {
+  background:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)) 20%,var(--ql-card,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10))))!important;
+  background-color:color-mix(in srgb,var(--ql-accent,var(--SmartThemeQuoteColor,#8495a6)) 20%,var(--ql-card,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10))))!important;
+  border-color:var(--ql-button-border,var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24))) )!important;
+  color:var(--ql-button-text,var(--ql-text,var(--SmartThemeBodyColor,inherit)))!important;
 }
