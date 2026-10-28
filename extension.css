@@ -4127,7 +4127,14 @@ dialog.ql-viewfinder-lightbox button:disabled {
 }
 
 
-/* 正文收藏图标保持空心，仅将线条变为金色；不使用黄色实心填充。 */
+/* 正文收藏按钮：按压不套用统一深色；收藏后只显示空心金色轮廓。 */
+#chat .ql-chat-image-controls .ql-chat-image-favorite:active:not(:disabled){
+  background:transparent!important;
+  background-color:transparent!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+}
 #chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
 #chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:hover,
 #chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:active,
@@ -4135,6 +4142,7 @@ dialog.ql-viewfinder-lightbox button:disabled {
 #chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus-visible{
   color:#d6a52f!important;
   background:transparent!important;
+  background-color:transparent!important;
   border-color:#d6a52f!important;
   box-shadow:none!important;
   filter:none!important;
