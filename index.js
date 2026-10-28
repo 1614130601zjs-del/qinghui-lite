@@ -1965,6 +1965,8 @@ function syncViewfinderActions(){
  // Match the status-bar favorite implementation: persist the state with inline !important
  // so touch :active styles and older stylesheet rules cannot override it after release.
  favorite.style.setProperty('background',saved?'#38424b':'','important');
+ favorite.style.setProperty('background-color',saved?'#38424b':'','important');
+ favorite.style.setProperty('background-image',saved?'none':'','important');
  favorite.style.setProperty('color',saved?'#fff':'','important');
  favorite.style.setProperty('border-color',saved?'#38424b':'','important');
  favorite.style.setProperty('border-style',saved?'solid':'','important');
