@@ -1731,13 +1731,23 @@ function syncViewfinderActions(){
  if(!result||!favorite||!enlarge)return;
  const img=result.querySelector('img');
  favorite.disabled=!img;enlarge.disabled=!img;
- const record=img?(cfg().records||[]).find(item=>item&&sameImageSource(item.dataUrl,img.src)):null;
- const saved=!!record?.albumCharacterName;
+ const matches=img?(cfg().records||[]).filter(item=>item&&sameImageSource(item.dataUrl,img.src)):[];
+ const saved=matches.some(record=>!!record.albumCharacterName);
  const label=saved?'取消角色相册收藏':'收藏到角色相册';
  favorite.setAttribute('aria-label',label);favorite.title=label;
  favorite.classList.toggle('is-favorite',saved);
+ // Inline persistent styles are deliberate: mobile WebViews may keep native :active styling
+ // or resolve legacy stylesheet rules differently after a touch is released.
+ const styles=saved
+  ?{background:'#38424b',border:'1px solid #38424b',color:'#fff',boxShadow:'inset 0 1px 3px rgba(0,0,0,.16)',filter:'none',transform:'none',opacity:'1'}
+  :{background:'',border:'',color:'',boxShadow:'',filter:'',transform:'',opacity:''};
+ for(const [key,value] of Object.entries(styles))favorite.style[key]=value;
  const star=favorite.querySelector('svg path');
- if(star){star.style.fill=saved?'currentColor':'none';star.style.stroke='currentColor';}
+ if(star){
+  star.style.fill=saved?'#fff':'none';
+  star.style.stroke=saved?'#fff':'currentColor';
+  star.style.color=saved?'#fff':'';
+ }
 }
 function toggleViewfinderFavorite(){
  const img=$('#ql-result img');if(!img)return;
