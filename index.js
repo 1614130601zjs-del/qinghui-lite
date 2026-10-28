@@ -726,7 +726,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
    const saved=document.createElement('span');saved.className='ql-chat-image-tag-saved';saved.textContent='已保存';editor.after(saved);setTimeout(()=>saved.remove(),1600);
   });
   card._qlCandidates=[];card._qlIndex=0;
-  const render=()=>{const list=card._qlCandidates;const i=card._qlIndex;if(!list.length)return;img.src=list[i].url;prev.disabled=i<=0;next.disabled=i>=list.length-1;const saved=(cfg().records||[]).some(item=>item.taskKey===taskKey&&sameImageSource(item.dataUrl,list[i].url)&&item.albumCharacterName);favorite.classList.toggle('is-favorite',saved);favorite.setAttribute('aria-label',saved?'取消角色相册收藏':'收藏到角色相册');favorite.title=saved?'已收藏到角色相册':'收藏到当前角色的相册';};
+  const render=()=>{const list=card._qlCandidates;const i=card._qlIndex;if(!list.length)return;img.src=list[i].url;prev.disabled=i<=0;next.disabled=i>=list.length-1;remove.disabled=list.length<=1;remove.title=list.length<=1?'当前只有一张图片，无法删除最后一张；请使用重 Roll 生成其他图片后再删除。':'仅从正文隐藏当前图片，缓存和相册中的原图保留';const saved=(cfg().records||[]).some(item=>item.taskKey===taskKey&&sameImageSource(item.dataUrl,list[i].url)&&item.albumCharacterName);favorite.classList.toggle('is-favorite',saved);favorite.setAttribute('aria-label',saved?'取消角色相册收藏':'收藏到角色相册');favorite.title=saved?'已收藏到角色相册':'收藏到当前角色的相册';};
   const step=delta=>{const nextIndex=card._qlIndex+delta;if(nextIndex>=0&&nextIndex<card._qlCandidates.length){card._qlIndex=nextIndex;render();}};
   prev.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();step(-1);});next.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();step(1);});
   favorite.addEventListener('click',event=>{
