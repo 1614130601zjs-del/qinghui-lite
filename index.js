@@ -1301,7 +1301,7 @@ function html(){return `<div id="ql-overlay" hidden><section id="qinghui-lite-pa
 <button type="button" class="ql-tab" data-page="prompt-gallery" role="tab" aria-selected="false" style="display:none">提示词图集</button>
 </nav>
 <div class="ql-page active" data-page-panel="generate" role="tabpanel">
-<div class="ql-card ql-viewfinder-card"><div class="ql-viewfinder-heading"><h3>图片放置区</h3><div class="ql-viewfinder-actions" role="group" aria-label="图片操作"><button id="ql-generate" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="生成一张" title="生成一张"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 10v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/><path d="M17.5 11h.01"/></svg></button><button id="ql-result-favorite" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="收藏到角色相册" title="收藏到角色相册" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></button><button id="ql-result-enlarge" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="放大查看" title="放大查看" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.5 15.5 5 5"/></svg></button></div></div><p class="ql-muted">生成后可收藏图片，或自适应屏幕查看大图。</p><div class="ql-viewfinder-album-target"><label for="ql-result-album-target">收藏目标相册</label><select id="ql-result-album-target"><option value="__current__">当前角色默认相册</option></select></div><div class="ql-viewfinder-layout"><div id="ql-result" class="ql-image-stage"><div class="ql-image-placeholder">等待生成图片</div></div></div></div>
+<div class="ql-card ql-viewfinder-card"><div class="ql-viewfinder-heading"><h3>图片放置区</h3><div class="ql-viewfinder-actions" role="group" aria-label="图片操作"><button id="ql-generate" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="生成一张" title="生成一张"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 10v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/><path d="M17.5 11h.01"/></svg></button><button id="ql-result-favorite" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="收藏到角色相册" title="收藏到角色相册" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></button><button id="ql-result-enlarge" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="放大查看" title="放大查看" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.5 15.5 5 5"/></svg></button></div></div><p class="ql-muted">生成后可收藏图片，或自适应屏幕查看大图。</p><div class="ql-viewfinder-album-target"><label for="ql-result-album-target">收藏目标相册</label><select id="ql-result-album-target"><option value="">请选择角色卡相册</option></select></div><div class="ql-viewfinder-layout"><div id="ql-result" class="ql-image-stage"><div class="ql-image-placeholder">等待生成图片</div></div></div></div>
 <div class="ql-card"><h3>生图提示词</h3><p class="ql-muted">提示词库、角色词和画师串都直接写入下方正向/负向提示词，不另设 Tag 列表。</p><div class="ql-prompt-label-row"><label for="ql-prompt">正向提示词</label><button id="ql-prompt-clear" type="button" class="menu_button">清空</button></div><textarea id="ql-prompt" placeholder="输入完整提示词；从提示词库应用的内容会填入这里"></textarea><label for="ql-negative">负向提示词</label><textarea id="ql-negative" placeholder="可选"></textarea></div>
 <div class="ql-card"><h3>影像配置</h3><label for="ql-active-config-mode">选择方式</label><select id="ql-active-config-mode"><option value="combo">选择组合（使用预设）</option><option value="separate">选择画师串 + 选择 Vibe</option></select><div id="ql-combo-config-row"><label for="ql-active-preset">选择预设组合</label><select id="ql-active-preset"><option value="-1">不使用组合</option></select></div><div id="ql-separate-config-row" hidden><label for="ql-active-artist">选择画师串</label><select id="ql-active-artist"><option value="-1">不使用画师串</option></select><label for="ql-active-vibe">选择 Vibe</label><select id="ql-active-vibe"><option value="-1">不使用 Vibe</option></select></div><div class="ql-row"><button id="ql-apply-preset" class="menu_button" type="button">应用组合</button><button id="ql-open-preset" class="menu_button" type="button">管理配置</button></div><p class="ql-muted">第一种直接使用已保存的预设组合；第二种分别选择画师串和 Vibe，两项可以独立设置。角色卡默认组合在「配置 → 预设」中管理。</p></div>
 <div class="ql-card"><h3>模型参数</h3><label for="ql-fast-provider">生图后端</label><select id="ql-fast-provider"><option value="novelai">NovelAI 官网</option><option value="novelai-thirdparty">NovelAI 第三方</option></select><div id="ql-fast-openai" hidden><input id="ql-fast-model" value="gpt-image-1"><select id="ql-fast-size"><option value="auto">auto</option><option>1024x1024</option></select><select id="ql-fast-quality"><option>medium</option></select></div><div id="ql-fast-nai" hidden><label>NovelAI 模型</label><select id="ql-fast-nai-model"><option>nai-diffusion-4-5-full</option><option>nai-diffusion-4-5-curated</option><option>nai-diffusion-4-full</option><option>nai-diffusion-4-curated</option><option>nai-diffusion-3</option></select><div class="ql-row"><div><label>步数</label><input id="ql-fast-nai-steps" type="number" min="1" max="50"></div><div><label>CFG Scale</label><input id="ql-fast-nai-scale" type="number" min="1" max="20" step="0.5"></div></div><div class="ql-row"><div><label>画面尺寸预设</label><select id="ql-fast-nai-size-preset"><option value="832x1216">竖版 · 832 × 1216</option><option value="768x1344">长竖版 · 768 × 1344</option><option value="1024x1024">正方形 · 1024 × 1024</option><option value="1216x832">横版 · 1216 × 832</option><option value="1344x768">宽横版 · 1344 × 768</option></select><input id="ql-fast-nai-width" type="hidden"><input id="ql-fast-nai-height" type="hidden"></div></div><div class="ql-row"><div><label>采样器</label><select id="ql-fast-nai-sampler"><option value="k_euler_ancestral">Euler Ancestral</option><option value="k_euler">Euler</option><option value="k_dpmpp_2m">DPM++ 2M</option><option value="k_dpmpp_2s_ancestral">DPM++ 2S Ancestral</option></select></div><div><label>调度器</label><select id="ql-fast-nai-scheduler"><option value="karras">Karras</option><option value="native">Native</option></select></div></div><label class="ql-inline-check"><input id="ql-fast-nai-normalize" type="checkbox"> 归一化 Vibe 参考强度</label><p class="ql-muted">开启后会自动归一化 V4/V4.5 多条 Vibe 的强度；关闭则按每条参考的原始强度发送。</p></div><p id="ql-status" class="ql-muted" role="status"></p></div>
@@ -2008,13 +2008,26 @@ function syncViewfinderAlbumTargets(){
  const select=$('#ql-result-album-target');if(!select)return;
  const s=cfg();
  if(!s.albumNames||typeof s.albumNames!=='object'||Array.isArray(s.albumNames))s.albumNames={};
- const current=currentCharacter(),currentKey=String(current.id||''),albums=new Map();
- for(const record of s.records||[]){if(record?.albumCharacterName){const key=String(record.albumCharacterKey||record.albumCharacterName||'current');if(!albums.has(key))albums.set(key,String(record.albumCharacterName));}}
- for(const [key,name] of Object.entries(s.albumNames)){if(!albums.has(String(key)))albums.set(String(key),String(name||key));}
- if(!albums.has(currentKey))albums.set(currentKey,String(current.name||getContext()?.name2||'当前角色').trim());
+ const cards=getCharacterCards(),albums=new Map();
+ // 所有酒馆角色卡都可作为收藏目标，不要求此前已经有照片。
+ cards.forEach((card,index)=>{
+  const key=String(index),name=String(card?.name||card?.avatar||('角色 '+(index+1))).trim();
+  albums.set(key,name||('角色 '+(index+1)));
+ });
+ // 保留已有历史相册入口，但不覆盖当前角色卡的真实名称。
+ for(const record of s.records||[]){
+  if(record?.albumCharacterName){
+   const key=String(record.albumCharacterKey||record.albumCharacterName||'');
+   if(key&&!albums.has(key))albums.set(key,String(record.albumCharacterName));
+  }
+ }
+ for(const [key,name] of Object.entries(s.albumNames)){
+  if(key&&!albums.has(String(key)))albums.set(String(key),String(name||key));
+ }
  const previous=select.value;
- select.innerHTML='<option value="__current__">当前角色默认相册</option>'+[...albums.entries()].filter(([key])=>key!==currentKey).map(([key,name])=>'<option value="'+esc(key)+'">'+esc(name)+'</option>').join('');
- if(previous!=='__current__'&&[...select.options].some(option=>option.value===previous))select.value=previous;
+ select.innerHTML='<option value="">请选择角色卡相册</option>'+[...albums.entries()].map(([key,name])=>'<option value="'+esc(key)+'">'+esc(name)+'</option>').join('');
+ if(previous&&[...select.options].some(option=>option.value===previous))select.value=previous;
+ else select.value='';
  const target=select.closest('.ql-viewfinder-album-target');
  if(target)target.hidden=Boolean(s.activePromptEntryAppliedAt||s.activePromptEntryId);
 }
@@ -2031,12 +2044,11 @@ function toggleViewfinderFavorite(){
  if(matches.some(item=>isPromptGalleryRecord(item,settings))){
   status('这张照片已归入提示词图集，不会重复收藏到当前角色相册。');return;
  }
- const character=currentCharacter(),defaultName=String(character.name||getContext()?.name2||'当前角色').trim(),target=$('#ql-result-album-target')?.value||'__current__';
- let key=character.id||'',name=defaultName;
- if(target!=='__current__'){
-  key=target;
-  name=String(settings.albumNames?.[key]||(records.find(item=>String(item?.albumCharacterKey||item?.albumCharacterName||'current')===key&&item?.albumCharacterName)?.albumCharacterName)||key).trim();
- }
+ const target=$('#ql-result-album-target')?.value||'';
+ if(!target){status('请先选择要收藏到的角色卡相册。');return;}
+ const character=getCharacterCards()[Number(target)];
+ const name=String(character?.name||character?.avatar||settings.albumNames?.[target]||(records.find(item=>String(item?.albumCharacterKey||'')===target&&item?.albumCharacterName)?.albumCharacterName)||('角色 '+(Number(target)+1))).trim();
+ const key=String(target);
  for(const item of matches){item.albumCharacterName=name;item.albumCharacterKey=key;}
  save();history();syncViewfinderAlbumTargets();syncViewfinderActions();status('已收藏到「'+name+'」相册。');
 }
