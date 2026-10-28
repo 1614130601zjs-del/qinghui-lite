@@ -70,7 +70,10 @@ function hideMarkersInTextNode(root,entries=[]){
    if(!prompt){last=re.lastIndex;continue;}
    const button=document.createElement('button');
    button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='相册收录';button.title='点击生成图片并收录到当前消息';
-   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
+   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;
+   // 稳定标识：只看“第几条消息的第几个标记”，不依赖 chatId 是否已就绪，避免刷新后 chatId 延迟到位时把同一个标记重复渲染成第二个按钮。
+   if(entry&&entry.messageIndex!=null&&entry.markerOrdinal!=null)button.dataset.qlMarker=entry.messageIndex+':'+entry.markerOrdinal;
+   applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
    fragment.append(button);ordinal++;last=re.lastIndex;
   }
@@ -871,8 +874,10 @@ async function migrateLegacyImageRecords(){
 
 async function runInlineImageTrigger(button,entry){
  if(!button||button.dataset.qlBusy==='1'||button.dataset.qlDone==='1')return;
- const prompt=String(entry?.prompt||button.dataset.qlPrompt||'').trim();
- let taskKey=String(entry?.taskKey||button.dataset.qlTrigger||'');
+ // 优先用按钮当前的 dataset：刷新/重扫时 taskKey 可能被原地修正（见 processLatestAssistantMessage 的 markerKey 兜底），
+ // 这个值比点击时闭包里捕获的旧 entry 更新，避免拿着过期 taskKey 去生成。
+ const prompt=String(button.dataset.qlPrompt||entry?.prompt||'').trim();
+ let taskKey=String(button.dataset.qlTrigger||entry?.taskKey||'');
  if(!prompt||!taskKey)return;
  // 编辑消息会让酒馆重建正文 DOM。若该 marker 曾经成功生图，重新出现的按钮应可再次使用，而不是被旧成功状态永久锁住。
  if(triggerRegistry.get(taskKey)?.status==='succeeded')taskKey=taskKey+':edited:'+Date.now();
@@ -915,28 +920,35 @@ async function processLatestAssistantMessage(){
   if(!host)continue;
   const entries=found.map((marker,markerOrdinal)=>{
    const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
-   return {...marker,taskKey,messageIndex,markerOrdinal};
+   return {...marker,taskKey,messageIndex,markerOrdinal,markerKey:messageIndex+':'+markerOrdinal};
   });
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
   hideMarkersInTextNode(host,entries);
   for(const entry of entries){
+   // 刷新页面时 chatId 可能比消息 DOM 更晚就绪，taskKey（含 chatId）会在几次扫描间发生变化；
+   // 用“第几条消息的第几个标记”这个与 chatId 无关的 markerKey 兜底查找已存在的按钮，避免误判“没有按钮”而重复插入第二个。
+   const existingByMarker=host.querySelector('[data-ql-marker="'+CSS.escape(entry.markerKey)+'"]');
+   if(existingByMarker&&existingByMarker.dataset.qlTrigger!==entry.taskKey){
+    existingByMarker.dataset.qlTrigger=entry.taskKey;existingByMarker.dataset.qlPrompt=entry.prompt;
+   }
    const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
     const latest=savedRecords[savedRecords.length-1];
-    const markerButton=host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
+    const markerButton=existingByMarker||host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
     for(const record of savedRecords)addMessageImage(host,record.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},markerButton);
-    host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]').forEach(button=>button.remove());
+    host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"],[data-ql-marker="'+CSS.escape(entry.markerKey)+'"]').forEach(button=>button.remove());
     continue;
    }
    const removedFromBody=(cfg().records||[]).some(item=>item&&item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat');
-   if(removedFromBody){host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]').forEach(button=>button.remove());continue;}
+   if(removedFromBody){host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"],[data-ql-marker="'+CSS.escape(entry.markerKey)+'"]').forEach(button=>button.remove());continue;}
+   if(existingByMarker)continue;
    if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
    if([...host.querySelectorAll('[data-ql-prompt]')].some(button=>button.dataset.qlPrompt===entry.prompt&&button.dataset.qlTrigger===entry.taskKey))continue;
    const button=document.createElement('button');
    button.type='button';button.className='menu_button ql-inline-image-trigger';
    button.textContent='相册收录';
    button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
-   button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
+   button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;button.dataset.qlMarker=entry.markerKey;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
    button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
    host.append(button);
   }
@@ -2045,7 +2057,11 @@ jQuery(()=>{
  let inlineScanTimers=[];
  const scheduleInlineScan=()=>{
   inlineScanTimers.forEach(timer=>clearTimeout(timer));
-  inlineScanTimers=[80,250,600,1200].map(delay=>setTimeout(()=>processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 正文标记扫描失败',e)),delay));
+  // 刷新酒馆页面时，扩展脚本通常比聊天记录的 DOM 渲染更早就绪：原来只到 1200ms 的兜底窗口，
+  // 在聊天较长、设备较慢时可能还没等到消息渲染完就已经用完，导致刷新后没有任何一次扫描真正生效，
+  // 只能等到用户点一下编辑铅笔（强制触发 DOM 变动）才会被 MutationObserver 捕捉到。这里把兜底窗口拉长，
+  // 并加一次较晚的扫描，减少对“手动点一次铅笔”的依赖。
+  inlineScanTimers=[80,250,600,1200,2500,4500].map(delay=>setTimeout(()=>processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 正文标记扫描失败',e)),delay));
  };
  scheduleInlineScan();
  const chatObserver=new MutationObserver(records=>{
@@ -2066,7 +2082,10 @@ jQuery(()=>{
   processStatusbarFrames().catch(e=>console.warn('[轻绘 Lite] 状态栏触发失败',e));
  },120);};
  // 生成结束与 swipe 是稳定兜底；如果当前酒馆版本提供流式事件，则在完整 marker 到达时提前触发。
- for(const name of ['STREAM_TOKEN_RECEIVED','MESSAGE_UPDATED','GENERATION_ENDED','MESSAGE_SWIPED']){
+ // CHAT_CHANGED / MESSAGE_EDITED（若该酒馆版本提供）是比 MutationObserver 更明确的信号：
+ // 切换聊天、刷新页面后聊天记录加载完成、以及编辑消息保存/取消，都应该直接重新扫描一次正文，
+ // 而不是只依赖 DOM 变动去“猜”是否相关，这样可以明显减少“必须先点一下编辑铅笔才会变得可点”的情况。
+ for(const name of ['STREAM_TOKEN_RECEIVED','MESSAGE_UPDATED','GENERATION_ENDED','MESSAGE_SWIPED','CHAT_CHANGED','MESSAGE_EDITED']){
   const eventName=event_types[name];
   if(eventName)eventSource.on(eventName,scheduleScan);
  }
