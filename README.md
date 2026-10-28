@@ -28,7 +28,7 @@ git clone https://github.com/1614130601zjs-del/qinghui-lite.git shizhen
 
 - **生图**：图片展示区、Tag 编辑、画师串/Vibe 选择，以及 GPT/OpenAI 兼容与 NovelAI 的模型参数。
 - **预设**：分为画师串编辑、Vibe 管理、角色卡绑定三个子页；角色切换时会尝试应用已保存的画师串/Vibe 组合。
-- **Vibe 导入**：支持 JSON / 智绘姬组格式；`.naiv4vibe` / `.naiv4vibeBundle` 会尝试读取其中的 JSON 资源。图片编码按钮调用 `/api/novelai/encode-vibe`，需要酒馆后端实际提供该代理路由；标准酒馆未必提供此路由，若缺失会明确报错，不会伪装成编码成功。V4 预编码 Vibe 仅用于兼容的 NovelAI V4/V4.5 模型，不能把编码当作普通图片或跨模型通用资源。
+- **Vibe 导入**：支持 JSON / 智绘姬组格式；`.naiv4vibe` / `.naiv4vibeBundle` 会尝试读取其中的 JSON 资源。图片编码按钮会根据当前选择的 NAI 官方或第三方配置，直接请求其 `/ai/encode-vibe` 接口；若浏览器跨域限制、接口不支持编码或请求失败，会明确显示错误。V4 预编码 Vibe 仅用于兼容的 NovelAI V4/V4.5 模型，不能把编码当作普通图片或跨模型通用资源。
 
 ## 状态
 
