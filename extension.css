@@ -4082,6 +4082,23 @@ dialog.ql-viewfinder-lightbox button:disabled {
 }
 
 
+/* 覆盖取景页旧版高优先级 active 规则；状态栏使用原始 CSS。 */
+#qinghui-lite-panel .ql-viewfinder-actions .ql-viewfinder-icon-button:not(:disabled):active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-generate:not(:disabled):active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-favorite:not(:disabled):active,
+#qinghui-lite-panel .ql-viewfinder-actions #ql-result-enlarge:not(:disabled):active,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-action:active:not(:disabled) {
+  background:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  background-image:none!important;
+  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24)))!important;
+  color:var(--ql-button-text,var(--SmartThemeBodyColor,inherit))!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  opacity:1!important;
+}
+
 /* 清除其余历史控件的缩放/按压阴影；所有拾帧控件按下时保持原位。 */
 #ql-image-cache-modal .ql-cache-copy-icon:active,
 #qinghui-lite-panel .ql-library-copy-icon:active,
