@@ -1445,8 +1445,11 @@ function history(){
    const choices=roleChoices();
    const sourceName=String(live?.characterName||'').trim();
    const sourceKey=live?.characterKey==null?'':String(live.characterKey);
+   // 兼容旧版缓存：早期记录可能只有 character，没有 characterName / characterKey。
+   const legacyName=String(live?.character||'').trim();
    const sourceChoice=choices.find(choice=>sourceName!==''&&choice.name.trim()===sourceName);
    const keyedSourceChoice=choices.find(choice=>sourceKey!==''&&String(choice.key)===sourceKey);
+   const legacyChoice=choices.find(choice=>!sourceName&&legacyName!==''&&choice.name.trim()===legacyName);
    const context=getContext()||{};
    const current=currentCharacter();
    const currentName=String(current.name||context.name2||'').trim();
@@ -1455,7 +1458,7 @@ function history(){
    let defaultKey=null,defaultReason='没有匹配到来源角色或当前角色；浏览器将默认选中第一项';
    if(sourceChoice){defaultKey=sourceChoice.key;defaultReason='匹配到图片记录的角色名称';}
    else if(keyedSourceChoice){defaultKey=keyedSourceChoice.key;defaultReason='匹配到图片记录的角色编号';}
-   else if(currentChoice){defaultKey=currentChoice.key;defaultReason='图片记录未匹配，回退到当前角色';}
+   else if(legacyChoice){defaultKey=legacyChoice.key;defaultReason='兼容旧版缓存：按历史角色字段匹配';}
    const diagnostic={
     record:{id:live?.id||null,taskKey:live?.taskKey||null,characterName:live?.characterName??null,characterKey:live?.characterKey??null,character:live?.character??null,source:live?.source??null},
     current:{characterId:context.characterId??null,name2:context.name2??null,resolvedId:current.id,resolvedName:current.name},
@@ -1463,7 +1466,7 @@ function history(){
     defaultKey,defaultReason
    };
    console.info('[拾帧][角色相册移动诊断]',diagnostic);
-   const diagnosticText='诊断：图片记录角色名称='+JSON.stringify(live?.characterName??null)+'，编号='+JSON.stringify(live?.characterKey??null)+'；当前角色名称='+JSON.stringify(context.name2??null)+'，编号='+JSON.stringify(context.characterId??null)+'；默认选择依据：'+defaultReason+'。角色列表和完整记录已输出到控制台。';
+   const diagnosticText='诊断：图片记录角色名称='+JSON.stringify(live?.characterName??null)+'，历史角色字段='+JSON.stringify(live?.character??null)+'，编号='+JSON.stringify(live?.characterKey??null)+'；当前角色名称='+JSON.stringify(context.name2??null)+'，编号='+JSON.stringify(context.characterId??null)+'；默认选择依据：'+defaultReason+'。角色列表和完整记录已输出到控制台。';
    showDetailChoice(title,diagnosticText,choices,confirmLabel,choice=>setRoleAlbum(cfg().records?.[index],choice),defaultKey);
   };
   const setPromptGallery=(live,choice)=>{
