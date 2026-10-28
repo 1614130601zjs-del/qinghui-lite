@@ -949,6 +949,16 @@ async function processLatestAssistantMessage(){
    if(existingByMarker&&existingByMarker.dataset.qlTrigger!==entry.taskKey){
     existingByMarker.dataset.qlTrigger=entry.taskKey;existingByMarker.dataset.qlPrompt=entry.prompt;
    }
+   // 兼容旧版正文图片记录：旧版 taskKey 可能因 chatId / swipe 标识变化而与当前标记不一致。
+   // 仅当该消息中的画面提示词唯一时，才按消息序号、聊天 ID 与原始提示词回收旧记录，避免同提示词的多个标记串图。
+   const normalizeMarkerPrompt=value=>String(value||'').trim().replace(/\s+/g,' ');
+   if(found.filter(marker=>normalizeMarkerPrompt(marker.prompt)===normalizeMarkerPrompt(entry.prompt)).length===1){
+    const legacyRecords=(cfg().records||[]).filter(item=>item&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat'&&normalizeMarkerPrompt(item.basePrompt||item.prompt)===normalizeMarkerPrompt(entry.prompt));
+    if(legacyRecords.some(item=>item.taskKey!==entry.taskKey)){
+     for(const record of legacyRecords)record.taskKey=entry.taskKey;
+     save();
+    }
+   }
    const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
    if(savedRecords.length){
     const latest=savedRecords[savedRecords.length-1];
