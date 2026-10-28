@@ -1965,7 +1965,7 @@ jQuery(()=>{
  let inlineScanTimers=[];
  const scheduleInlineScan=()=>{
   inlineScanTimers.forEach(timer=>clearTimeout(timer));
-  inlineScanTimers=[80,250,600,1200].map(delay=>setTimeout(()=>processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 正文标记扫描失败',e)),delay));
+  inlineScanTimers=[80,250,600,1200].map(delay=>setTimeout(()=>{processLatestAssistantMessage().catch(e=>console.warn('[轻绘 Lite] 正文标记扫描失败',e));try{processEditMessageMarkers();}catch(e){console.warn('[拾帧] 编辑态 Roll 按钮扫描失败',e);}},delay));
  };
  scheduleInlineScan();
  const chatObserver=new MutationObserver(records=>{
