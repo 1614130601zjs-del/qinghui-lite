@@ -1470,6 +1470,17 @@ function history(){
   modal.querySelector('.ql-cache-modal-close').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();modal.hidden=true;modal.style.display='none';});
   modal.addEventListener('click',e=>{if(e.target===modal){modal.hidden=true;modal.style.display='';}});
  }
+ // 委托关闭详情按钮：兼容拾帧热重载后详情 DOM 已存在、旧按钮监听未重新挂载的情况。
+ if(!document.documentElement.dataset.qlDetailCloseDelegated){
+  document.documentElement.dataset.qlDetailCloseDelegated='1';
+  document.addEventListener('click',event=>{
+   const button=event.target?.closest?.('#ql-image-cache-modal .ql-cache-modal-close');
+   if(!button)return;
+   event.preventDefault();event.stopPropagation();
+   const detail=document.getElementById('ql-image-cache-modal');
+   if(detail){detail.hidden=true;detail.style.display='none';}
+  },true);
+ }
  const openDetail=(index,galleryContext=null,detailContext='cache')=>{
   const r=records[index];if(!r)return;
   const preset=r.preset||null,vibe=r.vibe||null,meta=r.config||{};
