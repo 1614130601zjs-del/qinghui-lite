@@ -2058,6 +2058,27 @@ jQuery(()=>{
   document.documentElement.dataset.qlLiteMenuWatch='1';
   new MutationObserver(()=>ensureLiteLauncher()).observe(document.documentElement,{childList:true,subtree:true});
  }
+ // 若酒馆仍持有旧版弹窗 DOM，脚本重载时不能只跳过创建逻辑：
+ // 检查预设卡片结构和历史误插入的英文残句，必要时重建当前版本界面。
+ const existingOverlay=$('#ql-overlay');
+ if(existingOverlay){
+  const existingPanel=existingOverlay.querySelector('#qinghui-lite-panel');
+  const hasGlobalPreset=!!existingPanel?.querySelector('[data-subpage-panel="bindings"] .ql-global-default-card #ql-global-combo');
+  const hasStrayEnglish=existingOverlay.textContent.includes('remove standalone reroll settings card');
+  if(!hasGlobalPreset||hasStrayEnglish){
+   const wasOpen=!existingOverlay.hidden;
+   existingOverlay.remove();
+   document.documentElement.insertAdjacentHTML('beforeend',html());
+   const rebuiltOverlay=$('#ql-overlay');
+   const rebuiltPanel=$('#qinghui-lite-panel');
+   if(rebuiltOverlay&&rebuiltPanel){
+    rebuiltOverlay.hidden=!wasOpen;
+    rebuiltPanel.setAttribute('role','dialog');
+    rebuiltPanel.setAttribute('aria-modal','true');
+    rebuiltPanel.setAttribute('aria-label','拾帧');
+   }
+  }
+ }
  if(!$('#ql-overlay')){
   document.documentElement.insertAdjacentHTML('beforeend',html());
   const overlay=$('#ql-overlay');
