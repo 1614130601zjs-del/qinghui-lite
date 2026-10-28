@@ -1468,7 +1468,10 @@ function history(){
     const sourceKey=live?.characterKey==null?'':String(live.characterKey);
     const keyedSourceChoice=choices.find(choice=>sourceKey!==''&&String(choice.key)===sourceKey);
     const current=currentCharacter();
-    const currentChoice=choices.find(choice=>String(choice.key)===String(current.id));
+    const context=getContext()||{};
+    const currentName=String(current.name||context.name2||'').trim();
+    const currentChoice=choices.find(choice=>String(choice.key)===String(current.id))
+     ||choices.find(choice=>choice.name.trim()===currentName);
     const defaultKey=sourceChoice?.key??keyedSourceChoice?.key??currentChoice?.key??null;
     showDetailChoice('移动到角色卡相册','已优先选中这张照片原本生成时所属的角色卡；也可以手动更改。',choices,'确认移动',choice=>setRoleAlbum(cfg().records?.[index],choice),defaultKey);
    };
