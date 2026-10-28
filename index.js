@@ -1542,14 +1542,6 @@ function history(){
   };
   const setPromptGallery=(live,choice)=>{
    if(!live)return;
-   // Preserve the source role album even when its last photo is moved to a prompt gallery.
-   const sourceAlbumKey=String(live.albumCharacterKey||live.albumCharacterName||'').trim();
-   const sourceAlbumName=String(live.albumCharacterName||'').trim();
-   if(sourceAlbumKey&&sourceAlbumName){
-    const settings=cfg();
-    if(!settings.albumNames||typeof settings.albumNames!=='object'||Array.isArray(settings.albumNames))settings.albumNames={};
-    if(!settings.albumNames[sourceAlbumKey])settings.albumNames[sourceAlbumKey]=sourceAlbumName;
-   }
    const targetId=String(choice.key);
    live.promptEntryId=targetId;
    live.sourcePromptEntryId=targetId;
@@ -2011,12 +2003,13 @@ function isPromptGalleryRecord(record,settings=cfg()){
 }
 function recordBelongsToPromptGallery(record,promptEntry,settings=cfg()){
  if(!record||!record.dataUrl||!promptEntry||record.albumCharacterName)return false;
- if(record.collection==='cache'||record.collection==='character-album'||isChatOrStatusbarRecord(record))return false;
  const id=String(promptEntry.id||'');
  const excluded=Array.isArray(record.promptGalleryExcludedIds)?record.promptGalleryExcludedIds.map(String):[];
  if(id&&excluded.includes(id))return false;
  const linked=[record.promptEntryId,record.sourcePromptEntryId].filter(value=>value!=null&&value!=='').map(String);
+ // Explicit gallery assignment takes precedence over the record's original chat/statusbar source.
  if(linked.length)return linked.includes(id);
+ if(record.collection==='cache'||record.collection==='character-album'||isChatOrStatusbarRecord(record))return false;
  if(record.collection==='prompt-gallery')return false;
  const normalize=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();
  const target=normalize(promptEntry.promptEn||promptEntry.prompt||'');
