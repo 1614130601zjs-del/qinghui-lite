@@ -4264,65 +4264,53 @@ dialog.ql-viewfinder-lightbox,
 }
 
 
-/* Enlarged preview: keep only the existing album photo frame; remove the extra dialog bubble. */
-dialog.ql-viewfinder-lightbox{
- box-sizing:border-box!important;
- padding:0!important;
- border:0!important;
- border-radius:0!important;
- background:transparent!important;
- color:transparent!important;
- box-shadow:none!important;
- overflow:visible!important;
+/* Enlarged preview: reuse the existing album frame; remove only the extra outer paper/dialog surface. */
+dialog.ql-viewfinder-lightbox[open]{
+ position:fixed!important;inset:0!important;margin:auto!important;box-sizing:border-box!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ width:max-content!important;height:max-content!important;
+ max-width:calc(100vw - 10px)!important;max-height:calc(100dvh - 10px)!important;
+ padding:0!important;overflow:visible!important;transform:none!important;
+ border:0!important;border-radius:0!important;background:transparent!important;
+ box-shadow:none!important;color:transparent!important;
 }
-dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
- position:absolute!important;
- top:8px!important;
- right:8px!important;
- z-index:20!important;
- display:flex!important;
- align-items:center!important;
- justify-content:center!important;
+dialog.ql-viewfinder-lightbox > .ql-album-paper.is-flip{
+ position:relative!important;display:block!important;
+ width:fit-content!important;max-width:calc(100vw - 10px)!important;
+ max-height:calc(100dvh - 10px)!important;margin:0!important;padding:0!important;
+ border:0!important;border-radius:0!important;background:transparent!important;
+ box-shadow:none!important;overflow:visible!important;
+}
+/* The close control sits inside the original photo frame, immediately left of its folded corner. */
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close{
+ position:absolute!important;top:10px!important;right:46px!important;z-index:15!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;
+ margin:0!important;padding:0!important;
+ border:1px solid rgba(87,68,82,.32)!important;border-radius:50%!important;
+ color:#574452!important;background:rgba(255,255,255,.58)!important;
+ box-shadow:0 1px 6px rgba(0,0,0,.13)!important;
+ backdrop-filter:blur(5px)!important;-webkit-backdrop-filter:blur(5px)!important;
+ font-size:0!important;line-height:1!important;cursor:pointer!important;
+}
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close svg{
+ display:block!important;width:20px!important;height:20px!important;
+ fill:none!important;stroke:currentColor!important;stroke-width:2.2!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close:hover,
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close:focus,
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close:focus-visible{
+ color:#574452!important;background:rgba(255,255,255,.72)!important;
+ border-color:rgba(87,68,82,.42)!important;outline-color:rgba(87,68,82,.42)!important;
+}
+dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close:active:not(:disabled){
+ color:#574452!important;background:rgba(255,255,255,.78)!important;
+ border-color:rgba(87,68,82,.42)!important;box-shadow:0 1px 6px rgba(0,0,0,.13)!important;
  transform:none!important;
- width:38px!important;
- height:42px!important;
- min-width:38px!important;
- min-height:42px!important;
- margin:0!important;
- padding:0!important;
- border:1px solid rgba(87,68,82,.3)!important;
- border-radius:999px!important;
- color:#574452!important;
- background:rgba(255,255,255,.55)!important;
- box-shadow:0 1px 6px rgba(0,0,0,.15)!important;
- backdrop-filter:blur(5px)!important;
- -webkit-backdrop-filter:blur(5px)!important;
- font-size:0!important;
- line-height:1!important;
- cursor:pointer!important;
 }
-dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close svg{
- display:block!important;
- width:22px!important;
- height:22px!important;
- fill:none!important;
- stroke:currentColor!important;
- stroke-width:2.2!important;
- stroke-linecap:round!important;
- stroke-linejoin:round!important;
-}
-dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close:hover,
-dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close:focus,
-dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close:focus-visible{
- color:#574452!important;
- background:rgba(255,255,255,.68)!important;
- border-color:rgba(87,68,82,.38)!important;
- outline-color:rgba(87,68,82,.38)!important;
-}
-dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close:active:not(:disabled){
- color:#574452!important;
- background:rgba(255,255,255,.72)!important;
- border-color:rgba(87,68,82,.38)!important;
- box-shadow:0 1px 6px rgba(0,0,0,.15)!important;
- transform:none!important;
+@media(max-width:480px){
+ dialog.ql-viewfinder-lightbox[open]{max-width:calc(100vw - 10px)!important;max-height:calc(100dvh - 10px)!important;}
+ dialog.ql-viewfinder-lightbox > .ql-album-paper.is-flip{max-width:calc(100vw - 10px)!important;max-height:calc(100dvh - 10px)!important;}
+ dialog.ql-viewfinder-lightbox .ql-album-single-page > .ql-viewfinder-lightbox-close{top:8px!important;right:42px!important;width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;}
 }
