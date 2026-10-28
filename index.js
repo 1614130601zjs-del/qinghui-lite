@@ -2119,14 +2119,41 @@ jQuery(()=>{
  scheduleInlineScan();
  const chatObserver=new MutationObserver(records=>{
   // 酒馆点击“编辑消息”时可能只切换 .mes 的 class/编辑区状态，不一定增删 .mes_text；
-  // 退出编辑、保存或取消后也必须重新扫描并补回“相册收录”按钮。
+  // 退出编辑、保存或取消后也必须重新扫描并补回已生成图片。
   const relevant=records.some(record=>{
    if(record.target?.closest?.('.mes'))return true;
-   return [...(record.addedNodes||[])].some(node=>node.nodeType===1&&(node.matches?.('.mes, .mes_text')||node.querySelector?.('.mes_text')));
+   return [...(record.addedNodes||[]),...(record.removedNodes||[])].some(node=>node.nodeType===1&&(node.matches?.('.mes, .mes_text')||node.querySelector?.('.mes_text')));
   });
   if(relevant)scheduleInlineScan();
  });
  chatObserver.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style']});
+ // 酒馆某些版本在编辑/取消时只更新内部状态，MutationObserver 不一定捕获到正文恢复时机。
+ // 额外监听消息楼层中的编辑操作，并在动作完成后多次扫描；编辑中仍由 isHostBeingEdited 保护，
+ // 一旦保存/取消完成，就恢复该楼层的图片卡片和交互按钮。
+ const schedulePostEditScan=()=>{
+  for(const delay of [120,360,800,1500]){
+   setTimeout(()=>{
+    processLatestAssistantMessage().catch(error=>console.warn('[拾帧] 编辑后恢复正文图片失败',error));
+   },delay);
+  }
+ };
+ document.addEventListener('click',event=>{
+  const target=event.target instanceof Element?event.target:null;
+  if(!target?.closest('.mes'))return;
+  // 只关注消息编辑入口、保存/取消编辑控件；按钮命名在酒馆不同版本间有差异，
+  // 因此同时检查常见 class/id 与编辑器区域中的按钮文本。
+  const control=target.closest('button,[role="button"],.mes_edit');
+  if(!control)return;
+  const identity=[control.id,control.className,control.getAttribute('title'),control.getAttribute('aria-label'),control.textContent].join(' ').toLowerCase();
+  const editAction=/edit|编辑|save|保存|cancel|取消|confirm|确定/.test(identity);
+  const editorAction=!!target.closest('#curEditTextarea,textarea.edit_textarea,[contenteditable="true"]');
+  if(editAction||editorAction)schedulePostEditScan();
+ },true);
+ document.addEventListener('focusout',event=>{
+  const target=event.target;
+  if(!(target instanceof Element)||!target.matches('#curEditTextarea,textarea.edit_textarea,[contenteditable="true"]'))return;
+  if(target.closest('.mes'))schedulePostEditScan();
+ },true);
  if(!eventSource||!event_types)return;
  let scanTimer=null;
  const scheduleScan=()=>{if(scanTimer)clearTimeout(scanTimer);scanTimer=setTimeout(()=>{
