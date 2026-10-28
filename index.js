@@ -1427,7 +1427,7 @@ function history(){
     menu.classList.remove('ql-album-menu-portal');
     albums.append(menu);
    }
-  }));
+  },true));
 
   const cropModal=albums.querySelector('[data-album-crop-modal]'),cropImage=albums.querySelector('[data-crop-image]'),cropViewport=albums.querySelector('[data-crop-viewport]'),zoomControl=albums.querySelector('[data-crop-zoom]'),xControl=albums.querySelector('[data-crop-x]'),yControl=albums.querySelector('[data-crop-y]');
   let cropSource=null,cropKey='',cropNaturalW=0,cropNaturalH=0,dragPoint=null;
