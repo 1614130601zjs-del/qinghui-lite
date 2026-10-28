@@ -2056,6 +2056,7 @@ function syncViewfinderAlbumTargets(){
   saveButton.style.setProperty('transform','none','important');
   saveButton.style.setProperty('opacity','1','important');
  }
+}
 function toggleViewfinderFavorite(){
  const img=$('#ql-result img');if(!img)return;
  const settings=cfg(),records=settings.records||[];
