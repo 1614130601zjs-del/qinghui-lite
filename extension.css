@@ -4384,3 +4384,23 @@ dialog.ql-viewfinder-lightbox button:active:not(:disabled),
   border-color:var(--ql-button-border,var(--ql-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24))) )!important;
   color:var(--ql-button-text,var(--ql-text,var(--SmartThemeBodyColor,inherit)))!important;
 }
+
+
+/* 对齐 7a4e843 正文操作按钮：不让酒馆/浏览器焦点环把单个按钮撑成粗灰框。 */
+#chat .ql-chat-image-controls button:focus,
+#chat .ql-chat-image-controls button:focus-visible,
+#chat .ql-chat-image-controls button:active:not(:disabled) {
+  outline:none!important;
+  outline-offset:0!important;
+  border-width:1px!important;
+  box-shadow:none!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:hover,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:active,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus-visible {
+  border-color:var(--ql-button-border,var(--SmartThemeBorderColor,rgba(127,127,127,.24)))!important;
+  outline:none!important;
+  box-shadow:none!important;
+}
