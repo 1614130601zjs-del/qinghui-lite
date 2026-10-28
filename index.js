@@ -2039,16 +2039,14 @@ function toggleViewfinderFavorite(){
  if(!matches.length){status('暂时找不到这张图片的缓存记录。');return;}
  if(matches.some(item=>item.albumCharacterName)){
   for(const item of matches){delete item.albumCharacterName;delete item.albumCharacterKey;}
-  save();history();syncViewfinderAlbumTargets();syncViewfinderActions();status('已取消收藏；图片已回到底片缓存（如未归入提示词图集）。');return;
+  save();history();syncViewfinderAlbumTargets();syncViewfinderActions();status('已取消收藏；图片仍保留在底片缓存中。');return;
  }
  if(matches.some(item=>isPromptGalleryRecord(item,settings))){
   status('这张照片已归入提示词图集，不会重复收藏到当前角色相册。');return;
  }
- const target=$('#ql-result-album-target')?.value||'';
- if(!target){status('请先选择要收藏到的角色卡相册。');return;}
- const character=getCharacterCards()[Number(target)];
- const name=String(character?.name||character?.avatar||settings.albumNames?.[target]||(records.find(item=>String(item?.albumCharacterKey||'')===target&&item?.albumCharacterName)?.albumCharacterName)||('角色 '+(Number(target)+1))).trim();
- const key=String(target);
+ const character=currentCharacter(),defaultName=String(character.name||getContext()?.name2||'当前角色').trim(),target=$('#ql-result-album-target')?.value||'__current__';
+ let key=character.id||'',name=defaultName;
+ if(target!=='__current__'){key=target;name=String(settings.albumNames?.[key]||(records.find(item=>String(item?.albumCharacterKey||item?.albumCharacterName||'current')===key&&item?.albumCharacterName)?.albumCharacterName)||key).trim();}
  for(const item of matches){item.albumCharacterName=name;item.albumCharacterKey=key;}
  save();history();syncViewfinderAlbumTargets();syncViewfinderActions();status('已收藏到「'+name+'」相册。');
 }
