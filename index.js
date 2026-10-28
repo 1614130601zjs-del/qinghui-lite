@@ -2154,7 +2154,12 @@ $('#ql-save-nai').onclick=()=>{cfg().naiApiKey=$('#ql-nai-key').value.trim();sav
 $('#ql-role-add').onclick=()=>{cfg().viewfinderRoles.push({appearance:'',libraryIndex:-1});save();renderViewfinderRoles();};
 $('#ql-generate').onclick=async()=>{
  if(cfg().enabled===false){status('拾帧已停用；请先在偏好设置中重新启用插件。');return;}
- if(busy)return;try{read();}catch(error){status('读取生图参数失败：'+(error?.message||String(error)));return;}const conf=cfg();
+ if(busy)return;
+ // 生成前直接读取当前可见输入框，避免移动端输入法尚未触发 input 保存时丢失角色外貌词。
+ const roleInputs=[...document.querySelectorAll('#ql-viewfinder-roles [data-role-appearance]')];
+ for(const input of roleInputs){const index=Number(input.dataset.roleAppearance);if(Number.isInteger(index)&&cfg().viewfinderRoles[index])cfg().viewfinderRoles[index].appearance=String(input.value||'');}
+ save();
+ try{read();}catch(error){status('读取生图参数失败：'+(error?.message||String(error)));return;}const conf=cfg();
  if(conf.provider==='novelai'&&!conf.naiApiKey){status('请在接口设置中填写 NovelAI 官网 Key。');return;}if(conf.provider==='novelai-thirdparty'&&(!conf.naiThirdEndpoint||!conf.naiThirdKey)){status('请填写 NAI 第三方接口地址和 Key。');return;}
  busy=true;$('#ql-generate').disabled=true;$('#ql-generate').classList.add('is-generating');$('#ql-result').replaceChildren();status('正在请求生图接口……');
  try{
