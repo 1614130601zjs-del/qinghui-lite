@@ -3800,3 +3800,11 @@ dialog.ql-viewfinder-lightbox .ql-gallery-detail-move select{width:100%;min-heig
 #qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-move[hidden]{display:none!important;}
 #qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-move label{display:flex;flex-direction:column;gap:6px;}
 #qinghui-lite-panel .ql-prompt-photo-detail-paper .ql-gallery-detail-move select{min-height:38px;padding:6px 10px;}
+
+/* Reused prompt-gallery actions inside the existing cache detail modal */
+#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions{margin-top:12px;}
+#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-move{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-move[hidden]{display:none!important;}
+#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-move label{display:flex;flex-direction:column;gap:6px;}
+#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-move select{width:100%;min-height:38px;padding:6px 10px;}
+#ql-image-cache-modal .ql-prompt-gallery-existing-detail-actions .ql-gallery-detail-main{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
