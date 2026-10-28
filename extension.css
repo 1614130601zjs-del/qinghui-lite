@@ -4230,13 +4230,12 @@ dialog.ql-viewfinder-lightbox,
   font-size: 14px;
 }
 
-/* Chat 修改 tag editor: bright selectors and a vertically resizable prompt field. */
+/* Chat 修改 tag editor: inherit the active Shizhen album palette, keep the prompt field resizable. */
 #chat .ql-chat-image-editor .ql-chat-image-temp-config select {
-  color: #344653 !important;
-  background: #f8fafb !important;
-  border: 1px solid rgba(100,125,145,.36) !important;
+  color: var(--ql-text, inherit) !important;
+  background: var(--ql-field, var(--ql-card, transparent)) !important;
+  border: 1px solid var(--ql-border, currentColor) !important;
   opacity: 1 !important;
-  color-scheme: light;
 }
 #chat .ql-chat-image-editor .ql-chat-image-tag-input {
   display: block !important;
@@ -4249,15 +4248,14 @@ dialog.ql-viewfinder-lightbox,
   box-sizing: border-box !important;
   padding: 10px 12px !important;
   line-height: 1.55 !important;
-  color: #344653 !important;
-  background: #f8fafb !important;
-  border: 1px solid rgba(100,125,145,.36) !important;
+  color: var(--ql-text, inherit) !important;
+  background: var(--ql-field, var(--ql-card, transparent)) !important;
+  border: 1px solid var(--ql-border, currentColor) !important;
   border-radius: 10px !important;
   opacity: 1 !important;
-  color-scheme: light;
 }
 #chat .ql-chat-image-editor .ql-chat-image-tag-input:focus {
-  outline: 2px solid rgba(127,152,173,.32) !important;
+  outline: 2px solid color-mix(in srgb, var(--ql-accent, currentColor) 32%, transparent) !important;
   outline-offset: 1px !important;
-  border-color: #7f98ad !important;
+  border-color: var(--ql-accent, currentColor) !important;
 }
