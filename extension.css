@@ -4222,3 +4222,56 @@ dialog.ql-viewfinder-lightbox button:disabled {
   filter:none!important;
   transform:none!important;
 }
+
+
+/* 全局按钮状态统一：选用拾帧配色时由 --ql-button-* 提供颜色；不使用深色按压、阴影、滤镜或位移。 */
+#qinghui-lite-panel button:active:not(:disabled),
+#ql-overlay button:active:not(:disabled),
+#ql-image-cache-modal button:active:not(:disabled),
+.ql-detail-choice-overlay button:active:not(:disabled),
+dialog.ql-viewfinder-lightbox button:active:not(:disabled),
+#chat .ql-chat-image-controls button:active:not(:disabled),
+.ql-statusbar-card button:active:not(:disabled) {
+  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  background-image:none!important;
+  color:var(--ql-button-text,var(--SmartThemeBodyColor,inherit))!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  opacity:1!important;
+  text-shadow:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+
+/* 收藏只把星星本身变为金色空心描边；保留按钮原本的外框与常态底色。 */
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:hover,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:active,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite:focus-visible,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:hover,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:active,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite:focus-visible,
+#qinghui-lite-panel #ql-result-favorite.is-favorite,
+#qinghui-lite-panel #ql-result-favorite.is-favorite:hover,
+#qinghui-lite-panel #ql-result-favorite.is-favorite:active,
+#qinghui-lite-panel #ql-result-favorite.is-favorite:focus,
+#qinghui-lite-panel #ql-result-favorite.is-favorite:focus-visible {
+  color:#d6a52f!important;
+  background-color:var(--ql-button-bg,var(--SmartThemeBlurTintColor,rgba(127,127,127,.10)))!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  opacity:1!important;
+}
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg,
+#chat .ql-chat-image-controls .ql-chat-image-favorite.is-favorite svg path,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg,
+.ql-statusbar-card .ql-statusbar-controls .ql-statusbar-favorite.is-favorite svg path,
+#qinghui-lite-panel #ql-result-favorite.is-favorite svg,
+#qinghui-lite-panel #ql-result-favorite.is-favorite svg path {
+  fill:none!important;
+  stroke:#d6a52f!important;
+}
