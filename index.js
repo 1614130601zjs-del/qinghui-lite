@@ -1734,19 +1734,24 @@ function syncViewfinderActions(){
  const matches=img?(cfg().records||[]).filter(item=>item&&sameImageSource(item.dataUrl,img.src)):[];
  const saved=matches.some(record=>!!record.albumCharacterName);
  const label=saved?'取消角色相册收藏':'收藏到角色相册';
- favorite.setAttribute('aria-label',label);favorite.title=label;
  favorite.classList.toggle('is-favorite',saved);
- // Inline persistent styles are deliberate: mobile WebViews may keep native :active styling
- // or resolve legacy stylesheet rules differently after a touch is released.
- const styles=saved
-  ?{background:'#38424b',border:'1px solid #38424b',color:'#fff',boxShadow:'inset 0 1px 3px rgba(0,0,0,.16)',filter:'none',transform:'none',opacity:'1'}
-  :{background:'',border:'',color:'',boxShadow:'',filter:'',transform:'',opacity:''};
- for(const [key,value] of Object.entries(styles))favorite.style[key]=value;
+ favorite.setAttribute('aria-label',label);favorite.title=label;
+ // Match the status-bar favorite implementation: persist the state with inline !important
+ // so touch :active styles and older stylesheet rules cannot override it after release.
+ favorite.style.setProperty('background',saved?'#38424b':'','important');
+ favorite.style.setProperty('color',saved?'#fff':'','important');
+ favorite.style.setProperty('border-color',saved?'#38424b':'','important');
+ favorite.style.setProperty('border-style',saved?'solid':'','important');
+ favorite.style.setProperty('border-width',saved?'1px':'','important');
+ favorite.style.setProperty('box-shadow',saved?'inset 0 1px 3px rgba(0,0,0,.16)':'','important');
+ favorite.style.setProperty('filter','none','important');
+ favorite.style.setProperty('transform','none','important');
+ favorite.style.setProperty('opacity','1','important');
  const star=favorite.querySelector('svg path');
  if(star){
-  star.style.fill=saved?'#fff':'none';
-  star.style.stroke=saved?'#fff':'currentColor';
-  star.style.color=saved?'#fff':'';
+  star.style.setProperty('fill',saved?'#fff':'none','important');
+  star.style.setProperty('stroke',saved?'#fff':'currentColor','important');
+  star.style.setProperty('color',saved?'#fff':'','important');
  }
 }
 function toggleViewfinderFavorite(){
