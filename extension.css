@@ -3887,8 +3887,6 @@ dialog.ql-viewfinder-lightbox .ql-gallery-detail-move select{width:100%;min-heig
 #ql-image-cache-modal button,
 .ql-detail-choice-overlay button,
 dialog.ql-viewfinder-lightbox button,
-#chat .ql-chat-image-controls button,
-.ql-statusbar-card button {
   background-color:var(--ql-button-bg, var(--SmartThemeBlurTintColor, rgba(127,127,127,.10)))!important;
   border-width:1px!important;
   border-style:solid!important;
@@ -3903,8 +3901,6 @@ dialog.ql-viewfinder-lightbox button,
 #ql-image-cache-modal button:hover,
 .ql-detail-choice-overlay button:hover,
 dialog.ql-viewfinder-lightbox button:hover,
-#chat .ql-chat-image-controls button:hover,
-.ql-statusbar-card button:hover {
   background-color:var(--ql-button-hover, var(--SmartThemeQuoteColor, rgba(127,127,127,.16)))!important;
   color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
 }
@@ -3922,8 +3918,6 @@ dialog.ql-viewfinder-lightbox button:focus-visible {
 #ql-image-cache-modal button:active:not(:disabled),
 .ql-detail-choice-overlay button:active:not(:disabled),
 dialog.ql-viewfinder-lightbox button:active:not(:disabled),
-#chat .ql-chat-image-controls button:active:not(:disabled),
-.ql-statusbar-card button:active:not(:disabled) {
   background-color:var(--ql-button-active, var(--SmartThemeQuoteColor, rgba(127,127,127,.22)))!important;
   color:var(--ql-button-text, var(--SmartThemeBodyColor, inherit))!important;
   transform:none;
