@@ -4518,3 +4518,35 @@ html > .ql-album-menu-portal .ql-album-more-menu-panel button:active{
  margin:0!important;
  white-space:nowrap;
 }
+
+/* Preference controls: reserve space for the select and align control heights. */
+#shizhen-panel .ql-setting-control-row{
+ display:flex;
+ align-items:stretch;
+ gap:8px;
+ min-width:0;
+}
+#shizhen-panel .ql-setting-control-row>select{
+ flex:1 1 0;
+ width:0;
+ min-width:0;
+ height:42px;
+ min-height:42px;
+ box-sizing:border-box;
+ padding:8px 10px;
+}
+#shizhen-panel .ql-setting-control-row>button{
+ flex:0 1 auto;
+ width:auto!important;
+ max-width:46%;
+ min-width:0;
+ height:42px;
+ min-height:42px;
+ box-sizing:border-box;
+ padding:8px 10px;
+ margin:0!important;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ white-space:nowrap;
+ line-height:1.2;
+}
