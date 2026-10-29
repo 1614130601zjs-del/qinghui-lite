@@ -1546,14 +1546,14 @@ function history(){
    const close=()=>overlay.remove();
    cancel.onclick=close;overlay.addEventListener('click',event=>{if(event.target===overlay)close();});
    confirm.onclick=()=>{const choice=choices[Number(select.value)];if(!choice)return;onConfirm(choice);close();};
-   buttons.append(cancel,confirm);panel.append(heading,note,select,buttons);overlay.append(panel);modal.append(overlay);
+   buttons.append(cancel,confirm);if(String(description||'').trim())panel.append(heading,note,select,buttons);else panel.append(heading,select,buttons);overlay.append(panel);modal.append(overlay);
   };
-  const roleChoices=()=>getCharacterCards().map((character,index)=>({key:String(index),name:String(character?.name||character?.avatar||('角色 '+(index+1)))}));
+  const roleChoices=()=>{const cards=getCharacterCards(),choices=cards.map((character,index)=>({key:String(index),name:String(character?.name||character?.avatar||('角色 '+(index+1))),type:'character'})),cardKeys=new Set(cards.map((_,index)=>String(index))),names=cfg().albumNames||{};for(const [key,name] of Object.entries(names)){if(key&&!cardKeys.has(String(key)))choices.push({key:String(key),name:String(name||key),type:'album'});}return choices;};
   const galleryChoices=()=>promptEntries.map(entry=>({key:String(entry.id),name:String(entry.name||'未命名图集')}));
   const setRoleAlbum=(live,choice)=>{
-   const character=getCharacterCards()[Number(choice.key)];
-   if(!live||!character){status('请选择有效的角色卡。');return;}
-   live.albumCharacterName=String(character.name||character.avatar||('角色 '+(Number(choice.key)+1)));
+   const cards=getCharacterCards(),character=choice.type==='character'?cards[Number(choice.key)]:null;
+   if(!live||(choice.type==='character'&&!character)){status('请选择有效的角色卡或相册。');return;}
+   live.albumCharacterName=character?String(character.name||character.avatar||('角色 '+(Number(choice.key)+1))):String(cfg().albumNames?.[choice.key]||choice.name||choice.key);
    live.albumCharacterKey=String(choice.key);
    live.collection='character-album';
    delete live.promptEntryId;delete live.sourcePromptEntryId;delete live.sourcePromptEntryAppliedAt;
@@ -1586,8 +1586,7 @@ function history(){
     defaultKey,defaultReason
    };
    console.info('[拾帧][角色相册移动诊断]',diagnostic);
-   const diagnosticText='诊断：图片记录角色名称='+JSON.stringify(live?.characterName??null)+'，历史角色字段='+JSON.stringify(live?.character??null)+'，编号='+JSON.stringify(live?.characterKey??null)+'；当前角色名称='+JSON.stringify(context.name2??null)+'，编号='+JSON.stringify(context.characterId??null)+'；默认选择依据：'+defaultReason+'。角色列表和完整记录已输出到控制台。';
-   showDetailChoice(title,diagnosticText,choices,confirmLabel,choice=>setRoleAlbum(live,choice),defaultKey);
+   showDetailChoice(title,'',choices,confirmLabel,choice=>setRoleAlbum(live,choice),defaultKey);
   };
   const setPromptGallery=(live,choice)=>{
    if(!live)return;
