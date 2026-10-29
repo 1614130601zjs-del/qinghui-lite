@@ -106,35 +106,158 @@ function isHostBeingEdited(host){
  if(ta&&ta.offsetParent!==null)return true;
  return false;
 }
-function hideMarkersInTextNode(root,entries=[]){
- if(!root)return;
- // 正在被酒馆编辑的区域不要插按钮，否则保存时会把按钮文字一起存回正文，把 image###...### 标记永久破坏掉。
- if(isHostBeingEdited(root))return;
- let entryCursor=0;
- const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
- const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue?.includes('image###'))nodes.push(walker.currentNode);
- let ordinal=0;
- for(const node of nodes){
-  const value=node.nodeValue||'',re=/image###([\s\S]*?)###/g;
-  if(!re.test(value))continue;
-  re.lastIndex=0;
-  const fragment=document.createDocumentFragment();let last=0,match;
-  while((match=re.exec(value))!==null){
-   fragment.append(document.createTextNode(value.slice(last,match.index)));
-   const entry=entries[entryCursor++],prompt=match[1].trim();
-   if(!prompt){last=re.lastIndex;continue;}
-   const button=document.createElement('button');
-   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='点击生成图片并收录到当前消息';
-   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;
-   // 稳定标识：只看“第几条消息的第几个标记”，不依赖 chatId 是否已就绪，避免刷新后 chatId 延迟到位时把同一个标记重复渲染成第二个按钮。
-   if(entry&&entry.messageIndex!=null&&entry.markerOrdinal!=null)button.dataset.qlMarker=entry.messageIndex+':'+entry.markerOrdinal;
-   applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
-   button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
-   fragment.append(button);ordinal++;last=re.lastIndex;
+// ===== 正文标记渲染 =====
+// 以前只在“单个文本节点”里找 image###…###：标记一旦被 <br>、markdown（<em>/<strong>）或段落拆成多个节点就找不到，
+// 原文留着，扫描又把按钮 append 到消息最底部——这就是“底部又出现按钮 / 一条消息里重复好几套”的来源。
+// 现在把整条消息的文本节点按顺序拼成一份“逻辑文本”（<br> 当换行、不同段落之间补换行），在逻辑文本上匹配标记，
+// 再用 Range 跨节点把标记原位替换成按钮；按钮位置永远就是标记所在的位置。
+// （思路参考智绘姬的 findAndReplaceInElement，代码为自行实现。）
+const QL_MARKER_SRC='image###([\\s\\S]*?)###';
+const QL_SKIP_SELECTOR='script,style,textarea,button,.ql-chat-image,.ql-inline-image-trigger,.image-tag-button,.st-chatu8-image-span,.st-chatu8-image-container,.st-chatu8-collapse-wrapper';
+const QL_BLOCK_SELECTOR='p,div,li,blockquote,h1,h2,h3,h4,h5,h6,pre,tr,td,th';
+const qlNormalizePrompt=value=>String(value||'').replace(/\s+/g,' ').trim();
+// 宽松比较：智绘姬会把提示词里的全角标点替换成半角等，只用于认出“同一条提示词”。
+const qlLooseKey=value=>String(value||'').toLowerCase().replace(/[\s,，;；:：、.。!！?？'"“”‘’()（）\[\]{}]/g,'');
+function qlCollectLogicalText(root){
+ const infos=[];let text='',lastBlock=null;
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT,{acceptNode(node){
+  if(node.nodeType===Node.ELEMENT_NODE){
+   if(node.tagName==='BR')return NodeFilter.FILTER_ACCEPT;
+   return node.matches(QL_SKIP_SELECTOR)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_SKIP;
   }
-  fragment.append(document.createTextNode(value.slice(last)));
-  node.parentNode?.replaceChild(fragment,node);
+  return NodeFilter.FILTER_ACCEPT;
+ }});
+ while(walker.nextNode()){
+  const node=walker.currentNode;
+  const isText=node.nodeType===Node.TEXT_NODE;
+  const value=isText?(node.nodeValue||''):'\n';
+  if(!value)continue;
+  if(isText){
+   const block=node.parentElement?.closest(QL_BLOCK_SELECTOR)||root;
+   // 不同段落之间补一个换行，避免把前一段的结尾和后一段的开头粘在一起。
+   if(lastBlock&&block!==lastBlock&&text&&!/\s$/.test(text)&&!/^\s/.test(value))text+='\n';
+   lastBlock=block;
+  }
+  infos.push({node,isText,start:text.length,end:text.length+value.length});
+  text+=value;
  }
+ return {text,infos};
+}
+// 这条消息里所有“还没被替换”的位置：原文里的 image###…###，以及智绘姬抢先替换出来的按钮。按文档顺序返回。
+function qlFindMarkerSlots(host){
+ const {text,infos}=qlCollectLogicalText(host);
+ const slots=[];
+ const re=new RegExp(QL_MARKER_SRC,'g');let m;
+ while((m=re.exec(text))!==null){
+  const s=m.index,e=m.index+m[0].length;
+  const covered=infos.filter(info=>s<info.end&&e>info.start);
+  if(!covered.length)continue;
+  slots.push({kind:'text',prompt:qlNormalizePrompt(m[1]),start:s,end:e,covered,anchor:covered[0].node});
+ }
+ for(const btn of host.querySelectorAll('button.image-tag-button[data-link]')){
+  if(btn.dataset.qlTaken==='1')continue;
+  const requestId=btn.dataset.requestId;
+  const span=requestId?host.querySelector('span.st-chatu8-image-span[data-request-id="'+CSS.escape(requestId)+'"]'):null;
+  slots.push({kind:'chatu8',prompt:qlNormalizePrompt(btn.dataset.link),btn,span,hasMedia:!!span?.querySelector('img,video'),anchor:btn});
+ }
+ slots.sort((a,b)=>{
+  if(a.anchor===b.anchor)return 0;
+  const pos=a.anchor.compareDocumentPosition(b.anchor);
+  return pos&Node.DOCUMENT_POSITION_FOLLOWING?-1:1;
+ });
+ return slots;
+}
+function qlEntryElements(host,entry){
+ const button=host.querySelector('.ql-inline-image-trigger[data-ql-marker="'+CSS.escape(entry.markerKey)+'"]')||host.querySelector('.ql-inline-image-trigger[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
+ const card=host.querySelector('.ql-chat-image[data-ql-task="'+CSS.escape(entry.taskKey)+'"]');
+ return {button,card};
+}
+function qlMakeInlineButton(entry,prompt){
+ const button=document.createElement('button');
+ button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
+ button.dataset.qlTrigger=entry?.taskKey||('marker-'+Date.now().toString(36));button.dataset.qlPrompt=prompt;
+ // 稳定标识：只看“第几条消息的第几个标记”，不依赖 chatId 是否已就绪。
+ if(entry&&entry.markerKey)button.dataset.qlMarker=entry.markerKey;
+ applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
+ button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
+ return button;
+}
+// 同一个标记位置只留一个按钮；同一个任务只留一张“活的”图片卡片（候选图合并进保留的那张）。
+function qlDedupe(host){
+ const seenButtons=new Set();
+ host.querySelectorAll('.ql-inline-image-trigger[data-ql-marker]').forEach(button=>{
+  const key=button.dataset.qlMarker;
+  if(seenButtons.has(key))button.remove();else seenButtons.add(key);
+ });
+ const keptCards=new Map();
+ host.querySelectorAll('.ql-chat-image').forEach(card=>{
+  const key=card.dataset.qlTask;
+  if(!key||!card._qlCandidates)return;
+  const kept=keptCards.get(key);
+  if(!kept){keptCards.set(key,card);return;}
+  for(const candidate of card._qlCandidates){if(!kept._qlCandidates.some(item=>item.url===candidate.url))kept._qlCandidates.push(candidate);}
+  card.remove();kept._qlRender?.();
+ });
+}
+// 把这条消息里还没替换的标记渲染成按钮。返回“已经被外部元素（如智绘姬已生成的图）覆盖”的标记集合，扫描不再为它们补按钮。
+function qlRenderMarkers(host,entries){
+ const covered=new Set();
+ if(!host||isHostBeingEdited(host))return covered;
+ qlDedupe(host);
+ const present=new Set(entries.filter(entry=>{const el=qlEntryElements(host,entry);return el.button||el.card;}).map(entry=>entry.markerKey));
+ const unused=entries.filter(entry=>!present.has(entry.markerKey));
+ const slots=qlFindMarkerSlots(host);
+ if(!slots.length)return covered;
+ // 先按文档顺序把每个位置对应到某一条标记：优先同一条提示词，其次按顺序取下一条。
+ const plan=[];
+ let syntheticCount=0;
+ for(const slot of slots){
+  if(slot.kind==='chatu8'){
+   // 智绘姬的按钮只有在它对应我们认得的标记时才接管；否则不碰别人的东西。
+   const loose=qlLooseKey(slot.prompt);
+   const idx=unused.findIndex(entry=>qlLooseKey(entry.prompt)===loose);
+   if(idx>=0){plan.push({slot,entry:unused.splice(idx,1)[0],insert:true});continue;}
+   const known=entries.find(entry=>qlLooseKey(entry.prompt)===loose);
+   if(known){
+    if(slot.hasMedia)covered.add(known.markerKey);
+    plan.push({slot,entry:known,insert:false});
+   }
+   continue;
+  }
+  if(!slot.prompt){plan.push({slot,entry:null,insert:false});continue;}
+  let idx=unused.findIndex(entry=>qlNormalizePrompt(entry.prompt)===slot.prompt);
+  if(idx<0)idx=unused.length?0:-1;
+  if(idx>=0){plan.push({slot,entry:unused.splice(idx,1)[0],insert:true});continue;}
+  const dup=entries.find(entry=>qlNormalizePrompt(entry.prompt)===slot.prompt);
+  // 已经有按钮的同一条提示词又出现了一份原文：只清掉原文，不再多贴一个按钮。
+  if(dup){plan.push({slot,entry:dup,insert:false});continue;}
+  plan.push({slot,entry:{prompt:slot.prompt,taskKey:'marker-'+(syntheticCount++),messageIndex:-1,markerKey:null},insert:true});
+ }
+ // 从后往前改 DOM，前面的位置不会被后面的修改影响。
+ for(let i=plan.length-1;i>=0;i--){
+  const {slot,entry,insert}=plan[i];
+  if(slot.kind==='chatu8'){
+   if(!insert){
+    if(!slot.hasMedia){slot.btn.dataset.qlTaken='1';if(slot.span&&!slot.hasMedia)slot.span.dataset.qlTaken='1';}
+    continue;
+   }
+   if(slot.hasMedia)continue;
+   // 不删智绘姬的元素（它自己会重新检查，删了会来回争抢），而是藏起来，在原位置放我们的按钮。
+   const button=qlMakeInlineButton(entry,slot.prompt);
+   slot.btn.parentNode.insertBefore(button,slot.btn);
+   slot.btn.dataset.qlTaken='1';if(slot.span)slot.span.dataset.qlTaken='1';
+   continue;
+  }
+  const range=document.createRange();
+  const first=slot.covered[0],last=slot.covered[slot.covered.length-1];
+  try{
+   if(first.isText)range.setStart(first.node,slot.start-first.start);else range.setStartBefore(first.node);
+   if(last.isText)range.setEnd(last.node,slot.end-last.start);else range.setEndAfter(last.node);
+  }catch(error){console.warn('[拾帧 Lite] 标记范围异常，已跳过',error);continue;}
+  range.deleteContents();
+  if(insert&&entry)range.insertNode(qlMakeInlineButton(entry,slot.prompt));
+ }
+ return covered;
 }
 let qlImageRequestQueue=Promise.resolve();
 async function requestImage(prompt, negativeOverride, vibeItem=null){
@@ -1031,7 +1154,7 @@ async function processLatestAssistantMessage(){
    return {...marker,taskKey,messageIndex,markerOrdinal,markerKey:messageIndex+':'+markerOrdinal};
   });
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
-  hideMarkersInTextNode(host,entries);
+  const coveredByOthers=qlRenderMarkers(host,entries);
   for(const entry of entries){
    // 刷新页面时 chatId 可能比消息 DOM 更晚就绪，taskKey（含 chatId）会在几次扫描间发生变化；
    // 用“第几条消息的第几个标记”这个与 chatId 无关的 markerKey 兜底查找已存在的按钮，避免误判“没有按钮”而重复插入第二个。
@@ -1057,16 +1180,10 @@ async function processLatestAssistantMessage(){
     host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"],[data-ql-marker="'+CSS.escape(entry.markerKey)+'"]').forEach(button=>button.remove());
     continue;
    }
-   if(existingByMarker)continue;
+   if(existingByMarker||coveredByOthers.has(entry.markerKey))continue;
    if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
-   if([...host.querySelectorAll('[data-ql-prompt]')].some(button=>button.dataset.qlPrompt===entry.prompt&&button.dataset.qlTrigger===entry.taskKey))continue;
-   const button=document.createElement('button');
-   button.type='button';button.className='menu_button ql-inline-image-trigger';
-   button.textContent='定格此刻';
-   button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
-   button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;button.dataset.qlMarker=entry.markerKey;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
-   button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
-   host.append(button);
+   // 走到这里说明原文里确实找不到这条标记（例如被别的正则整段隐藏了），才退而求其次贴在消息末尾。
+   host.append(qlMakeInlineButton(entry,entry.prompt));
   }
  }
 }
