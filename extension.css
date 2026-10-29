@@ -4561,38 +4561,39 @@ html > .ql-album-menu-portal .ql-album-more-menu-panel>button:hover{
  background:#edf1f5!important;
 }
 
-/* Preferences: unify the three selector/action rows with the chat-album control sizing. */
+
+/* Preferences: preserve the chat-album control proportions; make the other two rows follow them. */
 #shizhen-panel .ql-page[data-page-panel="settings"] .ql-setting-control-row{
   display:flex!important;
   flex-flow:row nowrap!important;
-  align-items:stretch!important;
+  align-items:center!important;
   gap:8px!important;
 }
 #shizhen-panel .ql-page[data-page-panel="settings"] .ql-setting-control-row>select,
 #shizhen-panel .ql-page[data-page-panel="settings"] .ql-setting-control-row>button{
   box-sizing:border-box!important;
-  height:42px!important;
-  min-height:42px!important;
-  max-height:42px!important;
+  height:36px!important;
+  min-height:36px!important;
+  max-height:36px!important;
   border-radius:999px!important;
-  font-size:13px!important;
-  line-height:1.2!important;
+  font-size:12px!important;
+  line-height:1.15!important;
 }
 #shizhen-panel .ql-page[data-page-panel="settings"] .ql-setting-control-row>select{
   flex:1 1 0!important;
   width:0!important;
   min-width:0!important;
-  padding:0 12px!important;
+  padding:0 10px!important;
 }
 #shizhen-panel .ql-page[data-page-panel="settings"] .ql-setting-control-row>button{
   display:inline-flex!important;
-  flex:0 0 42%!important;
-  width:42%!important;
-  min-width:42%!important;
-  max-width:42%!important;
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
   align-items:center!important;
   justify-content:center!important;
   margin:0!important;
-  padding:0 10px!important;
+  padding:0 12px!important;
   white-space:nowrap!important;
 }
