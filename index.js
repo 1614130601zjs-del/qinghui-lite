@@ -40,6 +40,7 @@ function cfg(){
  if(s.model==='gpt-image-2.5-sunburst'){s.model='gpt-image-1';saveSettingsDebounced();}
  for(const key of ['records','presets','characters','prompts','vibes','bindings','combinations'])if(!Array.isArray(s[key]))s[key]=[];
  if(!Array.isArray(s.viewfinderRoles))s.viewfinderRoles=[];
+ if(typeof s.userAppearance!=='string')s.userAppearance='';
  while(s.viewfinderRoles.length<2)s.viewfinderRoles.push({appearance:'',libraryIndex:-1});
  // 组合配置升级只补充新字段，不清空用户已有的 Vibe 或角色绑定。
  if(!s.comboMigrationV1){
@@ -1632,17 +1633,20 @@ function history(){
 function renderViewfinderRoles(){
  const host=$('#ql-viewfinder-roles');if(!host)return;
  const s=cfg(),roles=Array.isArray(s.viewfinderRoles)?s.viewfinderRoles:[];
- const current=currentCharacter();
- const entries=(s.characters||[]).map((item,index)=>({item,index})).filter(({item})=>item&&String(item.characterKey??'')===String(current.id??''));
+ const entries=(s.characters||[]).map((item,index)=>({item,index})).filter(({item})=>item&&typeof item==='object');
  host.innerHTML=roles.map((role,index)=>{
   const selected=Number(role.libraryIndex??-1);
-  return '<div class="ql-viewfinder-role" data-viewfinder-role="'+index+'"><div class="ql-viewfinder-role-head"><strong>角色 '+(index+1)+'</strong>'+(roles.length>2?'<button type="button" class="menu_button" data-role-remove="'+index+'" aria-label="移除角色 '+(index+1)+'">移除</button>':'')+'</div><label for="ql-role-library-'+index+'">从角色词库导入</label><select id="ql-role-library-'+index+'" data-role-library="'+index+'"><option value="-1">手动输入 / 不使用词条</option>'+entries.map(({item,index:entryIndex})=>'<option value="'+entryIndex+'" '+(selected===entryIndex?'selected':'')+'>'+esc(item.name||item.characterName||('角色词条 '+(entryIndex+1)))+'</option>').join('')+'</select><label for="ql-role-appearance-'+index+'">角色外貌提示词</label><textarea id="ql-role-appearance-'+index+'" data-role-appearance="'+index+'" placeholder="输入这个角色的外貌词，例如发色、眼睛、服装、特征等">'+esc(role.appearance||'')+'</textarea></div>';
+  return '<div class="ql-viewfinder-role" data-viewfinder-role="'+index+'"><div class="ql-viewfinder-role-head"><strong>角色 '+(index+1)+'</strong>'+(roles.length>2?'<button type="button" class="menu_button" data-role-remove="'+index+'" aria-label="移除角色 '+(index+1)+'">移除</button>':'')+'</div><label for="ql-role-library-'+index+'">从角色词库导入</label><select id="ql-role-library-'+index+'" data-role-library="'+index+'"><option value="-1">手动输入 / 不使用词条</option><option value="-2" '+(selected===-2?'selected':'')+'>用户外貌</option>'+entries.map(({item,index:entryIndex})=>'<option value="'+entryIndex+'" '+(selected===entryIndex?'selected':'')+'>'+esc(item.name||item.characterName||('角色词条 '+(entryIndex+1)))+'</option>').join('')+'</select><label for="ql-role-appearance-'+index+'">角色外貌提示词</label><textarea id="ql-role-appearance-'+index+'" data-role-appearance="'+index+'" placeholder="输入这个角色的外貌词，例如发色、眼睛、服装、特征等">'+esc(role.appearance||'')+'</textarea></div>';
  }).join('');
  host.querySelectorAll('[data-role-library]').forEach(select=>select.addEventListener('change',()=>{
   const i=Number(select.dataset.roleLibrary),role=s.viewfinderRoles[i];if(!role)return;
   const entryIndex=Number(select.value),entry=s.characters[entryIndex];
-  role.libraryIndex=Number.isInteger(entryIndex)&&entryIndex>=0&&entry?entryIndex:-1;
-  if(role.libraryIndex>=0)role.appearance=String(entry.appearance||'');
+  if(select.value==='-2'){
+   role.libraryIndex=-2;role.appearance=String(s.userAppearance||'');
+  }else{
+   role.libraryIndex=Number.isInteger(entryIndex)&&entryIndex>=0&&entry?entryIndex:-1;
+   if(role.libraryIndex>=0)role.appearance=String(entry.appearance||'');
+  }
   save();renderViewfinderRoles();
  }));
  host.querySelectorAll('[data-role-appearance]').forEach(textarea=>textarea.addEventListener('input',()=>{
@@ -1663,8 +1667,10 @@ function renderLibrary(){
   const cards=getCharacterCards();
   const prior=characterSelect.value;
   const current=currentCharacter();
-  characterSelect.innerHTML='<option value="">请选择角色卡</option>'+cards.map((ch,i)=>'<option value="'+i+'">'+esc(ch?.name||ch?.avatar||('角色 '+(i+1)))+'</option>').join('');
-  if(cards.some((ch,i)=>String(i)===prior))characterSelect.value=prior;
+  characterSelect.innerHTML='<option value="">请选择角色卡</option><option value="__user__">用户外貌</option>'+cards.map((ch,i)=>'<option value="'+i+'">'+esc(ch?.name||ch?.avatar||('角色 '+(i+1)))+'</option>').join('');
+  if(prior==='__user__')characterSelect.value='__user__';
+  else if(cards.some((ch,i)=>String(i)===prior))characterSelect.value=prior;
+  else if(activeCharacterCardKey==='__user__')characterSelect.value='__user__';
   else if(cards.some((ch,i)=>String(i)===activeCharacterCardKey))characterSelect.value=activeCharacterCardKey;
   else if(cards.some((ch,i)=>String(i)===current.id))characterSelect.value=current.id;
   else characterSelect.value='';
@@ -1680,7 +1686,8 @@ function renderLibrary(){
   const records=s.characters||[];
   const select=$('#ql-character-card');
   const key=String(select?.value||activeCharacterCardKey||'');
-  const card=key!==''?cards[Number(key)]:null;
+  const isUserAppearance=key==='__user__';
+  const card=!isUserAppearance&&key!==''?cards[Number(key)]:null;
   const cardName=String(card?.name||card?.avatar||'');
   const cardAvatar=String(card?.avatar||'');
   const selectedRecords=records.map((p,index)=>({p,index})).filter(({p})=>{
@@ -1689,16 +1696,28 @@ function renderLibrary(){
    if(cardAvatar&&String(p.characterAvatar||'')===cardAvatar)return true;
    return Boolean(cardName&&String(p.characterName||'')===cardName);
   });
+  const userPanel='<div class="ql-character-role-panel"><h4>用户外貌</h4><p class="ql-muted">保存你自己的固定外貌词，不绑定任何角色卡；可在取景框的角色外貌列表中直接调用。</p><p class="ql-muted">'+(s.userAppearance?'已填写用户外貌词':'尚未填写用户外貌词')+'</p><button type="button" class="menu_button" data-user-appearance-edit>编辑用户外貌</button></div>';
   if(!characterLibraryStarted){
-   chars.innerHTML=card?'<div class="ql-character-role-panel"><h4>已选择：'+esc(cardName||'未命名角色卡')+'</h4><p class="ql-muted">点击「开始编辑」后查看这张卡的角色词条。</p></div>':'<p class="ql-muted">请先选择一张角色卡，再点击「开始编辑」。</p>';
+   chars.innerHTML=isUserAppearance?userPanel:(card?'<div class="ql-character-role-panel"><h4>已选择：'+esc(cardName||'未命名角色卡')+'</h4><p class="ql-muted">点击「开始编辑」后查看这张卡的角色词条。</p></div>':'<p class="ql-muted">请选择一张角色卡或「用户外貌」，再点击「开始编辑」。</p>');
+  }else if(isUserAppearance){
+   chars.innerHTML=userPanel;
   }else if(!card){
    chars.innerHTML='<p class="ql-muted">请先选择一张有效的角色卡。</p>';
   }else{
    chars.innerHTML='<div class="ql-character-role-panel"><h4>'+esc(cardName)+' 的角色词库</h4><button type="button" class="menu_button ql-character-add" data-character-add>＋ 新建角色词条</button>'+(selectedRecords.map(({p,index})=>'<div class="ql-record ql-library-record">'+(libraryEditMode?'<label class="ql-bulk-check"><input type="checkbox" data-character-select="'+index+'" '+(selectedCharacters.has(index)?'checked':'')+'>选择</label>':'')+'<div class="ql-character-role-heading"><strong>'+esc(p.name||'未命名角色')+'</strong><small>'+esc(p.appearance?'已填写生图词':'尚未填写生图词')+'</small></div><div class="ql-row"><button class="menu_button" data-character-apply="'+index+'">追加生图词</button><button class="menu_button" data-character-edit="'+index+'">编辑</button><button class="menu_button" data-character-delete="'+index+'">删除词条</button></div></div>').join('')||'<p class="ql-muted">这张角色卡还没有角色词条。</p>')+'</div>';
   }
+  chars.querySelectorAll('[data-user-appearance-edit]').forEach(button=>button.addEventListener('click',()=>{
+   $('#ql-character-card').value='__user__';activeCharacterCardKey='__user__';characterLibraryStarted=true;
+   delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存用户外貌';
+   $('#ql-character-name').value='用户外貌';$('#ql-character-name').readOnly=true;
+   $('#ql-character-appearance').value=String(s.userAppearance||'');
+   $('#ql-character-editor').hidden=false;
+   $('#ql-character-status').textContent='编辑用户自己的固定外貌词。';
+   $('#ql-character-editor').scrollIntoView({behavior:'smooth',block:'start'});
+  }));
   chars.querySelectorAll('[data-character-add]').forEach(button=>button.addEventListener('click',()=>{
    delete $('#ql-character-save').dataset.edit;
-   $('#ql-character-save').textContent='保存角色词条';
+   $('#ql-character-save').textContent='保存角色词条';$('#ql-character-name').readOnly=false;
    $('#ql-character-name').value='';
    $('#ql-character-appearance').value='';
    $('#ql-character-editor').hidden=false;
@@ -2187,8 +2206,8 @@ const qlPromptImagePreview=$('#ql-library-image-preview');qlPromptImagePreview?.
 $('#ql-library-image-clear').onclick=()=>{const preview=$('#ql-library-image-preview');preview.dataset.image='';preview.innerHTML='<span class="ql-muted">尚未添加预览图</span>';$('#ql-library-image-file').value='';};
 $('#ql-library-prompt-copy').onclick=async()=>{const field=$('#ql-library-prompt-en');const button=$('#ql-library-prompt-copy');const value=field?.value||'';if(!value.trim()){status('画面提示词为空，暂时没有内容可复制。');return;}try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);}else{const area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('浏览器未允许复制');}button.classList.add('is-copied');button.title='已复制画面提示词';button.setAttribute('aria-label','已复制画面提示词');status('已复制画面提示词。');setTimeout(()=>{button.classList.remove('is-copied');button.title='复制画面提示词';button.setAttribute('aria-label','复制画面提示词');},1300);}catch(error){status('复制失败：请长按画面提示词手动复制。');}};
 $('#ql-prompt-save').onclick=()=>{const name=$('#ql-prompt-name').value.trim(),promptZh=$('#ql-library-prompt-zh').value.trim(),promptEn=$('#ql-library-prompt-en').value.trim();if(!name||(!promptZh&&!promptEn)){status('请填写名称，并至少填写中文或英文提示词。');return;}const selectedCategory=$('#ql-prompt-category').value;const customCategory=$('#ql-prompt-category-custom').value.trim();const category=selectedCategory==='自定义'?(customCategory||'其他'):selectedCategory;const edit=$('#ql-prompt-save').dataset.edit;const existing=edit!==undefined?cfg().prompts[Number(edit)]:null;const item={...(existing||{}),id:existing?.id||('prompt-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9)),name,category,promptZh,promptEn,image:$('#ql-library-image-preview')?.dataset.image||'',updatedAt:Date.now()};if(edit!==undefined){cfg().prompts[Number(edit)]={...cfg().prompts[Number(edit)],...item};delete $('#ql-prompt-save').dataset.edit;$('#ql-prompt-save').textContent='保存提示词';}else cfg().prompts.unshift(item);cfg().prompts=cfg().prompts.slice(0,200);save();$('#ql-prompt-editor').hidden=true;$('#ql-prompt-add').hidden=false;$('#ql-prompt-name').value='';$('#ql-library-prompt-zh').value='';$('#ql-library-prompt-en').value='';$('#ql-library-image-preview').dataset.image='';$('#ql-library-image-preview').innerHTML='<span class="ql-muted">尚未添加预览图</span>';$('#ql-library-image-file').value='';delete $('#ql-prompt-save').dataset.edit;$('#ql-prompt-save').textContent='保存提示词';renderLibrary();status('提示词已保存。');};
-$('#ql-character-card').onchange=()=>{if($('#ql-character-save').dataset.edit!==undefined)return;activeCharacterCardKey=$('#ql-character-card').value||'';characterLibraryStarted=false;$('#ql-character-editor').hidden=true;renderLibrary();$('#ql-character-status').textContent=activeCharacterCardKey?'已选择角色卡，点击「开始编辑」查看词条。':'请先选择一张角色卡。';};
-$('#ql-character-save').onclick=()=>{const select=$('#ql-character-card'),characterKey=select?.value||'',name=$('#ql-character-name').value.trim(),appearance=$('#ql-character-appearance').value.trim();if(!name){$('#ql-character-status').textContent='请填写角色名称。';return;}const card=characterKey!==''?(getContext()?.characters||[])[Number(characterKey)]:null;const item={name,characterKey:characterKey===''?null:String(characterKey),characterName:card?.name||card?.avatar||'',characterAvatar:card?.avatar||'',appearance,updatedAt:Date.now()};const edit=$('#ql-character-save').dataset.edit;if(edit!==undefined&&cfg().characters[Number(edit)])cfg().characters[Number(edit)]={...cfg().characters[Number(edit)],...item};else cfg().characters.unshift(item);cfg().characters=cfg().characters.slice(0,100);save();if(characterKey!=='')activeCharacterCardKey=String(characterKey);else activeCharacterCardKey='__unbound';delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色词条';$('#ql-character-editor').hidden=true;renderLibrary();$('#ql-character-status').textContent=characterKey!==''?'已保存，并绑定到角色卡：'+item.characterName:'已保存角色词条（尚未绑定角色卡）。';};$('#ql-character-cancel').onclick=()=>{delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色词条';$('#ql-character-name').value='';$('#ql-character-appearance').value='';$('#ql-character-card').value='';$('#ql-character-editor').hidden=true;$('#ql-character-status').textContent='已切换到新建模式。';};$('#ql-character-card').onchange=()=>{activeCharacterCardKey=$('#ql-character-card').value||'';characterLibraryStarted=false;$('#ql-character-editor').hidden=true;renderLibrary();};
+$('#ql-character-card').onchange=()=>{if($('#ql-character-save').dataset.edit!==undefined)return;activeCharacterCardKey=$('#ql-character-card').value||'';characterLibraryStarted=false;$('#ql-character-editor').hidden=true;$('#ql-character-name').readOnly=activeCharacterCardKey==='__user__';renderLibrary();$('#ql-character-status').textContent=activeCharacterCardKey==='__user__'?'已选择用户外貌，点击「开始编辑」查看外貌词。':activeCharacterCardKey?'已选择角色卡，点击「开始编辑」查看词条。':'请选择一张角色卡或「用户外貌」。';};
+$('#ql-character-save').onclick=()=>{const select=$('#ql-character-card'),characterKey=select?.value||'',name=$('#ql-character-name').value.trim(),appearance=$('#ql-character-appearance').value.trim();if(characterKey==='__user__'){cfg().userAppearance=appearance;save();activeCharacterCardKey='__user__';delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色词条';$('#ql-character-name').readOnly=false;$('#ql-character-editor').hidden=true;renderLibrary();$('#ql-character-status').textContent='用户外貌词已保存。';return;}if(!name){$('#ql-character-status').textContent='请填写角色名称。';return;}const card=characterKey!==''?(getContext()?.characters||[])[Number(characterKey)]:null;const item={name,characterKey:characterKey===''?null:String(characterKey),characterName:card?.name||card?.avatar||'',characterAvatar:card?.avatar||'',appearance,updatedAt:Date.now()};const edit=$('#ql-character-save').dataset.edit;if(edit!==undefined&&cfg().characters[Number(edit)])cfg().characters[Number(edit)]={...cfg().characters[Number(edit)],...item};else cfg().characters.unshift(item);cfg().characters=cfg().characters.slice(0,100);save();if(characterKey!=='')activeCharacterCardKey=String(characterKey);else activeCharacterCardKey='__unbound';delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色词条';$('#ql-character-name').readOnly=false;$('#ql-character-editor').hidden=true;renderLibrary();$('#ql-character-status').textContent=characterKey!==''?'已保存，并绑定到角色卡：'+item.characterName:'已保存角色词条（尚未绑定角色卡）。';};$('#ql-character-cancel').onclick=()=>{delete $('#ql-character-save').dataset.edit;$('#ql-character-save').textContent='保存角色词条';$('#ql-character-name').readOnly=false;$('#ql-character-name').value='';$('#ql-character-appearance').value='';$('#ql-character-card').value='';$('#ql-character-editor').hidden=true;$('#ql-character-status').textContent='已切换到新建模式。';};$('#ql-character-card').onchange=()=>{activeCharacterCardKey=$('#ql-character-card').value||'';characterLibraryStarted=false;$('#ql-character-editor').hidden=true;renderLibrary();};
 $('#ql-character-start').onclick=()=>{const key=$('#ql-character-card').value||'';if(key===''){$('#ql-character-status').textContent='请先选择一张角色卡。';return;}activeCharacterCardKey=key;characterLibraryStarted=true;$('#ql-character-editor').hidden=true;renderLibrary();$('#ql-character-status').textContent='已进入所选角色卡的编辑界面。';};
 $('#ql-preset-save').onclick=()=>{const name=$('#ql-preset-name').value.trim(),positive=$('#ql-preset-positive').value.trim();if(!name||!positive){status('预设名称和正向画风串不能为空。');return;}const item={name,positive,negative:$('#ql-preset-negative').value.trim(),updatedAt:Date.now()};const edit=$('#ql-preset-save').dataset.edit;if(edit!==undefined){cfg().presets[Number(edit)]=item;delete $('#ql-preset-save').dataset.edit;}else cfg().presets.unshift(item);cfg().presets=cfg().presets.slice(0,100);$('#ql-preset-edit-select').value=String(cfg().presets.findIndex(x=>x.name===item.name&&x.positive===item.positive));const savedIndex=cfg().presets.findIndex(x=>x.name===item.name&&x.positive===item.positive);if(savedIndex>=0){$('#ql-preset-save').dataset.edit=String(savedIndex);$('#ql-preset-save').textContent='保存修改';}save();renderLibrary();status('画师串已保存，可通过上方下拉框切换编辑。');};
 
