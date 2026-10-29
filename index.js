@@ -1478,9 +1478,17 @@ function observeStatusbarFrames(){
   observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
   if(doc===document)statusbarObserver=observer;
  };
+ const hookedIframes=new WeakSet();
  const attachFrames=()=>{
   attach(document);
-  document.querySelectorAll('iframe').forEach(frame=>{try{attach(frame.contentDocument);}catch{}});
+  document.querySelectorAll('iframe').forEach(frame=>{
+   try{attach(frame.contentDocument);}catch{}
+   // iframe（srcdoc/前端框架渲染的状态栏）加载完成会换成一份新的 document：之前挂在旧（about:blank）文档上的观察器就失效了，
+   // 刷新页面后点状态栏里的按钮没有任何反应，直到点小铅笔让酒馆重绘才恢复。每个 iframe 在每次加载完成时重新挂一次。
+   if(hookedIframes.has(frame))return;
+   hookedIframes.add(frame);
+   frame.addEventListener('load',()=>{attachFrames();processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 状态栏触发失败',e));});
+  });
  };
  attachFrames();
  processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 状态栏触发失败',e));
