@@ -106,37 +106,212 @@ function isHostBeingEdited(host){
  if(ta&&ta.offsetParent!==null)return true;
  return false;
 }
-function hideMarkersInTextNode(root,entries=[]){
- if(!root)return;
- // 正在被酒馆编辑的区域不要插按钮，否则保存时会把按钮文字一起存回正文，把 image###...### 标记永久破坏掉。
- if(isHostBeingEdited(root))return;
- let entryCursor=0;
- const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
- const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue?.includes('image###'))nodes.push(walker.currentNode);
- let ordinal=0;
- for(const node of nodes){
-  const value=node.nodeValue||'',re=/image###([\s\S]*?)###/g;
-  if(!re.test(value))continue;
-  re.lastIndex=0;
-  const fragment=document.createDocumentFragment();let last=0,match;
-  while((match=re.exec(value))!==null){
-   fragment.append(document.createTextNode(value.slice(last,match.index)));
-   const entry=entries[entryCursor++],prompt=match[1].trim();
-   if(!prompt){last=re.lastIndex;continue;}
-   const button=document.createElement('button');
-   button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';button.title='点击生成图片并收录到当前消息';
-   button.dataset.qlTrigger=entry?.taskKey||('marker-'+ordinal);button.dataset.qlPrompt=prompt;
-   // 稳定标识：只看“第几条消息的第几个标记”，不依赖 chatId 是否已就绪，避免刷新后 chatId 延迟到位时把同一个标记重复渲染成第二个按钮。
-   if(entry&&entry.messageIndex!=null&&entry.markerOrdinal!=null)button.dataset.qlMarker=entry.messageIndex+':'+entry.markerOrdinal;
-   applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
-   button.addEventListener('click',()=>runInlineImageTrigger(button,entry||{prompt,taskKey:button.dataset.qlTrigger,messageIndex:-1}));
-   fragment.append(button);ordinal++;last=re.lastIndex;
+function qlStableImageId(value){
+ const text=String(value||'').replaceAll('《','<').replaceAll('》','>').replaceAll('\n','');
+ let hash=0;
+ for(let i=0;i<text.length;i++){const char=text.charCodeAt(i);hash=(hash<<5)-hash+char;hash|=0;}
+ return 'chatu8-id-'+Math.abs(hash).toString(36);
+}
+function qlFindNodeAtPosition(nodeInfos,position){
+ if(!nodeInfos||nodeInfos.length===0)return null;
+ let left=0,right=nodeInfos.length-1;
+ while(left<=right){
+  const mid=Math.floor((left+right)/2),info=nodeInfos[mid];
+  if(position>info.start&&position<=info.end||position===info.end)return info;
+  if(position<=info.start)right=mid-1;else left=mid+1;
+ }
+ return null;
+}
+function qlNormalizeMarkerPrompt(value){return String(value||'').trim().replace(/\s+/g,' ');}
+function qlRecordSwipeId(record,messageIndex){
+ if(record?.swipeId!==undefined&&record?.swipeId!==null&&record?.swipeId!==''){
+  const value=Number(record.swipeId);return Number.isFinite(value)?value:null;
+ }
+ const parts=String(record?.taskKey||'').split(':');
+ if(parts.length>=4&&parts[1]===String(messageIndex)&&/^\d+$/.test(parts[2]))return Number(parts[2]);
+ return null;
+}
+function qlRecordMarkerOrdinal(record,messageIndex){
+ if(record?.markerOrdinal!==undefined&&record?.markerOrdinal!==null&&record?.markerOrdinal!==''){
+  const value=Number(record.markerOrdinal);return Number.isInteger(value)?value:null;
+ }
+ const parts=String(record?.taskKey||'').split(':');
+ if(parts.length>=4&&parts[1]===String(messageIndex)&&/^\d+$/.test(parts[3]))return Number(parts[3]);
+ return null;
+}
+// 复用智绘姬 pruneStaleMediaSlots 的 swipe 生命周期：切换同一楼层的回复时，只清理旧回复挂载的正文媒体，不删除底片缓存。
+function pruneStaleMediaSlots(rootElement,messageIndex,message){
+ const mesBlock=rootElement?.closest?.('.mes');
+ if(!mesBlock)return;
+ const swipeId=Number(message?.swipe_id??0),marker=String(swipeId),seen=mesBlock.dataset.qlSwipe;
+ if(seen===marker)return;
+ if(seen!==undefined){
+  mesBlock.querySelectorAll('.ql-chat-image').forEach(card=>{
+   if(card.dataset.qlSwipeId!==marker)card.remove();
+  });
+  mesBlock.querySelectorAll('.ql-inline-image-trigger,.ql-chat-image-status').forEach(node=>{
+   if(node.dataset.qlSwipeId!==marker)node.remove();
+  });
+ }
+ mesBlock.dataset.qlSwipe=marker;
+}
+// 对应智绘姬 getSavedImageMatches：按当前消息、swipe 和稳定 taskKey 恢复底片中的已生成图片。
+function getSavedImageMatches(entry,context,swipeId,uniquePrompt){
+ const records=cfg().records||[],normalize=qlNormalizeMarkerPrompt;
+ if(uniquePrompt||entry.markerOrdinal!==undefined){
+  const legacyRecords=records.filter(item=>{
+   if(!item||!item.dataUrl||item.hiddenInChat||Number(item.messageIndex)!==Number(entry.messageIndex))return false;
+   if(item.chatId&&item.chatId!==(context?.chatId||''))return false;
+   if((item.source||'chat')!=='chat'||normalize(item.basePrompt||item.prompt)!==normalize(entry.prompt))return false;
+   if(item.taskKey===entry.taskKey)return false;
+   const oldSwipe=qlRecordSwipeId(item,entry.messageIndex);
+   if(!(oldSwipe===Number(swipeId)||(oldSwipe===null&&Number(swipeId)===0)))return false;
+   const oldOrdinal=qlRecordMarkerOrdinal(item,entry.messageIndex);
+   return oldOrdinal===Number(entry.markerOrdinal)||(oldOrdinal===null&&uniquePrompt);
+  });
+  if(legacyRecords.length){
+   for(const item of legacyRecords){
+    item.taskKey=entry.taskKey;item.swipeId=Number(swipeId);item.markerOrdinal=entry.markerOrdinal;item.markerKey=entry.markerKey;
+   }
+   save();
   }
-  fragment.append(document.createTextNode(value.slice(last)));
-  node.parentNode?.replaceChild(fragment,node);
+ }
+ return records.filter(item=>{
+  if(!item||!item.dataUrl||item.hiddenInChat||item.taskKey!==entry.taskKey)return false;
+  if(Number(item.messageIndex)!==Number(entry.messageIndex))return false;
+  if(item.chatId&&item.chatId!==(context?.chatId||''))return false;
+  if((item.source||'chat')!=='chat')return false;
+  return qlRecordSwipeId(item,entry.messageIndex)===Number(swipeId);
+ }).sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
+}
+// 按智绘姬 createButtonAtPosition 的顺序插入稳定按钮；拾帧只替换生成接口与本地缓存适配，保留拾帧相册卡片。
+function createButtonAtPosition(insertPosition,entry,nodeInfos,doc,rootElement,range,context,uniquePrompt){
+ const link=String(entry.prompt||'').trim(),requestId=qlStableImageId(link);
+ const markerSelector='[data-ql-marker="'+CSS.escape(entry.markerKey)+'"]';
+ const existingByMarker=rootElement.querySelector(markerSelector);
+ if(existingByMarker){
+  if(existingByMarker.dataset.qlTrigger===entry.taskKey&&existingByMarker.dataset.qlPrompt===link)return existingByMarker;
+  existingByMarker.remove();
+ }
+ const existingCard=[...rootElement.querySelectorAll('.ql-chat-image')].find(card=>card.dataset.qlMarker===entry.markerKey);
+ if(existingCard){
+  if(existingCard.dataset.qlTask===entry.taskKey&&existingCard.dataset.qlPrompt===link)return existingCard;
+  existingCard.remove();
+ }
+ const button=doc.createElement('button');
+ button.type='button';button.className='menu_button ql-inline-image-trigger';button.textContent='定格此刻';
+ button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
+ button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=link;button.dataset.qlMarker=entry.markerKey;
+ button.dataset.qlRequestId=requestId;button.dataset.qlSwipeId=String(entry.swipeId??0);
+ applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
+ try{
+  if(range){range.insertNode(button);}
+  else{
+   const targetNodeInfo=qlFindNodeAtPosition(nodeInfos,insertPosition);
+   if(!targetNodeInfo)return null;
+   const fallbackRange=doc.createRange();
+   if(targetNodeInfo.node.nodeType===Node.TEXT_NODE){
+    const offset=insertPosition-targetNodeInfo.start;
+    fallbackRange.setStart(targetNodeInfo.node,Math.max(0,Math.min(offset,targetNodeInfo.node.textContent?.length??0)));
+   }else fallbackRange.setStartAfter(targetNodeInfo.node);
+   fallbackRange.collapse(true);fallbackRange.insertNode(button);
+  }
+ }catch(error){console.warn('[拾帧] 正文画面按钮定位失败：',error);return null;}
+ button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
+ const savedMatches=getSavedImageMatches(entry,context,entry.swipeId,uniquePrompt);
+ if(savedMatches.length){
+  const latest=savedMatches[savedMatches.length-1];
+  const meta={messageIndex:entry.messageIndex,source:'chat',character:latest.character||context?.name||null,characterName:latest.characterName||context?.name2||null,characterKey:latest.characterKey??context?.characterId??null,chatId:context?.chatId||null,swipeId:entry.swipeId,markerOrdinal:entry.markerOrdinal,markerKey:entry.markerKey};
+  for(const record of savedMatches)addMessageImage(rootElement,record.dataUrl,latest.basePrompt||link,entry.taskKey,meta,button);
+  button.remove();
+  return rootElement.querySelector('.ql-chat-image[data-ql-task="'+CSS.escape(entry.taskKey)+'"]')||null;
+ }
+ return button;
+}
+// 对应智绘姬 findAndReplaceInElement：用 TreeWalker 汇总逻辑文本，再倒序 Range 删除 marker 并在原位置插入按钮。
+async function findAndReplaceInElement(rootElement,messageIndex,message,context){
+ if(!rootElement||!message||typeof message.mes!=='string'||isHostBeingEdited(rootElement))return;
+ pruneStaleMediaSlots(rootElement,messageIndex,message);
+ if(rootElement.dataset?.qlProcessed==='true'){
+  const currentLength=rootElement.textContent?.length||0,storedLength=parseInt(rootElement.dataset.qlContentLength||'0',10);
+  if(currentLength===storedLength)return;
+  delete rootElement.dataset.qlProcessed;delete rootElement.dataset.qlContentLength;
+ }
+ const doc=rootElement.ownerDocument||document,nodeInfos=[];
+ let logicalText='';
+ const walker=doc.createTreeWalker(rootElement,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT,{
+  acceptNode(node){
+   const parent=node.parentElement;
+   if(node.nodeType===Node.ELEMENT_NODE&&node.tagName!=='BR')return NodeFilter.FILTER_SKIP;
+   if(node.nodeType===Node.TEXT_NODE&&parent){
+    if(['SCRIPT','STYLE','BUTTON'].includes(parent.tagName))return NodeFilter.FILTER_REJECT;
+    if(parent.closest?.('.ql-inline-image-trigger,.ql-chat-image,.ql-chat-image-status'))return NodeFilter.FILTER_REJECT;
+   }
+   if(node.nodeType===Node.ELEMENT_NODE&&node.tagName==='BR'){
+    if(parent?.closest?.('.ql-inline-image-trigger,.ql-chat-image,.ql-chat-image-status'))return NodeFilter.FILTER_REJECT;
+   }
+   return NodeFilter.FILTER_ACCEPT;
+  }
+ });
+ let node;
+ while((node=walker.nextNode())){
+  const start=logicalText.length;
+  const text=node.nodeType===Node.TEXT_NODE?(node.textContent||''):node.tagName==='BR'?'\n':'';
+  logicalText+=text;nodeInfos.push({node,start,end:logicalText.length});
+ }
+ const domMarkers=[],pattern=/image###([\s\S]*?)###/g;
+ let match;
+ while((match=pattern.exec(logicalText))!==null){
+  const prompt=String(match[1]||'').trim();
+  if(prompt)domMarkers.push({fullMatch:match[0],domPrompt:prompt,startIndex:match.index,endIndex:pattern.lastIndex});
+ }
+ if(!domMarkers.length){
+  rootElement.dataset.qlProcessed='true';rootElement.dataset.qlContentLength=String(rootElement.textContent?.length||0);return;
+ }
+ const rawMarkers=markers(message.mes),swipeId=Number(message.swipe_id??0),normalized=qlNormalizeMarkerPrompt;
+ const entries=domMarkers.map((item,markerOrdinal)=>{
+  const raw=rawMarkers[markerOrdinal],prompt=raw?.prompt||item.domPrompt;
+  const requestPrompt=String(prompt).replaceAll('《','<').replaceAll('》','>').replaceAll('\n','');
+  const taskKey=makeTriggerId({chatId:context?.chatId||'chat',messageId:String(messageIndex)+':'+String(swipeId),markerIndex:String(markerOrdinal)+':'+qlStableImageId(requestPrompt)});
+  return {...item,prompt,taskKey,messageIndex,markerOrdinal,markerKey:String(messageIndex)+':'+String(markerOrdinal),swipeId};
+ });
+ for(let i=entries.length-1;i>=0;i--){
+  const entry=entries[i],nodesToProcess=nodeInfos.filter(info=>entry.startIndex<info.end&&entry.endIndex>info.start);
+  if(!nodesToProcess.length)continue;
+  const first=nodesToProcess[0],last=nodesToProcess[nodesToProcess.length-1],range=doc.createRange();
+  try{
+   const startOffset=entry.startIndex-first.start;
+   if(first.node.nodeType===Node.TEXT_NODE){
+    const length=first.node.textContent?.length??0;
+    if(startOffset<0||startOffset>length)continue;
+    range.setStart(first.node,startOffset);
+   }else range.setStartBefore(first.node);
+   const endOffset=entry.endIndex-last.start;
+   if(last.node.nodeType===Node.TEXT_NODE){
+    const length=last.node.textContent?.length??0;
+    if(endOffset<0||endOffset>length)continue;
+    range.setEnd(last.node,endOffset);
+   }else range.setEndAfter(last.node);
+   range.deleteContents();range.collapse(true);
+  }catch(error){console.warn('[拾帧] 正文 marker Range 定位失败：',error);continue;}
+  const uniquePrompt=rawMarkers.filter(item=>normalized(item.prompt)===normalized(entry.prompt)).length===1;
+  createButtonAtPosition(entry.startIndex,entry,nodeInfos,doc,rootElement,range,context,uniquePrompt);
+ }
+ rootElement.dataset.qlProcessed='true';rootElement.dataset.qlContentLength=String(rootElement.textContent?.length||0);
+}
+async function processMesTextElements(){
+ if(cfg().enabled===false)return;
+ const context=getContext(),chat=context?.chat;
+ if(!Array.isArray(chat))return;
+ for(let messageIndex=0;messageIndex<chat.length;messageIndex++){
+  const message=chat[messageIndex];
+  if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
+  const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
+  if(!host)continue;
+  await findAndReplaceInElement(host,messageIndex,message,context);
  }
 }
-let qlImageRequestQueue=Promise.resolve();
+
 async function requestImage(prompt, negativeOverride, vibeItem=null){
  const queued=qlImageRequestQueue.then(()=>requestImageUnlocked(prompt,negativeOverride,vibeItem));
  qlImageRequestQueue=queued.catch(()=>{});
@@ -717,7 +892,7 @@ function addMessageImage(host,url,prompt,taskKey,recordMeta={},anchor=null) {
  if(!host)return;
  let card=[...host.querySelectorAll('.ql-chat-image')].find(el=>el.dataset.qlTask===taskKey);
  if(!card){
-  card=document.createElement('figure');card.className='ql-chat-image';card.dataset.qlTask=taskKey;card.dataset.qlPrompt=String(prompt||'');card.dataset.qlMessageIndex=String(recordMeta.messageIndex??'');card.dataset.qlChatId=String(recordMeta.chatId||getContext()?.chatId||'');
+  card=document.createElement('figure');card.className='ql-chat-image';card.dataset.qlTask=taskKey;card.dataset.qlPrompt=String(prompt||'');card.dataset.qlMessageIndex=String(recordMeta.messageIndex??'');card.dataset.qlChatId=String(recordMeta.chatId||getContext()?.chatId||'');card.dataset.qlMarker=String(recordMeta.markerKey||'');card.dataset.qlSwipeId=String(recordMeta.swipeId??'');
   const img=document.createElement('img');img.loading='lazy';img.alt='拾帧生成图片';
   const controls=document.createElement('div');controls.className='ql-chat-image-controls';
   const edit=document.createElement('button');edit.type='button';edit.className='menu_button ql-chat-image-edit';edit.setAttribute('aria-label','修改 tag');edit.title='修改 tag';edit.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h10l4 4V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20z"/><path d="M15 3.5V8h4M8 12h8M8 16h6"/><path d="m14.5 18.5 4.8-4.8 1.5 1.5-4.8 4.8-2 .5z"/></svg>';
@@ -892,7 +1067,7 @@ function storeChatRecord(url,prompt,taskKey,meta={},generationOverride=null){
   preset:preset?{name:preset.name||'',positive:preset.positive||'',negative:preset.negative||'',index:presetIndex,source:preset.source||'local'}:null,
   vibe:vibe?{name:vibe.name||'',entries:(vibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,
   config:snapshotConfig(prompt,resolved.negative),source:meta.source||'chat',collection:'cache',
-  messageIndex:meta.messageIndex,taskKey,character:meta.character||null,chatId:getContext()?.chatId||null,promptEntryId:meta.promptEntryId||null,sourcePromptEntryId:meta.sourcePromptEntryId||meta.promptEntryId||null
+  messageIndex:meta.messageIndex,taskKey,swipeId:meta.swipeId??null,markerOrdinal:meta.markerOrdinal??null,markerKey:meta.markerKey||null,character:meta.character||null,chatId:getContext()?.chatId||null,promptEntryId:meta.promptEntryId||null,sourcePromptEntryId:meta.sourcePromptEntryId||meta.promptEntryId||null
  };
  c.records.unshift(record);save();history();
  if(typeof url==='string'&&/^data:image\//i.test(url)){
@@ -992,7 +1167,7 @@ async function runInlineImageTrigger(button,entry){
  const statusNode=document.createElement('span');statusNode.className='ql-chat-image-status';statusNode.textContent='正在提交给 NAI 生图…';button.after(statusNode);
  try{
   const context=getContext();
-  const meta={messageIndex:entry.messageIndex,character:context?.name||null,characterName:context?.name2||null,characterKey:context?.characterId??null,chatId:context?.chatId||null};
+  const meta={messageIndex:entry.messageIndex,markerOrdinal:entry.markerOrdinal,markerKey:entry.markerKey,swipeId:entry.swipeId??context?.chat?.[entry.messageIndex]?.swipe_id??0,character:context?.name||null,characterName:context?.name2||null,characterKey:context?.characterId??null,chatId:context?.chatId||null};
   const generation=resolveChatImageGeneration(prompt,context);
   const url=await requestImage(generation.prompt,generation.negative,generation.vibe);
   const host=button.closest('.mes_text')||document.querySelector('.mes[mesid="'+entry.messageIndex+'"] .mes_text');
@@ -1010,68 +1185,10 @@ async function runInlineImageTrigger(button,entry){
  }finally{if(button.isConnected)button.dataset.qlBusy='0';}
 }
 async function processLatestAssistantMessage(){
-  if(cfg().enabled===false)return;
- // 清理旧版本遗留在正文图片下方的失败提示；当前失败统一用弹窗，不在图片卡片内留错。
+ if(cfg().enabled===false)return;
  document.querySelectorAll('.ql-chat-image-status').forEach(node=>{if(/生成失败|HTTP\s*429|Concurrent generation is locked/i.test(node.textContent||''))node.remove();});
- const context=getContext();
- const chat=context?.chat;
- if(!Array.isArray(chat)||!chat.length)return;
- // 不只扫描最后一条消息：酒馆可能在扩展加载前已渲染消息，也可能在重绘时延迟更新 DOM。
- for(let messageIndex=0;messageIndex<chat.length;messageIndex++){
-  const message=chat[messageIndex];
-  if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
-  const found=markers(message.mes);
-  if(!found.length)continue;
-  const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
-  if(!host)continue;
-  // 正在编辑的消息跳过（见 isHostBeingEdited），等编辑结束（保存/取消会触发 DOM 变动）再由下一轮扫描补回按钮。
-  if(isHostBeingEdited(host))continue;
-  const entries=found.map((marker,markerOrdinal)=>{
-   const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
-   return {...marker,taskKey,messageIndex,markerOrdinal,markerKey:messageIndex+':'+markerOrdinal};
-  });
-  // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
-  hideMarkersInTextNode(host,entries);
-  for(const entry of entries){
-   // 刷新页面时 chatId 可能比消息 DOM 更晚就绪，taskKey（含 chatId）会在几次扫描间发生变化；
-   // 用“第几条消息的第几个标记”这个与 chatId 无关的 markerKey 兜底查找已存在的按钮，避免误判“没有按钮”而重复插入第二个。
-   const existingByMarker=host.querySelector('[data-ql-marker="'+CSS.escape(entry.markerKey)+'"]');
-   if(existingByMarker&&existingByMarker.dataset.qlTrigger!==entry.taskKey){
-    existingByMarker.dataset.qlTrigger=entry.taskKey;existingByMarker.dataset.qlPrompt=entry.prompt;
-   }
-   // 兼容旧版正文图片记录：旧版 taskKey 可能因 chatId / swipe 标识变化而与当前标记不一致。
-   // 仅当该消息中的画面提示词唯一时，才按消息序号、聊天 ID 与原始提示词回收旧记录，避免同提示词的多个标记串图。
-   const normalizeMarkerPrompt=value=>String(value||'').trim().replace(/\s+/g,' ');
-   if(found.filter(marker=>normalizeMarkerPrompt(marker.prompt)===normalizeMarkerPrompt(entry.prompt)).length===1){
-    const legacyRecords=(cfg().records||[]).filter(item=>item&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat'&&normalizeMarkerPrompt(item.basePrompt||item.prompt)===normalizeMarkerPrompt(entry.prompt));
-    if(legacyRecords.some(item=>item.taskKey!==entry.taskKey)){
-     for(const record of legacyRecords)record.taskKey=entry.taskKey;
-     save();
-    }
-   }
-   const savedRecords=(cfg().records||[]).filter(item=>item&&item.dataUrl&&!item.hiddenInChat&&item.taskKey===entry.taskKey&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat').sort((a,b)=>(Number(a.at)||0)-(Number(b.at)||0));
-   if(savedRecords.length){
-    const latest=savedRecords[savedRecords.length-1];
-    const markerButton=existingByMarker||host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]');
-    for(const record of savedRecords)addMessageImage(host,record.dataUrl,latest.basePrompt||entry.prompt,entry.taskKey,{messageIndex,source:'chat',character:latest.character||context.name||null,chatId:context.chatId||null},markerButton);
-    host.querySelectorAll('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"],[data-ql-marker="'+CSS.escape(entry.markerKey)+'"]').forEach(button=>button.remove());
-    continue;
-   }
-   if(existingByMarker)continue;
-   if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
-   if([...host.querySelectorAll('[data-ql-prompt]')].some(button=>button.dataset.qlPrompt===entry.prompt&&button.dataset.qlTrigger===entry.taskKey))continue;
-   const button=document.createElement('button');
-   button.type='button';button.className='menu_button ql-inline-image-trigger';
-   button.textContent='定格此刻';
-   button.title='点击生成图片并收录到当前消息（包含当前画师串预设）';
-   button.dataset.qlTrigger=entry.taskKey;button.dataset.qlPrompt=entry.prompt;button.dataset.qlMarker=entry.markerKey;applyChatAlbumButtonStyle(button,cfg().chatAlbumStyle||'classic');applyChatTheme(button);
-   button.addEventListener('click',()=>runInlineImageTrigger(button,entry));
-   host.append(button);
-  }
- }
+ await processMesTextElements();
 }
-let statusbarObserver=null;
-const statusbarObservedDocs=new WeakSet();
 function parseStatusbarMarker(text){const match=String(text||'').match(/image###([\s\S]*?)###/);return match?.[1]?.trim()||'';}
 function statusbarPromptForTarget(target){
  const direct=[
@@ -2346,16 +2463,13 @@ jQuery(()=>{
  }
  observeStatusbarFrames();
  // 扩展启用时先扫描现有聊天；再观察酒馆正文重绘，避免事件时序导致 marker 一直以原文显示。
- let inlineScanTimers=[];
+ let inlineScanTimer=null;
  const scheduleInlineScan=()=>{
-  inlineScanTimers.forEach(timer=>clearTimeout(timer));
-  // 刷新酒馆页面时，扩展脚本通常比聊天记录的 DOM 渲染更早就绪：原来只到 1200ms 的兜底窗口，
-  // 在聊天较长、设备较慢时可能还没等到消息渲染完就已经用完，导致刷新后没有任何一次扫描真正生效，
-  // 只能等到用户点一下编辑铅笔（强制触发 DOM 变动）才会被 MutationObserver 捕捉到。这里把兜底窗口拉长，
-  // 并加一次较晚的扫描，减少对“手动点一次铅笔”的依赖。
-  inlineScanTimers=[80,250,600,1200,2500,4500].map(delay=>setTimeout(()=>processLatestAssistantMessage().catch(e=>console.warn('[拾帧 Lite] 正文标记扫描失败',e)),delay));
+  if(inlineScanTimer)clearTimeout(inlineScanTimer);
+  inlineScanTimer=setTimeout(()=>{inlineScanTimer=null;processLatestAssistantMessage().catch(e=>console.warn('[拾帧 Lite] 正文标记扫描失败',e));},180);
  };
- scheduleInlineScan();
+ // 保留慢速设备/聊天延迟加载时的多阶段首次扫描兜底。
+ [80,250,600,1200,2500,4500].forEach(delay=>setTimeout(()=>processLatestAssistantMessage().catch(e=>console.warn('[拾帧 Lite] 正文标记扫描失败',e)),delay)); scheduleInlineScan();
  const chatObserver=new MutationObserver(records=>{
   // 酒馆点击“编辑消息”时可能只切换 .mes 的 class/编辑区状态，不一定增删 .mes_text；
   // 退出编辑、保存或取消后也必须重新扫描并补回“相册收录”按钮。
@@ -2378,7 +2492,7 @@ jQuery(()=>{
  // CHAT_CHANGED / MESSAGE_EDITED（若该酒馆版本提供）是比 MutationObserver 更明确的信号：
  // 切换聊天、刷新页面后聊天记录加载完成、以及编辑消息保存/取消，都应该直接重新扫描一次正文，
  // 而不是只依赖 DOM 变动去“猜”是否相关，这样可以明显减少“必须先点一下编辑铅笔才会变得可点”的情况。
- for(const name of ['STREAM_TOKEN_RECEIVED','MESSAGE_UPDATED','GENERATION_ENDED','MESSAGE_SWIPED','CHAT_CHANGED','MESSAGE_EDITED']){
+ for(const name of ['STREAM_TOKEN_RECEIVED','CHARACTER_MESSAGE_RENDERED','USER_MESSAGE_RENDERED','MESSAGE_UPDATED','GENERATION_ENDED','MESSAGE_SWIPED','CHAT_CHANGED','MESSAGE_EDITED']){
   const eventName=event_types[name];
   if(eventName)eventSource.on(eventName,scheduleScan);
  }
