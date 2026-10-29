@@ -192,7 +192,15 @@ function createButtonAtPosition(insertPosition,entry,nodeInfos,doc,rootElement,r
  const markerSelector='[data-ql-marker="'+CSS.escape(entry.markerKey)+'"]';
  const existingByMarker=rootElement.querySelector(markerSelector);
  if(existingByMarker){
-  if(existingByMarker.dataset.qlTrigger===entry.taskKey&&existingByMarker.dataset.qlPrompt===link)return existingByMarker;
+  if(existingByMarker.dataset.qlTrigger===entry.taskKey&&existingByMarker.dataset.qlPrompt===link){
+   const cached=getSavedImageMatches(entry,context,entry.swipeId,uniquePrompt);
+   if(!cached.length)return existingByMarker;
+   const latest=cached[cached.length-1];
+   const meta={messageIndex:entry.messageIndex,source:'chat',character:latest.character||context?.name||null,characterName:latest.characterName||context?.name2||null,characterKey:latest.characterKey??context?.characterId??null,chatId:context?.chatId||null,swipeId:entry.swipeId,markerOrdinal:entry.markerOrdinal,markerKey:entry.markerKey};
+   for(const record of cached)addMessageImage(rootElement,record.dataUrl,latest.basePrompt||link,entry.taskKey,meta,existingByMarker);
+   existingByMarker.remove();
+   return rootElement.querySelector('.ql-chat-image[data-ql-task="'+CSS.escape(entry.taskKey)+'"]')||null;
+  }
   existingByMarker.remove();
  }
  const existingCard=[...rootElement.querySelectorAll('.ql-chat-image')].find(card=>card.dataset.qlMarker===entry.markerKey);
@@ -459,7 +467,7 @@ async function processMesTextElements(){
   const mesBlock=element.closest('.mes'),idStr=mesBlock?.getAttribute('mesid');
   if(idStr==null)continue;
   const messageIndex=Number.parseInt(idStr,10),message=chat[messageIndex];
-  if(!Number.isInteger(messageIndex)||!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
+  if(!Number.isInteger(messageIndex)||!message||message.is_user||message.is_system||typeof message.mes!=='string'||!markers(message.mes).length)continue;
   await findAndReplaceInElement(element,messageIndex,message,context);
  }
 }
