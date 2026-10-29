@@ -2375,9 +2375,9 @@ jQuery(()=>{
   const eventName=event_types[name];
   if(eventName)eventSource.on(eventName,scheduleScan);
  }
- if(event_types.CHAT_CHANGED)eventSource.on(event_types.CHAT_CHANGED,()=>{autoTasks.clear();renderBindings();renderLibrary();applyCurrentBinding();});
- if(event_types.CHARACTER_SELECTED)eventSource.on(event_types.CHARACTER_SELECTED,()=>{const s=cfg();s.prompt='';s.negative='';s.viewfinderRoles=[{appearance:'',libraryIndex:-1},{appearance:'',libraryIndex:-1}];save();const positive=$('#ql-prompt'),negative=$('#ql-negative');if(positive)positive.value='';if(negative)negative.value='';renderBindings();renderLibrary();renderViewfinderRoles();syncViewfinderAlbumTargets();applyCurrentBinding();});
- applyCurrentBinding();
+ if(event_types.CHAT_CHANGED)eventSource.on(event_types.CHAT_CHANGED,()=>{autoTasks.clear();renderBindings();renderLibrary();});
+ // 取景框是独立生图区：切换角色卡/聊天时不清空它的提示词、角色外貌或当前配置。
+ if(event_types.CHARACTER_SELECTED)eventSource.on(event_types.CHARACTER_SELECTED,()=>{renderBindings();renderLibrary();renderViewfinderRoles();syncViewfinderAlbumTargets();});
 });
 
 
