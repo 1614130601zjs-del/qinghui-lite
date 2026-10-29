@@ -1410,6 +1410,19 @@ function statusbarError(frame,prompt,taskKey,error){
  const existing=frame.querySelector('.ql-statusbar-error');if(existing)existing.remove();
  alert('拾帧生成失败：'+(error?.message||String(error)));
 }
+// 收集主文档和所有（含嵌套的）可访问 iframe 文档；跨域/沙盒不可访问的会在控制台提示一次。
+let qlInaccessibleNoted=0;
+function collectStatusbarDocs(root=document,depth=0,out=[]){
+ if(!out.includes(root))out.push(root);
+ if(depth>3)return out;
+ let blocked=0;
+ root.querySelectorAll('iframe').forEach(iframe=>{
+  let inner=null;try{inner=iframe.contentDocument;}catch{}
+  if(inner)collectStatusbarDocs(inner,depth+1,out);else blocked++;
+ });
+ if(blocked&&blocked!==qlInaccessibleNoted){qlInaccessibleNoted=blocked;console.warn('[拾帧 Lite] 有 '+blocked+' 个 iframe 无法访问（可能是跨域或沙盒限制），其中的状态栏无法识别。');}
+ return out;
+}
 // 状态栏里的模板（如抖音状态栏）刷新后会重新渲染成“点击生成画面”的初始态，已经生成过的图不会自动回来。
 // 对带 data-tag（画面提示词）且已有保存图片的元素，替它点一下模板自己的按钮，让模板进入 scanning 状态，随后走已有的“恢复缓存图”流程，不会重新请求生图。
 function autoRestoreStatusbarTemplates(docs){
@@ -1445,8 +1458,7 @@ function ensureStatusbarTrigger(frame,prompt){
 }
 async function processStatusbarFrames(){
   if(cfg().enabled===false)return;
- const docs=[document];
- document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
+ const docs=collectStatusbarDocs();
  repairStaleStatusbarCards(docs);
  autoRestoreStatusbarTemplates(docs);
  const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
@@ -1507,24 +1519,28 @@ async function processStatusbarFrames(){
 }
 function observeStatusbarFrames(){
  const attach=doc=>{
-  if(!doc||statusbarObservedDocs.has(doc))return;
-  const target=doc.body||doc.documentElement;if(!target)return;
-  statusbarObservedDocs.add(doc);
+  if(!doc)return;
+  // 以 body 元素（而不是 document）为键：前端框架用 document.open()/write() 往同一个 iframe 文档里重写内容时，document 对象不变但 body 被换掉，
+  // 挂在旧 body 上的观察器就失效了；按 body 判断才能发现“换了新 body”并重新挂载。
+  const target=doc.body||doc.documentElement;if(!target||statusbarObservedDocs.has(target))return;
+  statusbarObservedDocs.add(target);
+  // 观察器偶尔会漏掉 iframe 内的变化：用户在状态栏里点任何东西（如“点击生成画面”）后，主动补扫几次。
+  if(doc!==document&&!doc._qlClickHooked){doc._qlClickHooked=true;doc.addEventListener('click',()=>{[40,300,1000].forEach(ms=>setTimeout(()=>processStatusbarFrames().catch(()=>{}),ms));},true);}
   const observer=new MutationObserver(()=>{attachFrames();processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 状态栏触发失败',e));});
   observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
   if(doc===document)statusbarObserver=observer;
  };
  const hookedIframes=new WeakSet();
  const attachFrames=()=>{
-  attach(document);
-  document.querySelectorAll('iframe').forEach(frame=>{
-   try{attach(frame.contentDocument);}catch{}
+  const docs=collectStatusbarDocs();
+  docs.forEach(attach);
+  docs.forEach(d=>d.querySelectorAll('iframe').forEach(frame=>{
    // iframe（srcdoc/前端框架渲染的状态栏）加载完成会换成一份新的 document：之前挂在旧（about:blank）文档上的观察器就失效了，
    // 刷新页面后点状态栏里的按钮没有任何反应，直到点小铅笔让酒馆重绘才恢复。每个 iframe 在每次加载完成时重新挂一次。
    if(hookedIframes.has(frame))return;
    hookedIframes.add(frame);
    frame.addEventListener('load',()=>{attachFrames();processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 状态栏触发失败',e));});
-  });
+  }));
  };
  attachFrames();
  processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 状态栏触发失败',e));
