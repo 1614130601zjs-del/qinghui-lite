@@ -106,6 +106,7 @@ function isHostBeingEdited(host){
  if(ta&&ta.offsetParent!==null)return true;
  return false;
 }
+// Rendering lifecycle adapted from damoshen123/st-chatu8 commit fc24c78f8015cbf9bbeba347821d9ca44ad4212f (utils/iframe/placeholder.js, utils/iframe/chatProcessor.js); only the image generation and cache adapters are 拾帧-specific.
 function qlStableImageId(value){
  const text=String(value||'').replaceAll('《','<').replaceAll('》','>').replaceAll('\n','');
  let hash=0;
@@ -157,6 +158,7 @@ function pruneStaleMediaSlots(rootElement,messageIndex,message){
 }
 // 对应智绘姬 getSavedImageMatches：按当前消息、swipe 和稳定 taskKey 恢复底片中的已生成图片。
 function getSavedImageMatches(entry,context,swipeId,uniquePrompt){
+ if(typeof entry==='string')return [];
  const records=cfg().records||[],normalize=qlNormalizeMarkerPrompt;
  if(uniquePrompt||entry.markerOrdinal!==undefined){
   const legacyRecords=records.filter(item=>{
@@ -229,86 +231,236 @@ function createButtonAtPosition(insertPosition,entry,nodeInfos,doc,rootElement,r
  return button;
 }
 // 对应智绘姬 findAndReplaceInElement：用 TreeWalker 汇总逻辑文本，再倒序 Range 删除 marker 并在原位置插入按钮。
-async function findAndReplaceInElement(rootElement,messageIndex,message,context){
- if(!rootElement||!message||typeof message.mes!=='string'||isHostBeingEdited(rootElement))return;
- pruneStaleMediaSlots(rootElement,messageIndex,message);
- if(rootElement.dataset?.qlProcessed==='true'){
-  const currentLength=rootElement.textContent?.length||0,storedLength=parseInt(rootElement.dataset.qlContentLength||'0',10);
-  if(currentLength===storedLength)return;
-  delete rootElement.dataset.qlProcessed;delete rootElement.dataset.qlContentLength;
- }
- const doc=rootElement.ownerDocument||document,nodeInfos=[];
- let logicalText='';
- const walker=doc.createTreeWalker(rootElement,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT,{
-  acceptNode(node){
-   const parent=node.parentElement;
-   if(node.nodeType===Node.ELEMENT_NODE&&node.tagName!=='BR')return NodeFilter.FILTER_SKIP;
-   if(node.nodeType===Node.TEXT_NODE&&parent){
-    if(['SCRIPT','STYLE','BUTTON'].includes(parent.tagName))return NodeFilter.FILTER_REJECT;
-    if(parent.closest?.('.ql-inline-image-trigger,.ql-chat-image,.ql-chat-image-status'))return NodeFilter.FILTER_REJECT;
-   }
-   if(node.nodeType===Node.ELEMENT_NODE&&node.tagName==='BR'){
-    if(parent?.closest?.('.ql-inline-image-trigger,.ql-chat-image,.ql-chat-image-status'))return NodeFilter.FILTER_REJECT;
-   }
-   return NodeFilter.FILTER_ACCEPT;
+async function findAndReplaceInElement(rootElement,messageIndex,message,context) {
+  if (!rootElement || !message || typeof message.mes !== "string" || isHostBeingEdited(rootElement)) return;
+  pruneStaleMediaSlots(rootElement,messageIndex,message);
+  // 先扫一遍转圈按钮：只有「真的还在生成中」的才阻塞本轮处理。
+  // 陈旧的转圈按钮（对应任务早已结束或超时）会被就地复位并尝试从数据库补渲染媒体，
+  // 否则一个卡死的 spinner 会永久锁死这个楼层，用户只能靠刷新页面才能看到结果。
+  const loadingButtons = rootElement.querySelectorAll('.ql-inline-image-trigger[data-ql-busy="1"]');
+  let hasActiveLoading = false;
+  for (const loadingButton of loadingButtons) {
+    const busySince = Number(loadingButton.dataset.qlBusySince) || 0;
+    if (busySince && Date.now() - busySince > 120000) {
+      loadingButton.dataset.qlBusy = '0';
+      loadingButton.disabled = false;
+      loadingButton.textContent = '重试生图';
+      delete loadingButton.dataset.qlBusySince;
+    } else {
+      hasActiveLoading = true;
+    }
   }
- });
- let node;
- while((node=walker.nextNode())){
-  const start=logicalText.length;
-  const text=node.nodeType===Node.TEXT_NODE?(node.textContent||''):node.tagName==='BR'?'\n':'';
-  logicalText+=text;nodeInfos.push({node,start,end:logicalText.length});
- }
- const domMarkers=[],pattern=/image###([\s\S]*?)###/g;
- let match;
- while((match=pattern.exec(logicalText))!==null){
-  const prompt=String(match[1]||'').trim();
-  if(prompt)domMarkers.push({fullMatch:match[0],domPrompt:prompt,startIndex:match.index,endIndex:pattern.lastIndex});
- }
- if(!domMarkers.length){
-  rootElement.dataset.qlProcessed='true';rootElement.dataset.qlContentLength=String(rootElement.textContent?.length||0);return;
- }
- const rawMarkers=markers(message.mes),swipeId=Number(message.swipe_id??0),normalized=qlNormalizeMarkerPrompt;
- const entries=domMarkers.map((item,markerOrdinal)=>{
-  const raw=rawMarkers[markerOrdinal],prompt=raw?.prompt||item.domPrompt;
-  const requestPrompt=String(prompt).replaceAll('《','<').replaceAll('》','>').replaceAll('\n','');
-  const taskKey=makeTriggerId({chatId:context?.chatId||'chat',messageId:String(messageIndex)+':'+String(swipeId),markerIndex:String(markerOrdinal)+':'+qlStableImageId(requestPrompt)});
-  return {...item,prompt,taskKey,messageIndex,markerOrdinal,markerKey:String(messageIndex)+':'+String(markerOrdinal),swipeId};
- });
- for(let i=entries.length-1;i>=0;i--){
-  const entry=entries[i],nodesToProcess=nodeInfos.filter(info=>entry.startIndex<info.end&&entry.endIndex>info.start);
-  if(!nodesToProcess.length)continue;
-  const first=nodesToProcess[0],last=nodesToProcess[nodesToProcess.length-1],range=doc.createRange();
-  try{
-   const startOffset=entry.startIndex-first.start;
-   if(first.node.nodeType===Node.TEXT_NODE){
-    const length=first.node.textContent?.length??0;
-    if(startOffset<0||startOffset>length)continue;
-    range.setStart(first.node,startOffset);
-   }else range.setStartBefore(first.node);
-   const endOffset=entry.endIndex-last.start;
-   if(last.node.nodeType===Node.TEXT_NODE){
-    const length=last.node.textContent?.length??0;
-    if(endOffset<0||endOffset>length)continue;
-    range.setEnd(last.node,endOffset);
-   }else range.setEndAfter(last.node);
-   range.deleteContents();range.collapse(true);
-  }catch(error){console.warn('[拾帧] 正文 marker Range 定位失败：',error);continue;}
-  const uniquePrompt=rawMarkers.filter(item=>normalized(item.prompt)===normalized(entry.prompt)).length===1;
-  createButtonAtPosition(entry.startIndex,entry,nodeInfos,doc,rootElement,range,context,uniquePrompt);
- }
- rootElement.dataset.qlProcessed='true';rootElement.dataset.qlContentLength=String(rootElement.textContent?.length||0);
+  if (hasActiveLoading) return;
+  if (rootElement.dataset && rootElement.dataset.qlProcessed === "true") {
+    const currentLength = rootElement.textContent?.length || 0;
+    const storedLength = parseInt(rootElement.dataset.qlContentLength || "0", 10);
+    if (currentLength !== storedLength) {
+      delete rootElement.dataset.qlProcessed;
+      delete rootElement.dataset.qlContentLength;
+    } else {
+      const anyControl = rootElement.querySelector(".ql-inline-image-trigger, .ql-chat-image");
+      if (anyControl) return;
+      delete rootElement.dataset.qlProcessed;
+      delete rootElement.dataset.qlContentLength;
+    }
+  }
+  const settings3 = { startTag: "image###", endTag: "###" };
+  if (!settings3.startTag || !settings3.endTag) {
+    console.warn("[iframe] startTag or endTag is empty, skipping placeholder processing");
+    return;
+  }
+  const shouldAutoClickBatch = false;
+  const escapeRegExp2 = (string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  };
+  const pattern = new RegExp(`${escapeRegExp2(settings3.startTag)}([\\s\\S]*?)${escapeRegExp2(settings3.endTag)}`, "g");
+  const doc = rootElement.ownerDocument || rootElement;
+  const firstDirectDiv = rootElement.querySelector(":scope > div");
+  if (firstDirectDiv) {
+  }
+  let firstDivStartOffset = -1;
+  let firstDivEndOffset = -1;
+  const nodeInfos = [];
+  let logicalText = "";
+  const CODE_RELATED_TAGS = /* @__PURE__ */ new Set([
+    "SCRIPT",
+    "STYLE",
+    "BUTTON",
+    "PRE",
+    "CODE",
+    // 代码块
+    "TEXTAREA",
+    // 输入框
+    "KBD",
+    "SAMP",
+    "VAR"
+    // 键盘输入、示例输出、变量
+  ]);
+  const CODE_CLASS_PATTERNS = ["hljs", "highlight", "prism", "language-", "CodeMirror", "ace_"];
+  const walker = doc.createTreeWalker(rootElement, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, {
+    acceptNode: function(node) {
+      const parent = node.parentElement;
+      const parentTag = parent?.tagName;
+      if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== "BR") {
+        return NodeFilter.FILTER_SKIP;
+      }
+      if (CODE_RELATED_TAGS.has(parentTag)) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      if (parent?.closest?.(".ql-inline-image-trigger, .ql-chat-image, .ql-chat-image-status")) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      if (parent?.className && typeof parent.className === "string") {
+        for (const pattern2 of CODE_CLASS_PATTERNS) {
+          if (parent.className.includes(pattern2)) {
+            return NodeFilter.FILTER_REJECT;
+          }
+        }
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  let n;
+  while (n = walker.nextNode()) {
+    const start = logicalText.length;
+    let text = "";
+    if (n.nodeType === Node.TEXT_NODE) {
+      text = n.textContent;
+    } else if (n.tagName === "BR") {
+      text = "\n";
+    }
+    if (firstDirectDiv && text.length > 0) {
+      const isInFirstDiv = n === firstDirectDiv || firstDirectDiv.contains(n);
+      if (isInFirstDiv) {
+        if (firstDivStartOffset === -1) {
+          firstDivStartOffset = start;
+        }
+        firstDivEndOffset = start + text.length;
+      }
+    }
+    logicalText += text;
+    nodeInfos.push({ node: n, start, end: logicalText.length });
+  }
+  let logicalTextExcludingFirstDiv = logicalText;
+  if (firstDirectDiv && firstDivStartOffset !== -1 && firstDivEndOffset > firstDivStartOffset) {
+    const beforeDiv = logicalText.substring(0, firstDivStartOffset);
+    const afterDiv = logicalText.substring(firstDivEndOffset);
+    logicalTextExcludingFirstDiv = beforeDiv + afterDiv;
+  }
+  const patternMatches = [];
+  let match;
+  while ((match = pattern.exec(logicalText)) !== null) {
+    patternMatches.push({
+      fullMatch: match[0],
+      content: match[1],
+      startIndex: match.index,
+      endIndex: match.index + match[0].length,
+      isPatternMatch: true,
+      markerOrdinal: patternMatches.length
+      // 标记为 pattern 匹配，需要替换原文本
+    });
+  }
+  const videoMatches = [];
+  const savedMatches = await getSavedImageMatches(logicalText, rootElement, logicalTextExcludingFirstDiv, firstDivEndOffset > 0 ? firstDivEndOffset : 0);
+  if (patternMatches.length === 0 && savedMatches.length === 0) return;
+  const clickPromises = [];
+  const buttonsToAutoClick = [];
+  const sortedSavedMatches = [...savedMatches].sort((a, b) => b.insertPosition - a.insertPosition);
+  for (const savedMatch of sortedSavedMatches) {
+    const promise = createButtonAtPosition(
+      savedMatch.insertPosition,
+      savedMatch.content,
+      nodeInfos,
+      doc,
+      rootElement,
+      settings3,
+      shouldAutoClickBatch,
+      // 非插入原文模式也支持自动点击
+      imageAlt
+    );
+    clickPromises.push(promise);
+  }
+  // 视频提示词段和生图段一起按出现顺序倒序处理：必须同一趟倒序，先删靠后的匹配，
+  // 前面那些匹配的文本偏移才不会被删动过的节点带偏。
+  const matchesToProcess = [...patternMatches, ...videoMatches].sort((a, b) => a.startIndex - b.startIndex);
+  for (let i = matchesToProcess.length - 1; i >= 0; i--) {
+    const matchInfo = matchesToProcess[i];
+    const nodesToProcess = nodeInfos.filter(
+      (info) => matchInfo.startIndex < info.end && matchInfo.endIndex > info.start
+    );
+    if (nodesToProcess.length === 0) continue;
+    const firstNodeInfo = nodesToProcess[0];
+    const lastNodeInfo = nodesToProcess[nodesToProcess.length - 1];
+    const parent = firstNodeInfo.node.parentNode;
+    const range = doc.createRange();
+    try {
+      const startOffset = matchInfo.startIndex - firstNodeInfo.start;
+      if (firstNodeInfo.node.nodeType === Node.TEXT_NODE) {
+        const startTextLength = firstNodeInfo.node.textContent?.length ?? 0;
+        if (startTextLength === 0 || startOffset > startTextLength) {
+          console.warn("[iframe] StartOffset out of bounds:", { startOffset, startTextLength, matchInfo });
+          continue;
+        }
+        range.setStart(firstNodeInfo.node, startOffset);
+      } else {
+        range.setStartBefore(firstNodeInfo.node);
+      }
+      const endNode = lastNodeInfo.node;
+      const endOffset = matchInfo.endIndex - lastNodeInfo.start;
+      if (endNode.nodeType === Node.TEXT_NODE) {
+        const textLength = endNode.textContent?.length ?? 0;
+        if (textLength === 0 || endOffset > textLength) {
+          console.warn("[iframe] EndOffset out of bounds:", { endOffset, textLength, matchInfo });
+          continue;
+        }
+        range.setEnd(endNode, endOffset);
+      } else {
+        range.setEndAfter(endNode);
+      }
+    } catch (e) {
+      console.error("st-chatu8: Error setting range. Skipping match.", e, matchInfo);
+      continue;
+    }
+    range.deleteContents();
+    // \u89C6\u9891\u63D0\u793A\u8BCD\u6BB5\u6CA1\u6709\u81EA\u5DF1\u7684\u6309\u94AE\uFF1A\u5B83\u7684\u5185\u5BB9\u5DF2\u7ECF\u6302\u5728\u914D\u5BF9\u7684\u751F\u56FE\u6309\u94AE\u4E0A\uFF0C\u8FD9\u91CC\u53EA\u8D1F\u8D23\u628A\u5B83\u4ECE\u6B63\u6587\u91CC\u62B9\u6389\u3002
+    if (matchInfo.isVideoPairTag) continue;
+    const rawMarkers = markers(message.mes);
+    const markerOrdinal = Number(matchInfo.markerOrdinal ?? 0);
+    const raw = rawMarkers[markerOrdinal];
+    const prompt = String(raw?.prompt || matchInfo.content || "").trim();
+    const requestPrompt = prompt.replaceAll("《", "<").replaceAll("》", ">").replaceAll("\n", "");
+    const swipeId = Number(message.swipe_id ?? 0);
+    const taskKey = makeTriggerId({
+      chatId: context?.chatId || "chat",
+      messageId: String(messageIndex) + ":" + String(swipeId),
+      markerIndex: String(markerOrdinal) + ":" + qlStableImageId(requestPrompt)
+    });
+    const entry = {
+      ...matchInfo,
+      prompt,
+      taskKey,
+      messageIndex,
+      markerOrdinal,
+      markerKey: String(messageIndex) + ":" + String(markerOrdinal),
+      swipeId
+    };
+    const uniquePrompt = rawMarkers.filter(item => qlNormalizeMarkerPrompt(item.prompt) === qlNormalizeMarkerPrompt(prompt)).length === 1;
+    createButtonAtPosition(matchInfo.startIndex, entry, nodeInfos, doc, rootElement, range, context, uniquePrompt);
+  }
+  rootElement.dataset.qlProcessed = "true";
+  rootElement.dataset.qlContentLength = String(rootElement.textContent?.length || 0);
 }
 async function processMesTextElements(){
  if(cfg().enabled===false)return;
  const context=getContext(),chat=context?.chat;
  if(!Array.isArray(chat))return;
- for(let messageIndex=0;messageIndex<chat.length;messageIndex++){
-  const message=chat[messageIndex];
-  if(!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
-  const host=document.querySelector('.mes[mesid="'+messageIndex+'"] .mes_text');
-  if(!host)continue;
-  await findAndReplaceInElement(host,messageIndex,message,context);
+ const elements=document.getElementsByClassName('mes_text');
+ for(const element of elements){
+  const mesBlock=element.closest('.mes'),idStr=mesBlock?.getAttribute('mesid');
+  if(idStr==null)continue;
+  const messageIndex=Number.parseInt(idStr,10),message=chat[messageIndex];
+  if(!Number.isInteger(messageIndex)||!message||message.is_user||message.is_system||typeof message.mes!=='string')continue;
+  await findAndReplaceInElement(element,messageIndex,message,context);
  }
 }
 
@@ -1163,7 +1315,7 @@ async function runInlineImageTrigger(button,entry){
  const accepted=triggerRegistry.begin(taskKey,{prompt,source:'chat-button',messageIndex:entry.messageIndex,markerOrdinal:entry.markerOrdinal});
  if(!accepted.accepted)return;
  triggerRegistry.markRunning(taskKey);
- button.dataset.qlBusy='1';button.disabled=true;button.textContent='生成中…';
+ button.dataset.qlBusy='1';button.dataset.qlBusySince=String(Date.now());button.dataset.qlSwipeId=String(entry.swipeId??0);button.disabled=true;button.textContent='生成中…';
  const statusNode=document.createElement('span');statusNode.className='ql-chat-image-status';statusNode.textContent='正在提交给 NAI 生图…';button.after(statusNode);
  try{
   const context=getContext();
@@ -1182,7 +1334,7 @@ async function runInlineImageTrigger(button,entry){
   button.dataset.qlBusy='0';button.disabled=false;button.textContent='重试生图';
   statusNode.remove();
   alert('拾帧生成失败：'+(error?.message||String(error)));
- }finally{if(button.isConnected)button.dataset.qlBusy='0';}
+ }finally{if(button.isConnected){button.dataset.qlBusy='0';delete button.dataset.qlBusySince;}}
 }
 async function processLatestAssistantMessage(){
  if(cfg().enabled===false)return;
