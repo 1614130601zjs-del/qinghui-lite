@@ -1423,6 +1423,19 @@ function collectStatusbarDocs(root=document,depth=0,out=[]){
  if(blocked&&blocked!==qlInaccessibleNoted){qlInaccessibleNoted=blocked;console.warn('[拾帧 Lite] 有 '+blocked+' 个 iframe 无法访问（可能是跨域或沙盒限制），其中的状态栏无法识别。');}
  return out;
 }
+// 手机上看不到控制台：在状态栏 iframe 里点击后弹一条诊断提示，说明扫描到了什么（排查完成后会去掉）。
+let qlStatusbarLastError='';
+function qlStatusbarDiagnose(){
+ try{
+  const total=document.querySelectorAll('iframe').length;
+  const docs=collectStatusbarDocs();
+  const scanning=docs.reduce((n,d)=>n+d.querySelectorAll('[class~="scanning"]').length,0);
+  const triggers=docs.reduce((n,d)=>n+d.querySelectorAll('.ql-statusbar-trigger').length,0);
+  const cards=docs.reduce((n,d)=>n+d.querySelectorAll('.ql-statusbar-card').length,0);
+  const msg='拾帧诊断：iframe '+total+' 个，可访问文档 '+(docs.length-1)+' 个，scanning 元素 '+scanning+' 个，定格按钮 '+triggers+' 个，状态栏图卡 '+cards+' 个'+(qlStatusbarLastError?'，错误：'+qlStatusbarLastError:'');
+  if(typeof toastr!=='undefined')toastr.info(msg,'',{timeOut:8000});else console.info('[拾帧 Lite] '+msg);
+ }catch(e){console.warn('[拾帧 Lite] 诊断失败',e);}
+}
 // 状态栏里的模板（如抖音状态栏）刷新后会重新渲染成“点击生成画面”的初始态，已经生成过的图不会自动回来。
 // 对带 data-tag（画面提示词）且已有保存图片的元素，替它点一下模板自己的按钮，让模板进入 scanning 状态，随后走已有的“恢复缓存图”流程，不会重新请求生图。
 function autoRestoreStatusbarTemplates(docs){
@@ -1525,8 +1538,11 @@ function observeStatusbarFrames(){
   const target=doc.body||doc.documentElement;if(!target||statusbarObservedDocs.has(target))return;
   statusbarObservedDocs.add(target);
   // 观察器偶尔会漏掉 iframe 内的变化：用户在状态栏里点任何东西（如“点击生成画面”）后，主动补扫几次。
-  if(doc!==document&&!doc._qlClickHooked){doc._qlClickHooked=true;doc.addEventListener('click',()=>{[40,300,1000].forEach(ms=>setTimeout(()=>processStatusbarFrames().catch(()=>{}),ms));},true);}
-  const observer=new MutationObserver(()=>{attachFrames();processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 状态栏触发失败',e));});
+  if(doc!==document&&!doc._qlClickHooked){doc._qlClickHooked=true;doc.addEventListener('click',()=>{
+   [40,300,1000].forEach(ms=>setTimeout(()=>processStatusbarFrames().catch(e=>{qlStatusbarLastError=e?.message||String(e);}),ms));
+   setTimeout(qlStatusbarDiagnose,1400);
+  },true);}
+  const observer=new MutationObserver(()=>{attachFrames();processStatusbarFrames().catch(e=>{qlStatusbarLastError=e?.message||String(e);console.warn('[拾帧 Lite] 状态栏触发失败',e);});});
   observer.observe(target,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['class']});
   if(doc===document)statusbarObserver=observer;
  };
