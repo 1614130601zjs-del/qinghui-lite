@@ -1166,7 +1166,9 @@ async function processLatestAssistantMessage(){
    // 仅当该消息中的画面提示词唯一时，才按消息序号、聊天 ID 与原始提示词回收旧记录，避免同提示词的多个标记串图。
    const normalizeMarkerPrompt=value=>String(value||'').trim().replace(/\s+/g,' ');
    if(found.filter(marker=>normalizeMarkerPrompt(marker.prompt)===normalizeMarkerPrompt(entry.prompt)).length===1){
-    const legacyRecords=(cfg().records||[]).filter(item=>item&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat'&&normalizeMarkerPrompt(item.basePrompt||item.prompt)===normalizeMarkerPrompt(entry.prompt));
+    const legacyRecords=(cfg().records||[]).filter(item=>item&&Number(item.messageIndex)===messageIndex&&(!item.chatId||item.chatId===(context.chatId||''))&&(item.source||'chat')==='chat'&&normalizeMarkerPrompt(item.basePrompt||item.prompt)===normalizeMarkerPrompt(entry.prompt)&&!/:\d+:\d+:\d+$/.test(String(item.taskKey||'')));
+    // 注意：已经是“聊天:楼层:swipe:序号”新格式的记录属于它自己的那一页（某个 swipe），不能回收到当前页——
+    // 否则翻到新的 swipe（next / 重 Roll）时，旧页的图会被改写 taskKey 塞进新页，旧页反而丢图。
     if(legacyRecords.some(item=>item.taskKey!==entry.taskKey)){
      for(const record of legacyRecords)record.taskKey=entry.taskKey;
      save();
