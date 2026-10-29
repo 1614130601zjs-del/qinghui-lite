@@ -1410,11 +1410,45 @@ function statusbarError(frame,prompt,taskKey,error){
  const existing=frame.querySelector('.ql-statusbar-error');if(existing)existing.remove();
  alert('拾帧生成失败：'+(error?.message||String(error)));
 }
+// 状态栏里的模板（如抖音状态栏）刷新后会重新渲染成“点击生成画面”的初始态，已经生成过的图不会自动回来。
+// 对带 data-tag（画面提示词）且已有保存图片的元素，替它点一下模板自己的按钮，让模板进入 scanning 状态，随后走已有的“恢复缓存图”流程，不会重新请求生图。
+function autoRestoreStatusbarTemplates(docs){
+ const records=(cfg().records||[]).filter(item=>item&&item.dataUrl&&(item.source||'chat')==='statusbar');
+ if(!records.length)return;
+ for(const doc of docs){
+  doc.querySelectorAll('[data-tag]').forEach(el=>{
+   if(el.dataset.qlAutoClick==='1'||el.querySelector('[class~="scanning"]'))return;
+   const prompt=qlNormalizePrompt(String(el.getAttribute('data-tag')||'').replace(/<\/?画面绘图>/gi,'').replace(/^\s*image###\s*/i,'').replace(/\s*###\s*$/,''));
+   if(!prompt)return;
+   const stamp=messageStampOfElement(el);
+   if(!records.some(item=>qlNormalizePrompt(item.basePrompt||item.prompt)===prompt&&recordMatchesStamp(item,stamp)))return;
+   const button=el.querySelector('button');
+   if(!button)return;
+   el.dataset.qlAutoClick='1';
+   button.click();
+  });
+ }
+}
+// 状态栏出现待生成的 image### 后，不再自动提交，而是在原处放一个“定格此刻”，点了才生图（和正文一致）。
+function ensureStatusbarTrigger(frame,prompt){
+ const existing=frame.querySelector(':scope > .ql-statusbar-trigger');
+ if(existing&&existing._qlBound)return;
+ if(existing)existing.remove();
+ const doc=frame.ownerDocument||document;
+ const button=doc.createElement('button');
+ button.type='button';button.className='menu_button ql-statusbar-trigger';button.textContent='定格此刻';button.title='点击生成状态栏图片';
+ button.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:8;padding:10px 24px;border-radius:24px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;line-height:1.4;';
+ button._qlBound=true;
+ button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();frame.dataset.qlArmed='1';button.remove();processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 状态栏触发失败',e));});
+ if(getComputedStyle(frame).position==='static')frame.style.position='relative';
+ frame.append(button);
+}
 async function processStatusbarFrames(){
   if(cfg().enabled===false)return;
  const docs=[document];
  document.querySelectorAll('iframe').forEach(iframe=>{try{if(iframe.contentDocument)docs.push(iframe.contentDocument);}catch{}});
  repairStaleStatusbarCards(docs);
+ autoRestoreStatusbarTemplates(docs);
  const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)return false;
@@ -1425,8 +1459,8 @@ async function processStatusbarFrames(){
   if(!prompt)continue;
   if(frame.dataset.qlPrompt!==prompt){
    frame.dataset.qlPrompt=prompt;
-   frame.dataset.qlDone='';frame.dataset.qlFailedPrompt='';
-   frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading').forEach(el=>el.remove());
+   frame.dataset.qlDone='';frame.dataset.qlFailedPrompt='';frame.dataset.qlArmed='';
+   frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading,.ql-statusbar-trigger').forEach(el=>el.remove());
   }
   if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
   // 上一次对同一条提示词生成失败：不自动重试（以前失败会触发 DOM 变动、再次触发扫描，形成无限重试 + 无限弹窗）。重新渲染状态栏会得到新的元素，届时会再试一次。
@@ -1446,6 +1480,8 @@ async function processStatusbarFrames(){
    frame.dataset.qlBusy='0';
    continue;
   }
+  // 没有缓存图：等用户点“定格此刻”再生图。
+  if(frame.dataset.qlArmed!=='1'){ensureStatusbarTrigger(frame,prompt);frame.dataset.qlBusy='0';continue;}
   const accepted=triggerRegistry.begin(taskKey,{prompt,source:'statusbar'});
   if(!accepted.accepted){frame.dataset.qlBusy='0';continue;}
   triggerRegistry.markRunning(taskKey);
@@ -1463,7 +1499,7 @@ async function processStatusbarFrames(){
    triggerRegistry.markSucceeded(taskKey,taskKey+':candidate:'+Date.now());
   }catch(e){
    triggerRegistry.markFailed(taskKey,e?.message||String(e));
-   frame.dataset.qlFailedPrompt=prompt;
+   frame.dataset.qlArmed='';
    loading.remove();
    statusbarError(frame,prompt,taskKey,e);
   }finally{frame.dataset.qlBusy='0';}
@@ -1492,6 +1528,8 @@ function observeStatusbarFrames(){
  };
  attachFrames();
  processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 状态栏触发失败',e));
+ // 兜底轮询：iframe 的加载时机五花八门，事件/观察器偶尔漏掉时，隔一会儿补扫一次。
+ setInterval(()=>{if(cfg().enabled===false||!document.querySelector('iframe'))return;attachFrames();processStatusbarFrames().catch(()=>{});},2000);
 }
 
 const themePalettes={mist:{accent:'#7f98ad',panel:'rgba(224,232,238,.96)',card:'rgba(239,243,246,.92)',text:'#344653',muted:'#657784',border:'rgba(100,125,145,.28)',field:'rgba(250,252,253,.92)'},sage:{accent:'#849b8c',panel:'rgba(225,234,226,.97)',card:'rgba(240,245,239,.94)',text:'#3c5044',muted:'#687a6d',border:'rgba(103,133,111,.28)',field:'rgba(250,252,248,.94)'},lavender:{accent:'#9a91b0',panel:'rgba(233,229,240,.97)',card:'rgba(246,243,249,.94)',text:'#4c465b',muted:'#777083',border:'rgba(140,127,164,.28)',field:'rgba(253,251,255,.94)'},oat:{accent:'#b09c82',panel:'rgba(239,232,220,.97)',card:'rgba(250,246,238,.94)',text:'#554b3e',muted:'#817565',border:'rgba(158,137,109,.28)',field:'rgba(255,252,246,.94)'},ink:{accent:'#8296aa',panel:'rgba(39,49,61,.98)',card:'rgba(49,61,74,.96)',text:'#e2e8ee',muted:'#aebbc7',border:'rgba(145,164,181,.25)',field:'rgba(31,41,52,.96)'}};
