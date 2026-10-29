@@ -4550,3 +4550,24 @@ html > .ql-album-menu-portal .ql-album-more-menu-panel button:active{
  white-space:nowrap;
  line-height:1.2;
 }
+
+
+/* 相册操作弹窗：固定纯白背景，确保不同酒馆主题下文字清晰。 */
+html > .ql-album-menu-portal .ql-album-more-menu-panel{
+ background:#fff!important;
+ color:#262626!important;
+}
+html > .ql-album-menu-portal .ql-album-more-menu-title{
+ color:#262626!important;
+ border-bottom-color:#e7e7e7!important;
+}
+html > .ql-album-menu-portal .ql-album-more-menu-panel button{
+ background:#f8f8f8!important;
+ color:#262626!important;
+ border-color:#e5e5e5!important;
+}
+html > .ql-album-menu-portal .ql-album-more-menu-panel button:hover,
+html > .ql-album-menu-portal .ql-album-more-menu-panel button:focus-visible{
+ background:#f0f0f0!important;
+ border-color:#d5d5d5!important;
+}
