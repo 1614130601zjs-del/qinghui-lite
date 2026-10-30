@@ -1401,7 +1401,8 @@ function qlStatusbarDiagnose(){
   const triggers=docs.reduce((n,d)=>n+d.querySelectorAll('.ql-statusbar-trigger').length,0);
   const cards=docs.reduce((n,d)=>n+d.querySelectorAll('.ql-statusbar-card').length,0);
   const frames=docs.flatMap(d=>Array.from(d.querySelectorAll('[class~="scanning"]')));
-  const detail=frames.map(f=>{const p=statusbarPromptForTarget(f);return '[提示词'+(p?'有':'无')+' busy='+(f.dataset.qlBusy||'-')+' done='+(f.dataset.qlDone||'-')+' armed='+(f.dataset.qlArmed||'-')+' 已处理='+(f.dataset.qlPrompt?'是':'否')+' 文本="'+String(f.textContent||'').replace(/\s+/g,' ').slice(0,24)+'"]';}).join('');
+  const where=f=>{const inIframe=(f.ownerDocument!==document);const btn=f.querySelector('button');let geo='';if(btn){const r=btn.getBoundingClientRect();let cs={};try{cs=(f.ownerDocument.defaultView||window).getComputedStyle(btn);}catch{}geo=' 内按钮='+btn.className.replace(/\s+/g,'.')+' 尺寸='+Math.round(r.width)+'x'+Math.round(r.height)+' 颜色='+(cs.color||'?')+' 显示='+(cs.display||'?')+' 可见性='+(cs.visibility||'?')+' 已绑定='+(btn._qlBound?'是':'否');}return (inIframe?'[在iframe内]':'[在主页面内]')+(f.closest&&f.closest('.mes_text')?'[mes_text内]':'')+geo;};
+  const detail=frames.map(f=>{const p=statusbarPromptForTarget(f);return '[提示词'+(p?'有':'无')+' busy='+(f.dataset.qlBusy||'-')+' done='+(f.dataset.qlDone||'-')+' armed='+(f.dataset.qlArmed||'-')+' 已处理='+(f.dataset.qlPrompt?'是':'否')+' 文本="'+String(f.textContent||'').replace(/\s+/g,' ').slice(0,24)+'" '+where(f)+']';}).join('');
   const msg=detail+' 拾帧诊断：iframe '+total+' 个，可访问文档 '+(docs.length-1)+' 个，scanning 元素 '+scanning+' 个，定格按钮 '+triggers+' 个，状态栏图卡 '+cards+' 个'+(qlStatusbarLastError?'，错误：'+qlStatusbarLastError:'');
   if(typeof toastr!=='undefined')toastr.info(msg,'',{timeOut:8000});else console.info('[拾帧 Lite] '+msg);
  }catch(e){console.warn('[拾帧 Lite] 诊断失败',e);}
