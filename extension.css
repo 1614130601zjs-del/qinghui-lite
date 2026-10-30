@@ -4812,3 +4812,12 @@ html[data-ql-style="pixel"] :is(.ql-detail-choice-overlay,[data-ql-download-shee
 /* 收藏/保存后的“已选中”颜色：默认由点缀色算出，不再是写死的深蓝；各风格里改成自己的点缀色 */
 #shizhen-panel{--ql-saved:color-mix(in srgb,var(--ql-accent,#8495a6) 72%,#1f2a33);--ql-saved-text:#fff}
 #shizhen-panel[data-ql-style]{--ql-saved:var(--qs-sig);--ql-saved-text:var(--qs-on-sig)}
+
+/* 色环调色滑块（色相 / 饱和度 / 明度）与染色强度 */
+#shizhen-panel .ql-hsl-row{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;margin:10px 0}
+#shizhen-panel .ql-hsl-row input[type="range"],#shizhen-panel #ql-ui-tint{width:100%;height:14px;-webkit-appearance:none;appearance:none;border-radius:7px;outline:none;border:1px solid var(--ql-border,rgba(127,127,127,.35))!important;box-shadow:none!important}
+#shizhen-panel .ql-hsl-hue{background:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)!important}
+#shizhen-panel .ql-hsl-sat{background:linear-gradient(90deg,#888,var(--ql-accent,#8495a6))!important}
+#shizhen-panel .ql-hsl-lum{background:linear-gradient(90deg,#111,var(--ql-accent,#8495a6),#fff)!important}
+#shizhen-panel #ql-ui-tint{background:linear-gradient(90deg,transparent,var(--ql-accent,#8495a6))!important}
+#shizhen-panel .ql-hsl-row input[type="range"]::-webkit-slider-thumb,#shizhen-panel #ql-ui-tint::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #555;box-shadow:0 1px 4px rgba(0,0,0,.4)}
