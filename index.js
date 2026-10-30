@@ -147,7 +147,7 @@ function mesElementOf(target){
 // 再用 Range 跨节点把标记原位替换成按钮；按钮位置永远就是标记所在的位置。
 // （思路参考智绘姬的 findAndReplaceInElement，代码为自行实现。）
 const QL_MARKER_SRC='image###([\\s\\S]*?)###';
-const QL_SKIP_SELECTOR='script,style,textarea,button,.ql-chat-image,.ql-inline-image-trigger';
+const QL_SKIP_SELECTOR='script,style,textarea,pre,code,button,.ql-chat-image,.ql-inline-image-trigger';
 const QL_BLOCK_SELECTOR='p,div,li,blockquote,h1,h2,h3,h4,h5,h6,pre,tr,td,th';
 const qlNormalizePrompt=value=>String(value||'').replace(/\s+/g,' ').trim();
 function qlCollectLogicalText(root){
@@ -236,16 +236,15 @@ function qlRenderMarkers(host,entries){
  if(!slots.length)return covered;
  // 先按文档顺序把每个位置对应到某一条标记：优先同一条提示词，其次按顺序取下一条。
  const plan=[];
- let syntheticCount=0;
  for(const slot of slots){
   if(!slot.prompt){plan.push({slot,entry:null,insert:false});continue;}
+  // 只认和消息原文里某条标记提示词一致的位置；对不上的（比如状态栏模板脚本源码里的 'image###'+tag+'###' 字符串）一律不碰，
+  // 否则会把别处的文字/代码当成标记改掉，破坏状态栏 iframe 的内容。
   let idx=unused.findIndex(entry=>qlNormalizePrompt(entry.prompt)===slot.prompt);
-  if(idx<0)idx=unused.length?0:-1;
   if(idx>=0){plan.push({slot,entry:unused.splice(idx,1)[0],insert:true});continue;}
   const dup=entries.find(entry=>qlNormalizePrompt(entry.prompt)===slot.prompt);
   // 已经有按钮的同一条提示词又出现了一份原文：只清掉原文，不再多贴一个按钮。
-  if(dup){plan.push({slot,entry:dup,insert:false});continue;}
-  plan.push({slot,entry:{prompt:slot.prompt,taskKey:'marker-'+(syntheticCount++),messageIndex:-1,markerKey:null},insert:true});
+  if(dup)plan.push({slot,entry:dup,insert:false});
  }
  // 从后往前改 DOM，前面的位置不会被后面的修改影响。
  for(let i=plan.length-1;i>=0;i--){
