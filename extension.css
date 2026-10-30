@@ -4599,59 +4599,63 @@ html > .ql-album-menu-portal .ql-album-more-menu-panel>button:hover{
 }
 
 /* =====================================================================
-   界面风格（只作用于拾帧设置面板的外壳：标题栏、标签、卡片、按钮、输入框）
+   界面风格（设置面板外壳 + 放大弹窗/相册弹窗/详情弹窗的外框与按钮）
    选择位置：偏好 → 外观与配色 → 界面风格。默认「柔和」不加任何覆盖。
-   每套风格自带点缀色 --qs-sig；在配色里选「自选颜色」时，会换成你选的颜色。
-   不改任何文字内容，装饰只用伪元素；照片显示、正文包裹、放大弹窗不在范围内。
+   点缀色 --qs-sig：每套风格自带；在配色里选了别的配色/自选颜色，就换成那个颜色，
+   并按亮度自动给出可读的文字色 --qs-on-sig，同时把背景轻轻染上一点（--qs-tint）。
+   不改任何文字内容，装饰只用伪元素；图片本身的显示不在范围内。
    ===================================================================== */
-#shizhen-panel[data-ql-style]{--qs-sig:var(--qs-user-accent,#c8553d);--ql-accent:var(--qs-sig)!important;
- /* 面板里仍有一部分规则读的是酒馆主题变量，统一指到当前风格的颜色，避免出现“深底深字” */
+@keyframes qs-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){[data-ql-style] *,html[data-ql-style] dialog *{animation:none!important}}
+
+/* ---------- 公共：把面板里读酒馆主题变量的规则指到当前风格的颜色 ---------- */
+#shizhen-panel[data-ql-style]{--ql-accent:var(--qs-sig)!important;
  --SmartThemeBodyColor:var(--ql-text)!important;--SmartThemeBorderColor:var(--ql-border)!important;--SmartThemeBlurTintColor:var(--ql-card)!important;--SmartThemeEmColor:var(--qs-sig)!important;--SmartThemeQuoteColor:var(--ql-muted)!important;--SmartThemeUnderlineColor:var(--qs-sig)!important}
 #shizhen-panel[data-ql-style] input:not([type="checkbox"]):not([type="color"]):not([type="range"]),#shizhen-panel[data-ql-style] textarea,#shizhen-panel[data-ql-style] select{background-color:var(--ql-field)!important;color:var(--ql-text)!important}
-#shizhen-panel[data-ql-style] label,#shizhen-panel[data-ql-style] h4,#shizhen-panel[data-ql-style] strong{color:inherit}
-@keyframes qs-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
-@media (prefers-reduced-motion:reduce){#shizhen-panel[data-ql-style] *{animation:none!important}}
 
-/* ---------- 像素掌机 ---------- */
+/* ---------- 像素掌机（柔和版）---------- */
 #shizhen-panel[data-ql-style="pixel"]{
- --qs-sig:var(--qs-user-accent,#e0603a);
- --ql-panel:#2f2a45!important;--ql-card:#d3dcad!important;--ql-field:#e6edc9!important;
- --ql-text:#26331a!important;--ql-muted:#55663a!important;--ql-border:#26331a!important;
- --ql-button-bg:#e6edc9!important;--ql-button-hover:#f0f5d6!important;--ql-button-active:#b9c58e!important;--ql-button-border:#26331a!important;--ql-button-text:#26331a!important;
+ --qs-sig:var(--qs-user-accent,#d9795b);--qs-on-sig:var(--qs-user-on,#fff);
+ --qs-shell:color-mix(in srgb,var(--qs-sig) var(--qs-tint,0%),#4b4766);
+ --qs-shell2:color-mix(in srgb,var(--qs-sig) var(--qs-tint,0%),#5a5679);
+ --qs-page:color-mix(in srgb,var(--qs-sig) var(--qs-tint,0%),#cfd8b8);
+ --qs-line:#5d6e49;
+ --ql-panel:var(--qs-shell)!important;--ql-card:color-mix(in srgb,var(--qs-sig) var(--qs-tint,0%),#dde4c8)!important;--ql-field:#eef2dc!important;
+ --ql-text:#3b4a2c!important;--ql-muted:#6b7a52!important;--ql-border:var(--qs-line)!important;
+ --ql-button-bg:#eef2dc!important;--ql-button-hover:#f5f8e6!important;--ql-button-active:#c3cfa3!important;--ql-button-border:var(--qs-line)!important;--ql-button-text:#3b4a2c!important;
  font-family:"Courier New",ui-monospace,Menlo,Consolas,monospace!important;
- background:#2f2a45!important;border:4px solid #1a1630!important;border-radius:0!important;box-shadow:6px 6px 0 rgba(10,8,24,.55)!important;
+ background:var(--qs-shell)!important;border:4px solid #3a3655!important;border-radius:0!important;box-shadow:6px 6px 0 rgba(30,26,50,.4)!important;
  -webkit-font-smoothing:none;
 }
 #shizhen-panel[data-ql-style="pixel"] *{border-radius:0!important}
-#shizhen-panel[data-ql-style="pixel"] .ql-header{background:#2f2a45!important;color:#f1ecd6!important;border-bottom:4px solid #1a1630!important;padding:10px 12px!important}
-#shizhen-panel[data-ql-style="pixel"] .ql-brand strong{color:#f1ecd6;letter-spacing:.18em;text-shadow:2px 2px 0 #1a1630}
-#shizhen-panel[data-ql-style="pixel"] .ql-brand span{color:#b9b2d6;opacity:1;font-size:10px;letter-spacing:.04em}
-#shizhen-panel[data-ql-style="pixel"] .ql-header #ql-close{background:var(--qs-sig)!important;border:3px solid #1a1630!important;color:#fff!important;box-shadow:3px 3px 0 #1a1630!important}
+#shizhen-panel[data-ql-style="pixel"] .ql-header{background:var(--qs-shell)!important;color:#ece8f6!important;border-bottom:4px solid #3a3655!important;padding:10px 12px!important}
+#shizhen-panel[data-ql-style="pixel"] .ql-brand strong{color:#ece8f6;letter-spacing:.18em;text-shadow:2px 2px 0 #3a3655}
+#shizhen-panel[data-ql-style="pixel"] .ql-brand span{color:#c3bde0;opacity:1;font-size:10px;letter-spacing:.04em}
+#shizhen-panel[data-ql-style="pixel"] .ql-header #ql-close{background:var(--qs-sig)!important;border:3px solid #3a3655!important;color:var(--qs-on-sig)!important;box-shadow:3px 3px 0 #3a3655!important}
 #shizhen-panel[data-ql-style="pixel"] .ql-header #ql-close:active{transform:translate(3px,3px);box-shadow:none!important}
-#shizhen-panel[data-ql-style="pixel"] .ql-tabs{background:#3d3760!important;border-bottom:4px solid #1a1630!important;gap:4px!important;padding:8px 8px 8px!important}
-#shizhen-panel[data-ql-style="pixel"] .ql-tab{position:relative;background:#241f3a!important;color:#b9b2d6!important;border:3px solid #1a1630!important;box-shadow:inset -3px -3px 0 rgba(0,0,0,.35),inset 3px 3px 0 rgba(255,255,255,.08)!important;padding:10px 0 8px!important;font-weight:700}
-#shizhen-panel[data-ql-style="pixel"] .ql-tab.active{background:var(--qs-sig)!important;color:#fff!important;border-color:#1a1630!important;box-shadow:inset 3px 3px 0 rgba(255,255,255,.28),inset -3px -3px 0 rgba(0,0,0,.28)!important;text-shadow:1px 1px 0 rgba(0,0,0,.45)}
-#shizhen-panel[data-ql-style="pixel"] .ql-tab.active::before{content:"▶";position:absolute;left:2px;top:50%;transform:translateY(-50%);font-size:7px;color:#fff;animation:qs-blink 1s steps(1) infinite}
-#shizhen-panel[data-ql-style="pixel"] .ql-page{background:#bfca98!important;background-image:repeating-linear-gradient(0deg,rgba(38,51,26,.05) 0 1px,transparent 1px 3px)!important}
-#shizhen-panel[data-ql-style="pixel"] .ql-card{background:#d3dcad!important;border:3px solid #26331a!important;box-shadow:4px 4px 0 #26331a!important;margin-right:4px}
-#shizhen-panel[data-ql-style="pixel"] .ql-card h3{display:inline-block;padding:2px 8px;background:#26331a;color:#d3dcad;font-size:12px;letter-spacing:.12em}
-#shizhen-panel[data-ql-style="pixel"] button:not(.ql-tab):not(.ql-cache-image):not([data-ql-detail]):not(#ql-close){border:3px solid #26331a!important;box-shadow:3px 3px 0 #26331a!important;font-weight:700}
-#shizhen-panel[data-ql-style="pixel"] button:not(.ql-tab):not(#ql-close):active{transform:translate(3px,3px);box-shadow:none!important}
-#shizhen-panel[data-ql-style="pixel"] .ql-primary{background:var(--qs-sig)!important;color:#fff!important;text-shadow:1px 1px 0 rgba(0,0,0,.4)}
-#shizhen-panel[data-ql-style="pixel"] .ql-subtab.active{background:var(--qs-sig)!important;color:#fff!important;border-color:#26331a!important}
-#shizhen-panel[data-ql-style="pixel"] input:not([type="checkbox"]):not([type="color"]),#shizhen-panel[data-ql-style="pixel"] textarea,#shizhen-panel[data-ql-style="pixel"] select{border:3px solid #26331a!important;box-shadow:inset 3px 3px 0 rgba(38,51,26,.18)!important}
+#shizhen-panel[data-ql-style="pixel"] .ql-tabs{background:var(--qs-shell2)!important;border-bottom:4px solid #3a3655!important;gap:4px!important;padding:8px!important}
+#shizhen-panel[data-ql-style="pixel"] .ql-tab{position:relative;background:#46425f!important;color:#d6d1ea!important;border:3px solid #3a3655!important;box-shadow:inset -3px -3px 0 rgba(0,0,0,.22),inset 3px 3px 0 rgba(255,255,255,.1)!important;padding:10px 0 8px!important;font-weight:700}
+#shizhen-panel[data-ql-style="pixel"] .ql-tab.active{background:var(--qs-sig)!important;color:var(--qs-on-sig)!important;box-shadow:inset 3px 3px 0 rgba(255,255,255,.3),inset -3px -3px 0 rgba(0,0,0,.2)!important}
+#shizhen-panel[data-ql-style="pixel"] .ql-tab.active::before{content:"▶";position:absolute;left:2px;top:50%;transform:translateY(-50%);font-size:7px;color:var(--qs-on-sig);animation:qs-blink 1s steps(1) infinite}
+#shizhen-panel[data-ql-style="pixel"] .ql-page{background:var(--qs-page)!important;background-image:repeating-linear-gradient(0deg,rgba(59,74,44,.045) 0 1px,transparent 1px 3px)!important}
+#shizhen-panel[data-ql-style="pixel"] .ql-card{background:var(--ql-card)!important;border:3px solid var(--qs-line)!important;box-shadow:4px 4px 0 rgba(93,110,73,.55)!important;margin-right:4px}
+#shizhen-panel[data-ql-style="pixel"] .ql-card h3{display:inline-block;padding:2px 8px;background:var(--qs-line);color:#eef2dc;font-size:12px;letter-spacing:.12em}
+#shizhen-panel[data-ql-style="pixel"] button:not(.ql-tab):not(.ql-cache-image):not([data-ql-detail]):not(#ql-close){border:3px solid var(--qs-line)!important;box-shadow:3px 3px 0 rgba(93,110,73,.6)!important;font-weight:700}
+#shizhen-panel[data-ql-style="pixel"] .ql-primary{background:var(--qs-sig)!important;color:var(--qs-on-sig)!important}
+#shizhen-panel[data-ql-style="pixel"] .ql-subtab.active{background:var(--qs-sig)!important;color:var(--qs-on-sig)!important;border-color:var(--qs-line)!important}
+#shizhen-panel[data-ql-style="pixel"] input:not([type="checkbox"]):not([type="color"]),#shizhen-panel[data-ql-style="pixel"] textarea,#shizhen-panel[data-ql-style="pixel"] select{border:3px solid var(--qs-line)!important;box-shadow:inset 3px 3px 0 rgba(59,74,44,.12)!important}
 #shizhen-panel[data-ql-style="pixel"] ::-webkit-scrollbar{width:10px}
-#shizhen-panel[data-ql-style="pixel"] ::-webkit-scrollbar-track{background:#a9b57f}
-#shizhen-panel[data-ql-style="pixel"] ::-webkit-scrollbar-thumb{background:#26331a;border:2px solid #a9b57f}
+#shizhen-panel[data-ql-style="pixel"] ::-webkit-scrollbar-track{background:#b7c29d}
+#shizhen-panel[data-ql-style="pixel"] ::-webkit-scrollbar-thumb{background:var(--qs-line);border:2px solid #b7c29d}
 
 /* ---------- CCD 数码相机 ---------- */
 #shizhen-panel[data-ql-style="ccd"]{
- --qs-sig:var(--qs-user-accent,#ff8a2a);
- --ql-panel:#1b1c1f!important;--ql-card:#26282c!important;--ql-field:#16171a!important;
+ --qs-sig:var(--qs-user-accent,#ff8a2a);--qs-on-sig:var(--qs-user-on,#1b1c1f);
+ --ql-panel:color-mix(in srgb,var(--qs-sig) var(--qs-tint,0%),#1b1c1f)!important;--ql-card:color-mix(in srgb,var(--qs-sig) var(--qs-tint,0%),#26282c)!important;--ql-field:#16171a!important;
  --ql-text:#e8e4da!important;--ql-muted:#8f9198!important;--ql-border:#3c3f46!important;
  --ql-button-bg:linear-gradient(#41444b,#2c2e33)!important;--ql-button-hover:#3a3d43!important;--ql-button-active:#202226!important;--ql-button-border:#52555d!important;--ql-button-text:#ecece8!important;
  font-family:"SF Mono",ui-monospace,Menlo,Consolas,"Helvetica Neue",Arial,sans-serif!important;
- background:#1b1c1f!important;border:1px solid #4a4d55!important;border-radius:14px!important;box-shadow:0 0 0 3px #101113,0 18px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.12)!important;
+ background:var(--ql-panel)!important;border:1px solid #4a4d55!important;border-radius:14px!important;box-shadow:0 0 0 3px #101113,0 18px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.12)!important;
 }
 #shizhen-panel[data-ql-style="ccd"] .ql-header{background:linear-gradient(#34363b,#232428)!important;border-bottom:1px solid #0d0e10!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12);color:#e8e4da!important;position:relative}
 #shizhen-panel[data-ql-style="ccd"] .ql-brand strong{letter-spacing:.2em;font-size:15px}
@@ -4663,8 +4667,8 @@ html > .ql-album-menu-portal .ql-album-more-menu-panel>button:hover{
 #shizhen-panel[data-ql-style="ccd"] .ql-tab::before{content:"";position:absolute;top:4px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#15161a;box-shadow:inset 0 1px 1px rgba(0,0,0,.6)}
 #shizhen-panel[data-ql-style="ccd"] .ql-tab.active{color:#fff!important;background:linear-gradient(#2b2d32,#1e1f23)!important;box-shadow:inset 0 2px 3px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.08)!important;transform:translateY(1px)}
 #shizhen-panel[data-ql-style="ccd"] .ql-tab.active::before{background:var(--qs-sig);box-shadow:0 0 6px var(--qs-sig)}
-#shizhen-panel[data-ql-style="ccd"] .ql-page{background:#1b1c1f!important}
-#shizhen-panel[data-ql-style="ccd"] .ql-card{background-color:#26282c!important;border:1px solid #3c3f46!important;border-radius:8px!important;position:relative;
+#shizhen-panel[data-ql-style="ccd"] .ql-page{background:var(--ql-panel)!important}
+#shizhen-panel[data-ql-style="ccd"] .ql-card{background-color:var(--ql-card)!important;border:1px solid #3c3f46!important;border-radius:8px!important;position:relative;
  background-image:linear-gradient(var(--qs-sig),var(--qs-sig)),linear-gradient(var(--qs-sig),var(--qs-sig)),linear-gradient(var(--qs-sig),var(--qs-sig)),linear-gradient(var(--qs-sig),var(--qs-sig)),linear-gradient(var(--qs-sig),var(--qs-sig)),linear-gradient(var(--qs-sig),var(--qs-sig)),linear-gradient(var(--qs-sig),var(--qs-sig)),linear-gradient(var(--qs-sig),var(--qs-sig))!important;
  background-repeat:no-repeat!important;
  background-size:10px 2px,2px 10px,10px 2px,2px 10px,10px 2px,2px 10px,10px 2px,2px 10px!important;
@@ -4672,74 +4676,135 @@ html > .ql-album-menu-portal .ql-album-more-menu-panel>button:hover{
 #shizhen-panel[data-ql-style="ccd"] .ql-card h3{letter-spacing:.14em;font-size:13px;text-transform:uppercase;color:#f3efe6}
 #shizhen-panel[data-ql-style="ccd"] .ql-card h3::before{content:"●";color:#e5483c;font-size:9px;margin-right:7px;vertical-align:2px;animation:qs-blink 1.4s steps(1) infinite}
 #shizhen-panel[data-ql-style="ccd"] button:not(.ql-tab):not(#ql-close){background:linear-gradient(#41444b,#2c2e33)!important;border:1px solid #52555d!important;border-radius:5px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 2px 0 #0d0e10!important;color:#ecece8!important}
-#shizhen-panel[data-ql-style="ccd"] button:not(.ql-tab):not(#ql-close):active{transform:translateY(2px);box-shadow:inset 0 2px 3px rgba(0,0,0,.5)!important}
-#shizhen-panel[data-ql-style="ccd"] .ql-primary{background:linear-gradient(color-mix(in srgb,var(--qs-sig) 100%,#fff 18%),var(--qs-sig))!important;border-color:color-mix(in srgb,var(--qs-sig) 70%,#000)!important;color:#1b1c1f!important;font-weight:700}
-#shizhen-panel[data-ql-style="ccd"] .ql-subtab.active{background:var(--qs-sig)!important;color:#1b1c1f!important;border-color:var(--qs-sig)!important}
+#shizhen-panel[data-ql-style="ccd"] .ql-primary{background:var(--qs-sig)!important;border-color:color-mix(in srgb,var(--qs-sig) 70%,#000)!important;color:var(--qs-on-sig)!important;font-weight:700}
+#shizhen-panel[data-ql-style="ccd"] .ql-subtab.active{background:var(--qs-sig)!important;color:var(--qs-on-sig)!important;border-color:var(--qs-sig)!important}
 #shizhen-panel[data-ql-style="ccd"] input:not([type="checkbox"]):not([type="color"]),#shizhen-panel[data-ql-style="ccd"] textarea,#shizhen-panel[data-ql-style="ccd"] select{border:1px solid #3c3f46!important;border-radius:4px!important;box-shadow:inset 0 2px 4px rgba(0,0,0,.45)!important}
 
-/* ---------- 拍立得手账 ---------- */
+/* ---------- 拍立得手账（粉彩）---------- */
 #shizhen-panel[data-ql-style="polaroid"]{
- --qs-sig:var(--qs-user-accent,#e58f7a);
- --ql-panel:#f4ebda!important;--ql-card:#fffdf6!important;--ql-field:#fffefa!important;
- --ql-text:#4b3f33!important;--ql-muted:#8b7d6a!important;--ql-border:#e2d6bd!important;
- --ql-button-bg:#fff7e6!important;--ql-button-hover:#ffefd0!important;--ql-button-active:#f5e2bd!important;--ql-button-border:#d9c8a4!important;--ql-button-text:#4b3f33!important;
+ --qs-sig:var(--qs-user-accent,#ee8aa0);--qs-on-sig:var(--qs-user-on,#fff);
+ --qs-paper:color-mix(in srgb,var(--qs-sig) var(--qs-tint,0%),#fcefec);
+ --ql-panel:var(--qs-paper)!important;--ql-card:color-mix(in srgb,var(--qs-sig) var(--qs-tint,0%),#fffdfb)!important;--ql-field:#fffefd!important;
+ --ql-text:#5a4750!important;--ql-muted:#9a8389!important;--ql-border:#efd4cf!important;
+ --ql-button-bg:#fff3f0!important;--ql-button-hover:#ffe9e4!important;--ql-button-active:#fbdcd5!important;--ql-button-border:#e6bbc2!important;--ql-button-text:#5a4750!important;
  font-family:"Kaiti SC","STKaiti","KaiTi","Songti SC","Segoe Print","Bradley Hand",serif!important;
- background:#f4ebda!important;border:1px solid #dccfb3!important;border-radius:6px!important;box-shadow:0 10px 30px rgba(90,70,40,.28)!important;
+ background:var(--qs-paper)!important;border:1px solid #efd4cf!important;border-radius:6px!important;box-shadow:0 10px 30px rgba(140,80,90,.24)!important;
 }
-#shizhen-panel[data-ql-style="polaroid"] .ql-header{background:#f4ebda!important;color:#4b3f33!important;border-bottom:1.5px dashed #cdbb97!important;padding-bottom:12px!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-header{background:var(--qs-paper)!important;color:#5a4750!important;border-bottom:1.5px dashed #e6bbc2!important;padding-bottom:12px!important}
 #shizhen-panel[data-ql-style="polaroid"] .ql-brand strong{font-size:20px;letter-spacing:.12em;transform:rotate(-1.5deg);transform-origin:left;display:inline-block}
-#shizhen-panel[data-ql-style="polaroid"] .ql-brand span{color:#8b7d6a;opacity:1;font-size:11.5px}
-#shizhen-panel[data-ql-style="polaroid"] .ql-header #ql-close{background:#fff7e6!important;border:1.5px dashed #cdbb97!important;border-radius:50%!important;color:#7c6a52!important}
-#shizhen-panel[data-ql-style="polaroid"] .ql-tabs{background:#f4ebda!important;border-bottom:2px solid #e2d6bd!important;padding:10px 8px 0!important;gap:3px!important;align-items:end}
-#shizhen-panel[data-ql-style="polaroid"] .ql-tab{position:relative;border:1px solid #e2d6bd!important;border-bottom:0!important;border-radius:9px 9px 0 0!important;padding:9px 0 8px!important;color:#6b5d4a!important;box-shadow:none!important;background:color-mix(in srgb,var(--qs-sig) 14%,#f4ebda)!important}
-#shizhen-panel[data-ql-style="polaroid"] .ql-tab:nth-child(2n){background:color-mix(in srgb,var(--qs-sig) 26%,#f4ebda)!important}
-#shizhen-panel[data-ql-style="polaroid"] .ql-tab:nth-child(3n){background:color-mix(in srgb,var(--qs-sig) 8%,#efe5cf)!important}
-#shizhen-panel[data-ql-style="polaroid"] .ql-tab.active{background:#fffdf6!important;color:#4b3f33!important;font-weight:700;padding-top:13px!important;margin-bottom:-2px;border-color:#d9c8a4!important;box-shadow:0 -2px 0 var(--qs-sig) inset!important}
-#shizhen-panel[data-ql-style="polaroid"] .ql-page{background:#f4ebda!important;background-image:radial-gradient(rgba(139,125,106,.16) 1px,transparent 1.2px)!important;background-size:14px 14px!important;padding-top:14px!important}
-#shizhen-panel[data-ql-style="polaroid"] .ql-card{position:relative;background:#fffdf6!important;border:1px solid #e6dac1!important;border-radius:3px!important;box-shadow:0 2px 0 #e6dac1,0 8px 14px rgba(90,70,40,.12)!important;margin-top:16px!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-brand span{color:#9a8389;opacity:1;font-size:11.5px}
+#shizhen-panel[data-ql-style="polaroid"] .ql-header #ql-close{background:#fff3f0!important;border:1.5px dashed #e6bbc2!important;border-radius:50%!important;color:#8a6b73!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-tabs{background:var(--qs-paper)!important;border-bottom:2px solid #efd4cf!important;padding:10px 8px 0!important;gap:3px!important;align-items:end}
+#shizhen-panel[data-ql-style="polaroid"] .ql-tab{position:relative;border:1px solid #efd4cf!important;border-bottom:0!important;border-radius:9px 9px 0 0!important;padding:9px 0 8px!important;color:#6d5560!important;box-shadow:none!important;background:#f9d9de!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-tab:nth-child(2){background:#fbeab9!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-tab:nth-child(3){background:#d2eadd!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-tab:nth-child(4){background:#d3e4f4!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-tab:nth-child(5){background:#e3daf3!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-tab:nth-child(6){background:#fbdcc8!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-tab.active{background:var(--ql-card)!important;color:#5a4750!important;font-weight:700;padding-top:13px!important;margin-bottom:-2px;border-color:#e6bbc2!important;box-shadow:0 -3px 0 var(--qs-sig) inset!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-page{background:var(--qs-paper)!important;background-image:radial-gradient(rgba(238,138,160,.28) 1px,transparent 1.3px)!important;background-size:14px 14px!important;padding-top:14px!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-card{position:relative;background:var(--ql-card)!important;border:1px solid #f0d9d4!important;border-radius:3px!important;box-shadow:0 2px 0 #f0d9d4,0 8px 14px rgba(140,80,90,.12)!important;margin-top:16px!important}
 #shizhen-panel[data-ql-style="polaroid"] .ql-page>.ql-card:nth-child(odd){transform:rotate(-.25deg)}
 #shizhen-panel[data-ql-style="polaroid"] .ql-page>.ql-card:nth-child(even){transform:rotate(.25deg)}
-#shizhen-panel[data-ql-style="polaroid"] .ql-card::before{content:"";position:absolute;top:-9px;left:50%;width:60px;height:17px;margin-left:-30px;background:color-mix(in srgb,var(--qs-sig) 48%,transparent);transform:rotate(-2.5deg);border-left:2px dotted rgba(255,255,255,.6);border-right:2px dotted rgba(255,255,255,.6);pointer-events:none}
-#shizhen-panel[data-ql-style="polaroid"] .ql-page>.ql-card:nth-child(even)::before{transform:rotate(2deg);margin-left:-70px}
-#shizhen-panel[data-ql-style="polaroid"] .ql-card h3{font-size:16px;text-decoration:underline wavy color-mix(in srgb,var(--qs-sig) 80%,transparent);text-underline-offset:5px;text-decoration-thickness:1.5px}
-#shizhen-panel[data-ql-style="polaroid"] button:not(.ql-tab):not(#ql-close){border:1.5px dashed #cdbb97!important;border-radius:5px!important;box-shadow:none!important;background:#fff7e6!important;color:#4b3f33!important}
-#shizhen-panel[data-ql-style="polaroid"] button:not(.ql-tab):not(#ql-close):active{background:#f5e2bd!important}
-#shizhen-panel[data-ql-style="polaroid"] .ql-primary{background:var(--qs-sig)!important;border:1.5px solid color-mix(in srgb,var(--qs-sig) 70%,#000)!important;color:#fff!important;transform:rotate(-.6deg)}
-#shizhen-panel[data-ql-style="polaroid"] .ql-subtab.active{background:color-mix(in srgb,var(--qs-sig) 35%,#fffdf6)!important;border-style:solid!important;border-color:var(--qs-sig)!important}
-#shizhen-panel[data-ql-style="polaroid"] input:not([type="checkbox"]):not([type="color"]),#shizhen-panel[data-ql-style="polaroid"] textarea,#shizhen-panel[data-ql-style="polaroid"] select{border:0!important;border-bottom:1.5px solid #cdbb97!important;border-radius:2px 2px 0 0!important;background:repeating-linear-gradient(transparent 0 25px,rgba(205,187,151,.35) 25px 26px)!important;background-color:#fffefa!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-card::before{content:"";position:absolute;top:-9px;left:50%;width:60px;height:17px;margin-left:-30px;background:rgba(246,170,186,.62);transform:rotate(-2.5deg);border-left:2px dotted rgba(255,255,255,.7);border-right:2px dotted rgba(255,255,255,.7);pointer-events:none}
+#shizhen-panel[data-ql-style="polaroid"] .ql-page>.ql-card:nth-child(even)::before{transform:rotate(2deg);margin-left:-70px;background:rgba(170,215,196,.66)}
+#shizhen-panel[data-ql-style="polaroid"] .ql-page>.ql-card:nth-child(3n)::before{background:rgba(250,222,140,.7)}
+#shizhen-panel[data-ql-style="polaroid"] .ql-card h3{font-size:16px;text-decoration:underline wavy var(--qs-sig);text-underline-offset:5px;text-decoration-thickness:1.5px}
+#shizhen-panel[data-ql-style="polaroid"] button:not(.ql-tab):not(#ql-close){border:1.5px dashed #e6bbc2!important;border-radius:5px!important;box-shadow:none!important;background:#fff3f0!important;color:#5a4750!important}
+#shizhen-panel[data-ql-style="polaroid"] .ql-primary{background:var(--qs-sig)!important;border:1.5px solid color-mix(in srgb,var(--qs-sig) 70%,#000)!important;color:var(--qs-on-sig)!important;transform:rotate(-.6deg)}
+#shizhen-panel[data-ql-style="polaroid"] .ql-subtab.active{background:color-mix(in srgb,var(--qs-sig) 35%,#fffdfb)!important;border-style:solid!important;border-color:var(--qs-sig)!important}
+#shizhen-panel[data-ql-style="polaroid"] input:not([type="checkbox"]):not([type="color"]),#shizhen-panel[data-ql-style="polaroid"] textarea,#shizhen-panel[data-ql-style="polaroid"] select{border:0!important;border-bottom:1.5px solid #e6bbc2!important;border-radius:2px 2px 0 0!important;background:repeating-linear-gradient(transparent 0 25px,rgba(230,187,194,.4) 25px 26px)!important;background-color:#fffefd!important}
 
 /* ---------- 简约书笺 ---------- */
 #shizhen-panel[data-ql-style="scroll"]{
- --qs-sig:var(--qs-user-accent,#b5402c);
- --ql-panel:#f6f1e4!important;--ql-card:#faf6ea!important;--ql-field:#fdfaf1!important;
- --ql-text:#2b2a28!important;--ql-muted:#8a8472!important;--ql-border:#d8cfb8!important;
- --ql-button-bg:transparent!important;--ql-button-hover:#efe7d2!important;--ql-button-active:#e6dcc2!important;--ql-button-border:#b9ae92!important;--ql-button-text:#2b2a28!important;
+ --qs-sig:var(--qs-user-accent,#b5402c);--qs-on-sig:var(--qs-user-on,#f6f1e4);
+ --qs-paper:color-mix(in srgb,var(--qs-sig) var(--qs-tint,0%),#f1eee3);
+ --ql-panel:var(--qs-paper)!important;--ql-card:color-mix(in srgb,var(--qs-sig) var(--qs-tint,0%),#f7f5ec)!important;--ql-field:#fbf9f2!important;
+ --ql-text:#262522!important;--ql-muted:#84806e!important;--ql-border:#d3ccb6!important;
+ --ql-button-bg:transparent!important;--ql-button-hover:#ebe6d6!important;--ql-button-active:#e0d9c3!important;--ql-button-border:#b9b196!important;--ql-button-text:#262522!important;
  font-family:"Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC","SimSun",serif!important;
- background:#f6f1e4!important;border:1px solid #cfc5ab!important;border-radius:2px!important;box-shadow:0 12px 30px rgba(60,50,30,.22)!important;
+ background:var(--qs-paper)!important;border:1px solid #cdc6af!important;border-radius:2px!important;box-shadow:0 12px 30px rgba(50,45,30,.22)!important;
 }
-#shizhen-panel[data-ql-style="scroll"] .ql-header{background:#f6f1e4!important;color:#2b2a28!important;border-bottom:3px double #cfc5ab!important;padding:14px 16px 12px!important}
+#shizhen-panel[data-ql-style="scroll"] .ql-header{background:var(--qs-paper)!important;color:#262522!important;border-bottom:3px double #cdc6af!important;padding:14px 16px 12px!important}
 #shizhen-panel[data-ql-style="scroll"] .ql-brand strong{font-size:19px;font-weight:600;letter-spacing:.5em}
-#shizhen-panel[data-ql-style="scroll"] .ql-brand span{color:#8a8472;opacity:1;font-size:11px;letter-spacing:.2em}
-#shizhen-panel[data-ql-style="scroll"] .ql-header #ql-close{background:var(--qs-sig)!important;border:0!important;border-radius:2px!important;color:#f6f1e4!important;min-width:34px;box-shadow:0 0 0 2px #f6f1e4,0 0 0 3px var(--qs-sig)!important;transform:rotate(-2deg)}
-#shizhen-panel[data-ql-style="scroll"] .ql-tabs{background:#f6f1e4!important;border-bottom:1px solid #d8cfb8!important;gap:0!important;padding:6px 8px 0!important}
-#shizhen-panel[data-ql-style="scroll"] .ql-tab{position:relative;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#7d7765!important;letter-spacing:.2em;padding:10px 0 11px!important;font-size:13px}
-#shizhen-panel[data-ql-style="scroll"] .ql-tab+.ql-tab::after{content:"";position:absolute;left:0;top:30%;height:40%;width:1px;background:#d8cfb8}
-#shizhen-panel[data-ql-style="scroll"] .ql-tab.active{color:#2b2a28!important;font-weight:700}
+#shizhen-panel[data-ql-style="scroll"] .ql-brand span{color:#84806e;opacity:1;font-size:11px;letter-spacing:.2em}
+#shizhen-panel[data-ql-style="scroll"] .ql-header #ql-close{background:var(--qs-sig)!important;border:0!important;border-radius:2px!important;color:var(--qs-on-sig)!important;min-width:34px;box-shadow:0 0 0 2px var(--qs-paper),0 0 0 3px var(--qs-sig)!important;transform:rotate(-2deg)}
+#shizhen-panel[data-ql-style="scroll"] .ql-tabs{background:var(--qs-paper)!important;border-bottom:1px solid #d3ccb6!important;gap:0!important;padding:6px 8px 0!important}
+#shizhen-panel[data-ql-style="scroll"] .ql-tab{position:relative;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#7d7865!important;letter-spacing:.2em;padding:10px 0 11px!important;font-size:13px}
+#shizhen-panel[data-ql-style="scroll"] .ql-tab+.ql-tab::after{content:"";position:absolute;left:0;top:30%;height:40%;width:1px;background:#d3ccb6}
+#shizhen-panel[data-ql-style="scroll"] .ql-tab.active{color:#262522!important;font-weight:700}
 #shizhen-panel[data-ql-style="scroll"] .ql-tab.active::before{content:"";position:absolute;left:50%;bottom:4px;width:16px;height:2px;margin-left:-8px;background:var(--qs-sig)}
-#shizhen-panel[data-ql-style="scroll"] .ql-page{background:#f6f1e4!important}
-#shizhen-panel[data-ql-style="scroll"] .ql-card{background:#faf6ea!important;border:0!important;border-top:1px solid #cfc5ab!important;border-bottom:1px solid #d8cfb8!important;border-left:3px solid color-mix(in srgb,var(--qs-sig) 70%,transparent)!important;border-radius:0!important;box-shadow:none!important;margin:14px 0!important}
+#shizhen-panel[data-ql-style="scroll"] .ql-page{background:var(--qs-paper)!important}
+#shizhen-panel[data-ql-style="scroll"] .ql-card{background:var(--ql-card)!important;border:0!important;border-top:1px solid #cdc6af!important;border-bottom:1px solid #d3ccb6!important;border-left:3px solid color-mix(in srgb,var(--qs-sig) 70%,transparent)!important;border-radius:0!important;box-shadow:none!important;margin:14px 0!important}
 #shizhen-panel[data-ql-style="scroll"] .ql-card h3{font-size:15px;font-weight:600;letter-spacing:.3em}
 #shizhen-panel[data-ql-style="scroll"] .ql-card h3::before{content:"";display:inline-block;width:8px;height:8px;margin-right:9px;background:var(--qs-sig);transform:rotate(45deg) translateY(-1px)}
-#shizhen-panel[data-ql-style="scroll"] button:not(.ql-tab):not(#ql-close){background:transparent!important;border:1px solid #b9ae92!important;border-radius:1px!important;box-shadow:none!important;color:#2b2a28!important;letter-spacing:.12em}
-#shizhen-panel[data-ql-style="scroll"] button:not(.ql-tab):not(#ql-close):active{background:#e6dcc2!important}
-#shizhen-panel[data-ql-style="scroll"] .ql-primary{background:var(--qs-sig)!important;border-color:var(--qs-sig)!important;color:#f6f1e4!important}
-#shizhen-panel[data-ql-style="scroll"] .ql-subtab.active{background:#efe7d2!important;border-color:var(--qs-sig)!important;box-shadow:inset 0 -2px 0 var(--qs-sig)!important}
-#shizhen-panel[data-ql-style="scroll"] input:not([type="checkbox"]):not([type="color"]),#shizhen-panel[data-ql-style="scroll"] textarea,#shizhen-panel[data-ql-style="scroll"] select{border:0!important;border-bottom:1px solid #b9ae92!important;border-radius:0!important;background:#fdfaf1!important}
+#shizhen-panel[data-ql-style="scroll"] button:not(.ql-tab):not(#ql-close){background:transparent!important;border:1px solid #b9b196!important;border-radius:1px!important;box-shadow:none!important;color:#262522!important;letter-spacing:.12em}
+#shizhen-panel[data-ql-style="scroll"] .ql-primary{background:var(--qs-sig)!important;border-color:var(--qs-sig)!important;color:var(--qs-on-sig)!important}
+#shizhen-panel[data-ql-style="scroll"] .ql-subtab.active{background:#ebe6d6!important;border-color:var(--qs-sig)!important;box-shadow:inset 0 -2px 0 var(--qs-sig)!important}
+#shizhen-panel[data-ql-style="scroll"] input:not([type="checkbox"]):not([type="color"]),#shizhen-panel[data-ql-style="scroll"] textarea,#shizhen-panel[data-ql-style="scroll"] select{border:0!important;border-bottom:1px solid #b9b196!important;border-radius:0!important;background:#fbf9f2!important}
 
-/* 风格里的圆角统一再压一层（面板内部有些控件自带更高优先级的圆角） */
+/* ---------- 圆角再压一层（面板内部有些控件自带更高优先级的圆角）---------- */
 #shizhen-panel#shizhen-panel[data-ql-style="pixel"] :is(button,select,input,textarea,summary,.ql-card,.ql-row,.ql-primary,.ql-secondary,.ql-subtab,.ql-tab){border-radius:0!important}
 #shizhen-panel#shizhen-panel[data-ql-style="ccd"] :is(button,select,input,textarea,summary,.ql-primary,.ql-secondary,.ql-subtab){border-radius:5px!important}
 #shizhen-panel#shizhen-panel[data-ql-style="ccd"] :is(.ql-card){border-radius:8px!important}
 #shizhen-panel#shizhen-panel[data-ql-style="polaroid"] :is(button,.ql-primary,.ql-secondary,.ql-subtab):not(.ql-tab):not(#ql-close){border-radius:5px!important}
 #shizhen-panel#shizhen-panel[data-ql-style="polaroid"] :is(select,input,textarea){border-radius:2px 2px 0 0!important}
 #shizhen-panel#shizhen-panel[data-ql-style="scroll"] :is(button,select,input,textarea,summary,.ql-primary,.ql-secondary,.ql-subtab,.ql-card):not(#ql-close){border-radius:1px!important}
+
+/* ---------- 按钮的悬停 / 按下 / 聚焦状态（含带 id 的按钮，如取景区的“保存”）---------- */
+#shizhen-panel#shizhen-panel[data-ql-style="pixel"] button:not(.ql-tab):not(#ql-close):not(.ql-primary):is(:hover,:focus-visible){background:#f5f8e6!important}
+#shizhen-panel#shizhen-panel[data-ql-style="pixel"] button:not(.ql-tab):not(#ql-close):active{background:#c3cfa3!important;transform:translate(3px,3px);box-shadow:none!important;color:#3b4a2c!important}
+#shizhen-panel#shizhen-panel[data-ql-style="pixel"] .ql-primary:active{background:color-mix(in srgb,var(--qs-sig) 80%,#000)!important;color:var(--qs-on-sig)!important}
+#shizhen-panel#shizhen-panel[data-ql-style="ccd"] button:not(.ql-tab):not(#ql-close):not(.ql-primary):is(:hover,:focus-visible){background:linear-gradient(#4a4d54,#34363c)!important}
+#shizhen-panel#shizhen-panel[data-ql-style="ccd"] button:not(.ql-tab):not(#ql-close):not(.ql-primary):active{background:#202226!important;color:#ecece8!important;transform:translateY(2px);box-shadow:inset 0 2px 3px rgba(0,0,0,.5)!important}
+#shizhen-panel#shizhen-panel[data-ql-style="ccd"] .ql-primary:active{background:color-mix(in srgb,var(--qs-sig) 80%,#000)!important;color:var(--qs-on-sig)!important;transform:translateY(2px)}
+#shizhen-panel#shizhen-panel[data-ql-style="polaroid"] button:not(.ql-tab):not(#ql-close):not(.ql-primary):is(:hover,:focus-visible){background:#ffe9e4!important}
+#shizhen-panel#shizhen-panel[data-ql-style="polaroid"] button:not(.ql-tab):not(#ql-close):not(.ql-primary):active{background:#fbdcd5!important;color:#5a4750!important}
+#shizhen-panel#shizhen-panel[data-ql-style="polaroid"] .ql-primary:active{background:color-mix(in srgb,var(--qs-sig) 80%,#000)!important;color:var(--qs-on-sig)!important}
+#shizhen-panel#shizhen-panel[data-ql-style="scroll"] button:not(.ql-tab):not(#ql-close):not(.ql-primary):is(:hover,:focus-visible){background:#ebe6d6!important}
+#shizhen-panel#shizhen-panel[data-ql-style="scroll"] button:not(.ql-tab):not(#ql-close):not(.ql-primary):active{background:#e0d9c3!important;color:#262522!important}
+#shizhen-panel#shizhen-panel[data-ql-style="scroll"] .ql-primary:active{background:color-mix(in srgb,var(--qs-sig) 80%,#000)!important;color:var(--qs-on-sig)!important}
+
+/* =====================================================================
+   弹窗跟随风格：放大图片弹窗、详情/相册弹窗、移动到相册选择框、下载面板
+   html[data-ql-style] 由脚本设置；弹窗不在面板里，所以用 html 上的属性。
+   ===================================================================== */
+html[data-ql-style="pixel"]{--qp-bg:#dde4c8;--qp-text:#3b4a2c;--qp-muted:#6b7a52;--qp-line:#5d6e49;--qp-radius:0;--qp-btn-radius:0;--qp-bw:3px;--qp-shadow:6px 6px 0 rgba(30,26,50,.45);--qp-btn-bg:#eef2dc;--qp-btn-hover:#f5f8e6;--qp-btn-active:#c3cfa3;--qp-font:"Courier New",ui-monospace,Menlo,Consolas,monospace;--qp-sig:var(--qs-user-accent,#d9795b);--qp-on-sig:var(--qs-user-on,#fff)}
+html[data-ql-style="ccd"]{--qp-bg:#26282c;--qp-text:#e8e4da;--qp-muted:#8f9198;--qp-line:#4a4d55;--qp-radius:12px;--qp-btn-radius:5px;--qp-bw:1px;--qp-shadow:0 0 0 3px #101113,0 18px 40px rgba(0,0,0,.55);--qp-btn-bg:linear-gradient(#41444b,#2c2e33);--qp-btn-hover:linear-gradient(#4a4d54,#34363c);--qp-btn-active:#202226;--qp-font:"SF Mono",ui-monospace,Menlo,Consolas,"Helvetica Neue",Arial,sans-serif;--qp-sig:var(--qs-user-accent,#ff8a2a);--qp-on-sig:var(--qs-user-on,#1b1c1f)}
+html[data-ql-style="polaroid"]{--qp-bg:#fffdfb;--qp-text:#5a4750;--qp-muted:#9a8389;--qp-line:#e6bbc2;--qp-radius:4px;--qp-btn-radius:5px;--qp-bw:1.5px;--qp-shadow:0 10px 28px rgba(140,80,90,.3);--qp-btn-bg:#fff3f0;--qp-btn-hover:#ffe9e4;--qp-btn-active:#fbdcd5;--qp-font:"Kaiti SC","STKaiti","KaiTi","Songti SC",serif;--qp-sig:var(--qs-user-accent,#ee8aa0);--qp-on-sig:var(--qs-user-on,#fff)}
+html[data-ql-style="scroll"]{--qp-bg:#f7f5ec;--qp-text:#262522;--qp-muted:#84806e;--qp-line:#b9b196;--qp-radius:2px;--qp-btn-radius:1px;--qp-bw:1px;--qp-shadow:0 12px 30px rgba(50,45,30,.3);--qp-btn-bg:transparent;--qp-btn-hover:#ebe6d6;--qp-btn-active:#e0d9c3;--qp-font:"Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC","SimSun",serif;--qp-sig:var(--qs-user-accent,#b5402c);--qp-on-sig:var(--qs-user-on,#f6f1e4)}
+
+/* 放大图片弹窗 */
+html[data-ql-style] dialog.ql-viewfinder-lightbox{background:var(--qp-bg)!important;color:var(--qp-text)!important;border:var(--qp-bw) solid var(--qp-line)!important;border-radius:var(--qp-radius)!important;box-shadow:var(--qp-shadow)!important;font-family:var(--qp-font)}
+html[data-ql-style] dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-shell,html[data-ql-style] dialog.ql-viewfinder-lightbox .ql-album-paper,html[data-ql-style] dialog.ql-viewfinder-lightbox .ql-album-single-page{background:transparent!important;border-color:transparent!important;box-shadow:none!important;color:var(--qp-text)!important}
+html[data-ql-style] dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{background:var(--qp-sig)!important;color:var(--qp-on-sig)!important;border:var(--qp-bw) solid var(--qp-line)!important;border-radius:var(--qp-btn-radius)!important;box-shadow:none!important}
+html[data-ql-style="pixel"] dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{box-shadow:3px 3px 0 rgba(30,26,50,.45)!important}
+html[data-ql-style] dialog.ql-viewfinder-lightbox::backdrop{background:rgba(20,16,28,.6)}
+html[data-ql-style="pixel"] dialog.ql-viewfinder-lightbox img,html[data-ql-style="pixel"] dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame{border-radius:0!important;border:3px solid var(--qp-line)}
+html[data-ql-style="polaroid"] dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame,html[data-ql-style="polaroid"] dialog.ql-viewfinder-lightbox .ql-album-single-photo{background:#fff!important;padding:8px 8px 26px!important;border-radius:2px!important;box-shadow:0 4px 12px rgba(140,80,90,.25)!important}
+html[data-ql-style="polaroid"] dialog.ql-viewfinder-lightbox img{border-radius:1px!important}
+html[data-ql-style="scroll"] dialog.ql-viewfinder-lightbox img,html[data-ql-style="scroll"] dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-photo-frame{border-radius:1px!important}
+
+/* 详情弹窗（底片/相册/图集的影像详情与相册编辑） */
+html[data-ql-style] #ql-image-cache-modal{
+ --ql-panel:var(--qp-bg)!important;--ql-card:color-mix(in srgb,var(--qp-bg) 92%,var(--qp-line))!important;--ql-text:var(--qp-text)!important;--ql-muted:var(--qp-muted)!important;--ql-border:var(--qp-line)!important;--ql-accent:var(--qp-sig)!important;
+ --SmartThemeBodyColor:var(--qp-text)!important;--SmartThemeBorderColor:var(--qp-line)!important;--SmartThemeBlurTintColor:var(--qp-bg)!important;--SmartThemeEmColor:var(--qp-sig)!important;--SmartThemeQuoteColor:var(--qp-muted)!important;
+ --ql-cache-accent:var(--qp-sig)!important;--ql-cache-card:color-mix(in srgb,var(--qp-bg) 92%,var(--qp-line))!important;--ql-cache-border:var(--qp-line)!important;
+ font-family:var(--qp-font);color:var(--qp-text)}
+html[data-ql-style] #ql-image-cache-modal :is(button,select,input,textarea):not(.ql-cache-image):not([data-ql-detail]){border-radius:var(--qp-btn-radius)!important;border-color:var(--qp-line)!important;color:var(--qp-text)}
+html[data-ql-style] #ql-image-cache-modal :is(button:not(.ql-cache-image):not([data-ql-detail]):not(.ql-cache-action-primary)){background:var(--qp-btn-bg)!important}
+html[data-ql-style] #ql-image-cache-modal :is(button:not(.ql-cache-image):not([data-ql-detail]):not(.ql-cache-action-primary)):is(:hover,:focus-visible){background:var(--qp-btn-hover)!important}
+html[data-ql-style] #ql-image-cache-modal :is(button:not(.ql-cache-image):not([data-ql-detail]):not(.ql-cache-action-primary)):active{background:var(--qp-btn-active)!important;color:var(--qp-text)!important}
+html[data-ql-style] #ql-image-cache-modal .ql-cache-action-primary,html[data-ql-style] #ql-image-cache-modal .ql-primary{background:var(--qp-sig)!important;color:var(--qp-on-sig)!important;border-color:var(--qp-sig)!important}
+html[data-ql-style="pixel"] #ql-image-cache-modal :is(.ql-cache-prompt-section,.ql-cache-stat,.ql-cache-prompt-box,.ql-cache-badges span){border-radius:0!important;border-width:3px!important}
+html[data-ql-style="scroll"] #ql-image-cache-modal :is(.ql-cache-prompt-section,.ql-cache-stat,.ql-cache-prompt-box,.ql-cache-badges span){border-radius:1px!important}
+html[data-ql-style="polaroid"] #ql-image-cache-modal :is(.ql-cache-prompt-section,.ql-cache-stat,.ql-cache-prompt-box){border-radius:3px!important;border-style:dashed!important}
+html[data-ql-style="ccd"] #ql-image-cache-modal :is(.ql-cache-prompt-section,.ql-cache-stat,.ql-cache-prompt-box){border-radius:8px!important}
+
+/* 「移动到相册 / 选择目标」小弹窗 与 下载面板 */
+html[data-ql-style] .ql-detail-choice-overlay>div,html[data-ql-style] [data-ql-download-sheet] section{background:var(--qp-bg)!important;color:var(--qp-text)!important;border:var(--qp-bw) solid var(--qp-line)!important;border-radius:var(--qp-radius)!important;box-shadow:var(--qp-shadow)!important;font-family:var(--qp-font)}
+html[data-ql-style] .ql-detail-choice-overlay :is(select,input,textarea){background:var(--qp-bg)!important;color:var(--qp-text)!important;border:var(--qp-bw) solid var(--qp-line)!important;border-radius:var(--qp-btn-radius)!important}
+html[data-ql-style] :is(.ql-detail-choice-overlay,[data-ql-download-sheet]) button{background:var(--qp-btn-bg)!important;color:var(--qp-text)!important;border:var(--qp-bw) solid var(--qp-line)!important;border-radius:var(--qp-btn-radius)!important}
+html[data-ql-style] :is(.ql-detail-choice-overlay,[data-ql-download-sheet]) button:active{background:var(--qp-btn-active)!important}
+html[data-ql-style] :is(.ql-detail-choice-overlay,[data-ql-download-sheet]) :is(.ql-cache-action-primary,.ql-primary){background:var(--qp-sig)!important;color:var(--qp-on-sig)!important;border-color:var(--qp-sig)!important}
+html[data-ql-style="pixel"] :is(.ql-detail-choice-overlay,[data-ql-download-sheet]) button{box-shadow:3px 3px 0 rgba(93,110,73,.55)!important}
