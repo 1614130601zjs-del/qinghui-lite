@@ -3556,7 +3556,7 @@ dialog.ql-viewfinder-lightbox img{
 #shizhen-panel .ql-viewfinder-actions #ql-generate:active,
 #shizhen-panel .ql-viewfinder-actions #ql-generate:focus,
 #shizhen-panel .ql-viewfinder-actions #ql-generate:focus-visible{
-  background:#38424b!important;border-color:#26313a!important;color:#fff!important;
+  background:var(--ql-saved,#38424b)!important;border-color:color-mix(in srgb,var(--ql-saved,#38424b) 80%,#000)!important;color:var(--ql-saved-text,#fff)!important;
   box-shadow:0 2px 6px rgba(20,28,35,.24)!important;filter:none!important;opacity:1!important;
 }
 #shizhen-panel .ql-viewfinder-actions #ql-generate svg{color:#fff!important;stroke:#fff!important;}
@@ -3670,8 +3670,8 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #shizhen-panel .ql-viewfinder-actions #ql-generate.is-generating,
 #shizhen-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite,
 #shizhen-panel .ql-viewfinder-actions #ql-result-enlarge.is-enlarged {
-  background:#38424b!important;
-  border:1px solid #38424b!important;
+  background:var(--ql-saved,#38424b)!important;
+  border:1px solid var(--ql-saved,#38424b)!important;
   color:#fff!important;
   box-shadow:inset 0 1px 3px rgba(0,0,0,.16)!important;
   filter:none!important;
@@ -3694,8 +3694,8 @@ dialog.ql-viewfinder-lightbox .ql-viewfinder-lightbox-close{
 #shizhen-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:active,
 #shizhen-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus,
 #shizhen-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus-visible {
-  background:#38424b!important;
-  border:1px solid #38424b!important;
+  background:var(--ql-saved,#38424b)!important;
+  border:1px solid var(--ql-saved,#38424b)!important;
   color:#fff!important;
   box-shadow:inset 0 1px 3px rgba(0,0,0,.16)!important;
   filter:none!important;
@@ -4017,8 +4017,8 @@ dialog.ql-viewfinder-lightbox button:disabled {
 #shizhen-panel .ql-viewfinder-actions #ql-generate.is-generating,
 #shizhen-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite,
 #shizhen-panel .ql-viewfinder-actions #ql-result-enlarge.is-enlarged {
-  background:#38424b!important;
-  border:1px solid #38424b!important;
+  background:var(--ql-saved,#38424b)!important;
+  border:1px solid var(--ql-saved,#38424b)!important;
   color:#fff!important;
   box-shadow:inset 0 1px 3px rgba(0,0,0,.16)!important;
   filter:none!important;
@@ -4041,8 +4041,8 @@ dialog.ql-viewfinder-lightbox button:disabled {
 #shizhen-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:active,
 #shizhen-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus,
 #shizhen-panel .ql-viewfinder-actions #ql-result-favorite.is-favorite:focus-visible {
-  background:#38424b!important;
-  border:1px solid #38424b!important;
+  background:var(--ql-saved,#38424b)!important;
+  border:1px solid var(--ql-saved,#38424b)!important;
   color:#fff!important;
   box-shadow:inset 0 1px 3px rgba(0,0,0,.16)!important;
   filter:none!important;
@@ -4808,3 +4808,7 @@ html[data-ql-style] :is(.ql-detail-choice-overlay,[data-ql-download-sheet]) butt
 html[data-ql-style] :is(.ql-detail-choice-overlay,[data-ql-download-sheet]) button:active{background:var(--qp-btn-active)!important}
 html[data-ql-style] :is(.ql-detail-choice-overlay,[data-ql-download-sheet]) :is(.ql-cache-action-primary,.ql-primary){background:var(--qp-sig)!important;color:var(--qp-on-sig)!important;border-color:var(--qp-sig)!important}
 html[data-ql-style="pixel"] :is(.ql-detail-choice-overlay,[data-ql-download-sheet]) button{box-shadow:3px 3px 0 rgba(93,110,73,.55)!important}
+
+/* 收藏/保存后的“已选中”颜色：默认由点缀色算出，不再是写死的深蓝；各风格里改成自己的点缀色 */
+#shizhen-panel{--ql-saved:color-mix(in srgb,var(--ql-accent,#8495a6) 72%,#1f2a33);--ql-saved-text:#fff}
+#shizhen-panel[data-ql-style]{--ql-saved:var(--qs-sig);--ql-saved-text:var(--qs-on-sig)}

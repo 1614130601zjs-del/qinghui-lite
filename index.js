@@ -1660,7 +1660,9 @@ function history(){
    let spreadPage=0;const spreadGrid=albums.querySelector('.ql-album-spread-grid'),spreadNumber=albums.querySelector('[data-spread-page-number]');
    const paintSpread=()=>{if(!spreadGrid)return;const totalPages=Math.max(1,Math.ceil(items.length/6));spreadPage=Math.max(0,Math.min(totalPages-1,spreadPage));spreadGrid.innerHTML=items.slice(spreadPage*6,spreadPage*6+6).map(record=>imageTile(record,record._cacheIndex)).join('');if(spreadNumber)spreadNumber.textContent=String(spreadPage+1)+'/'+String(totalPages);const prev=albums.querySelector('[data-spread-step="-1"]'),next=albums.querySelector('[data-spread-step="1"]');if(prev)prev.disabled=spreadPage===0;if(next)next.disabled=spreadPage>=totalPages-1;};
    const handlePhotoClick=event=>{const photo=event.target?.closest?.('[data-album-photo]');if(!photo)return;if(albums.dataset.albumMoveMode==='select'){event.preventDefault();event.stopPropagation();const index=Number(photo.dataset.albumPhoto),chosen=selectedPhotos();setSelectedPhotos(chosen.includes(index)?chosen.filter(value=>value!==index):[...chosen,index]);photo.closest('.ql-album-photo')?.classList.toggle('is-selected',selectedPhotos().includes(index));const hint=albums.querySelector('.ql-album-toolbar')?.nextElementSibling;if(hint?.matches('.ql-muted'))hint.textContent='已选择 '+selectedPhotos().length+' 张照片，点击照片进行多选；再次点击「完成选择并移动」选择目标相册。';return;}openDetail(Number(photo.dataset.albumPhoto),null,'roleAlbum');};
-   albums.addEventListener('click',handlePhotoClick);
+   // renderAlbums 每次重绘都会走到这里：不先摘掉上一次的监听，监听会越叠越多，偶数个监听让“选中”被反复切回去（表现为选择多张照片始终是 0 张）。
+   if(albums._qlPhotoClick)albums.removeEventListener('click',albums._qlPhotoClick);
+   albums._qlPhotoClick=handlePhotoClick;albums.addEventListener('click',handlePhotoClick);
    const handleRemove=event=>{const remove=event.target?.closest?.('[data-ql-unfavorite]');if(!remove)return;event.preventDefault();event.stopPropagation();const record=cfg().records[Number(remove.dataset.qlUnfavorite)];if(record){delete record.albumCharacterName;delete record.albumCharacterKey;delete record.promptEntryId;delete record.sourcePromptEntryId;delete record.sourcePromptEntryAppliedAt;record.collection='cache';save();history();renderAlbums();renderLibrary();status('已取消收藏，照片已回到底片缓存。');}};
    spreadGrid?.addEventListener('click',handleRemove);
    albums.querySelectorAll('[data-spread-step]').forEach(button=>button.addEventListener('click',()=>{spreadPage=Math.max(0,Math.min(Math.max(0,Math.ceil(items.length/6)-1),spreadPage+Number(button.dataset.spreadStep)));paintSpread();}));
@@ -2290,9 +2292,9 @@ function syncViewfinderActions(){
  favorite.setAttribute('aria-label',label);favorite.title=label;
  // Match the status-bar favorite implementation: persist the state with inline !important
  // so touch :active styles and older stylesheet rules cannot override it after release.
- favorite.style.setProperty('background',saved?'#38424b':'','important');
- favorite.style.setProperty('color',saved?'#fff':'','important');
- favorite.style.setProperty('border-color',saved?'#38424b':'','important');
+ favorite.style.setProperty('background',saved?'var(--ql-saved,#38424b)':'','important');
+ favorite.style.setProperty('color',saved?'var(--ql-saved-text,#fff)':'','important');
+ favorite.style.setProperty('border-color',saved?'var(--ql-saved,#38424b)':'','important');
  favorite.style.setProperty('border-style',saved?'solid':'','important');
  favorite.style.setProperty('border-width',saved?'1px':'','important');
  favorite.style.setProperty('box-shadow',saved?'inset 0 1px 3px rgba(0,0,0,.16)':'','important');
@@ -2301,8 +2303,8 @@ function syncViewfinderActions(){
  favorite.style.setProperty('opacity','1','important');
  const star=favorite.querySelector('svg path');
  if(star){
-  star.style.setProperty('fill',saved?'#fff':'none','important');
-  star.style.setProperty('stroke',saved?'#fff':'currentColor','important');
+  star.style.setProperty('fill',saved?'var(--ql-saved-text,#fff)':'none','important');
+  star.style.setProperty('stroke',saved?'var(--ql-saved-text,#fff)':'currentColor','important');
   star.style.setProperty('color',saved?'#fff':'','important');
  }
  favorite.setAttribute('aria-pressed',String(saved));
@@ -2384,9 +2386,9 @@ function syncViewfinderAlbumTargets(){
   saveButton.setAttribute('aria-pressed',String(saved));
   saveButton.setAttribute('aria-label',saved?'收藏目标已保存':'保存收藏目标');
   saveButton.title=saved?'默认收藏目标已保存；点击收藏会进入所选角色卡相册':'保存所选角色卡作为默认收藏目标';
-  saveButton.style.setProperty('background',saved?'#38424b':'','important');
-  saveButton.style.setProperty('color',saved?'#fff':'','important');
-  saveButton.style.setProperty('border-color',saved?'#38424b':'','important');
+  saveButton.style.setProperty('background',saved?'var(--ql-saved,#38424b)':'','important');
+  saveButton.style.setProperty('color',saved?'var(--ql-saved-text,#fff)':'','important');
+  saveButton.style.setProperty('border-color',saved?'var(--ql-saved,#38424b)':'','important');
   saveButton.style.setProperty('border-style',saved?'solid':'','important');
   saveButton.style.setProperty('border-width',saved?'1px':'','important');
   saveButton.style.setProperty('box-shadow',saved?'inset 0 1px 3px rgba(0,0,0,.16)':'','important');
