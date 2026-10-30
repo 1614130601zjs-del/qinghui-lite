@@ -4873,3 +4873,9 @@ html[data-ql-style="pixel"] :is(.ql-detail-choice-overlay,[data-ql-download-shee
 #shizhen-panel :is(.ql-album-photo,.ql-album-card,.ql-cache-tile).is-selected::after{content:"✓";position:absolute;left:6px;top:6px;z-index:5;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 14px/1 sans-serif;background:var(--qs-sig,var(--ql-accent,#4a86c5));color:var(--qs-on-sig,#fff);pointer-events:none}
 #shizhen-panel .ql-bulk-check.is-checked{font-weight:700;color:var(--qs-sig,var(--ql-accent,#4a86c5))}
 #shizhen-panel .ql-bulk-check input[type=checkbox]{width:20px!important;height:20px!important;accent-color:var(--qs-sig,var(--ql-accent,#4a86c5))}
+
+/* 取景区：生图进行中的指示文字（生成按钮左侧） */
+#shizhen-panel .ql-gen-indicator{display:inline-flex;align-items:center;gap:6px;margin-right:auto;padding:0 4px;font-size:12px;color:var(--ql-accent,var(--qs-sig,#6c7f95));white-space:nowrap}
+#shizhen-panel .ql-gen-indicator[hidden]{display:none}
+#shizhen-panel .ql-gen-indicator::before{content:"";width:10px;height:10px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:ql-gen-spin .8s linear infinite}
+@keyframes ql-gen-spin{to{transform:rotate(360deg)}}
