@@ -4844,3 +4844,13 @@ html[data-ql-style="pixel"] :is(.ql-detail-choice-overlay,[data-ql-download-shee
 #chat .mes_text .ql-inline-image-trigger.ql-album-ccd{background:linear-gradient(#41444b,#2c2e33)!important;color:#e8e4da!important;border:1px solid #4a4d55!important;border-radius:6px!important}
 #chat .mes_text .ql-inline-image-trigger.ql-album-polaroid{background:#fff3f0!important;color:#5a4750!important;border:1.5px solid #e6bbc2!important;border-radius:4px!important}
 #chat .mes_text .ql-inline-image-trigger.ql-album-scroll{background:#f7f5ec!important;color:#262522!important;border:1px solid #b9b196!important;border-radius:1px!important}
+
+/* 图集 ✕（移回底片） */
+#shizhen-panel #ql-prompt-gallery-content .ql-album-photo{position:relative}
+#shizhen-panel #ql-prompt-gallery-content .ql-cache-favorite{position:absolute!important;top:4px!important;right:4px!important;z-index:3;width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;padding:0!important;border-radius:50%!important;display:flex!important;align-items:center;justify-content:center;font-size:15px!important;line-height:1;background:rgba(0,0,0,.55)!important;color:#fff!important;border:1px solid rgba(255,255,255,.5)!important}
+
+/* 多选：明确的选中标记（强调色边框 + ✓ 角标 + 轻微染色） */
+#shizhen-panel :is(.ql-album-photo,.ql-album-card,.ql-cache-tile,.ql-record,.ql-library-record).is-selected{position:relative;outline:3px solid var(--qs-sig,var(--ql-accent,#4a86c5))!important;outline-offset:-3px;border-color:var(--qs-sig,var(--ql-accent,#4a86c5))!important;box-shadow:0 0 0 2px color-mix(in srgb,var(--qs-sig,var(--ql-accent,#4a86c5)) 35%,transparent)!important}
+#shizhen-panel :is(.ql-album-photo,.ql-album-card,.ql-cache-tile).is-selected::after{content:"✓";position:absolute;left:6px;top:6px;z-index:5;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 14px/1 sans-serif;background:var(--qs-sig,var(--ql-accent,#4a86c5));color:var(--qs-on-sig,#fff);pointer-events:none}
+#shizhen-panel .ql-bulk-check.is-checked{font-weight:700;color:var(--qs-sig,var(--ql-accent,#4a86c5))}
+#shizhen-panel .ql-bulk-check input[type=checkbox]{width:20px!important;height:20px!important;accent-color:var(--qs-sig,var(--ql-accent,#4a86c5))}
