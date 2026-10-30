@@ -4882,3 +4882,9 @@ html[data-ql-style="pixel"] :is(.ql-detail-choice-overlay,[data-ql-download-shee
 
 /* 详情弹窗的关闭键：随主题（文字色 / 面板色），不再固定白色磨砂 */
 #ql-image-cache-modal .ql-cache-modal-close,#ql-image-cache-modal .ql-cache-modal-close:hover,#ql-image-cache-modal .ql-cache-modal-close:focus,#ql-image-cache-modal .ql-cache-modal-close:active{color:var(--ql-text,#344653)!important;background:color-mix(in srgb,var(--ql-text,#344653) 12%,var(--ql-panel,#fff))!important;background-color:color-mix(in srgb,var(--ql-text,#344653) 12%,var(--ql-panel,#fff))!important;border:1px solid var(--ql-border,rgba(100,125,145,.4))!important}
+
+/* 自定义风格编辑区 */
+#shizhen-panel .ql-custom-style-box{margin:10px 0;padding:8px 10px;border:1px solid var(--ql-border,rgba(127,127,127,.35));border-radius:8px}
+#shizhen-panel .ql-custom-style-box>summary{cursor:pointer;font-weight:600;padding:4px 0}
+#shizhen-panel .ql-custom-style-box textarea{width:100%;box-sizing:border-box;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre;overflow:auto;resize:vertical}
+#shizhen-panel .ql-custom-style-box .ql-row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
