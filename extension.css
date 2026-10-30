@@ -4597,6 +4597,3 @@ html > .ql-album-menu-portal .ql-album-more-menu-panel>button:hover{
   padding:0 12px!important;
   white-space:nowrap!important;
 }
-
-/* 被拾帧接管的智绘姬按钮/图片容器：隐藏而不删除，避免两个插件来回争抢 */
-button.image-tag-button[data-ql-taken="1"],span.st-chatu8-image-span[data-ql-taken="1"]{display:none!important;}

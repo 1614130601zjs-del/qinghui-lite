@@ -147,11 +147,9 @@ function mesElementOf(target){
 // 再用 Range 跨节点把标记原位替换成按钮；按钮位置永远就是标记所在的位置。
 // （思路参考智绘姬的 findAndReplaceInElement，代码为自行实现。）
 const QL_MARKER_SRC='image###([\\s\\S]*?)###';
-const QL_SKIP_SELECTOR='script,style,textarea,button,.ql-chat-image,.ql-inline-image-trigger,.image-tag-button,.st-chatu8-image-span,.st-chatu8-image-container,.st-chatu8-collapse-wrapper';
+const QL_SKIP_SELECTOR='script,style,textarea,button,.ql-chat-image,.ql-inline-image-trigger';
 const QL_BLOCK_SELECTOR='p,div,li,blockquote,h1,h2,h3,h4,h5,h6,pre,tr,td,th';
 const qlNormalizePrompt=value=>String(value||'').replace(/\s+/g,' ').trim();
-// 宽松比较：智绘姬会把提示词里的全角标点替换成半角等，只用于认出“同一条提示词”。
-const qlLooseKey=value=>String(value||'').toLowerCase().replace(/[\s,，;；:：、.。!！?？'"“”‘’()（）\[\]{}]/g,'');
 function qlCollectLogicalText(root){
  const infos=[];let text='',lastBlock=null;
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT,{acceptNode(node){
@@ -187,12 +185,6 @@ function qlFindMarkerSlots(host){
   const covered=infos.filter(info=>s<info.end&&e>info.start);
   if(!covered.length)continue;
   slots.push({kind:'text',prompt:qlNormalizePrompt(m[1]),start:s,end:e,covered,anchor:covered[0].node});
- }
- for(const btn of host.querySelectorAll('button.image-tag-button[data-link]')){
-  if(btn.dataset.qlTaken==='1')continue;
-  const requestId=btn.dataset.requestId;
-  const span=requestId?host.querySelector('span.st-chatu8-image-span[data-request-id="'+CSS.escape(requestId)+'"]'):null;
-  slots.push({kind:'chatu8',prompt:qlNormalizePrompt(btn.dataset.link),btn,span,hasMedia:!!span?.querySelector('img,video'),anchor:btn});
  }
  slots.sort((a,b)=>{
   if(a.anchor===b.anchor)return 0;
@@ -246,18 +238,6 @@ function qlRenderMarkers(host,entries){
  const plan=[];
  let syntheticCount=0;
  for(const slot of slots){
-  if(slot.kind==='chatu8'){
-   // 智绘姬的按钮只有在它对应我们认得的标记时才接管；否则不碰别人的东西。
-   const loose=qlLooseKey(slot.prompt);
-   const idx=unused.findIndex(entry=>qlLooseKey(entry.prompt)===loose);
-   if(idx>=0){plan.push({slot,entry:unused.splice(idx,1)[0],insert:true});continue;}
-   const known=entries.find(entry=>qlLooseKey(entry.prompt)===loose);
-   if(known){
-    if(slot.hasMedia)covered.add(known.markerKey);
-    plan.push({slot,entry:known,insert:false});
-   }
-   continue;
-  }
   if(!slot.prompt){plan.push({slot,entry:null,insert:false});continue;}
   let idx=unused.findIndex(entry=>qlNormalizePrompt(entry.prompt)===slot.prompt);
   if(idx<0)idx=unused.length?0:-1;
@@ -270,18 +250,6 @@ function qlRenderMarkers(host,entries){
  // 从后往前改 DOM，前面的位置不会被后面的修改影响。
  for(let i=plan.length-1;i>=0;i--){
   const {slot,entry,insert}=plan[i];
-  if(slot.kind==='chatu8'){
-   if(!insert){
-    if(!slot.hasMedia){slot.btn.dataset.qlTaken='1';if(slot.span&&!slot.hasMedia)slot.span.dataset.qlTaken='1';}
-    continue;
-   }
-   if(slot.hasMedia)continue;
-   // 不删智绘姬的元素（它自己会重新检查，删了会来回争抢），而是藏起来，在原位置放我们的按钮。
-   const button=qlMakeInlineButton(entry,slot.prompt);
-   slot.btn.parentNode.insertBefore(button,slot.btn);
-   slot.btn.dataset.qlTaken='1';if(slot.span)slot.span.dataset.qlTaken='1';
-   continue;
-  }
   const range=document.createRange();
   const first=slot.covered[0],last=slot.covered[slot.covered.length-1];
   try{
@@ -1251,9 +1219,6 @@ function statusbarPromptForTarget(target){
   ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
- // 智绘姬会抢先把 scanning 里的 image###…### 文本换成它自己的按钮（提示词在 data-link 上）：文本没了，就从它的按钮里取提示词。
- const chatu8Btn=target?.querySelector?.('button.image-tag-button[data-link]');
- if(chatu8Btn){const linked=String(chatu8Btn.getAttribute('data-link')||'').trim();if(linked)return linked;}
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
   const prompt=parseStatusbarMarker(ancestor.getAttribute?.('data-tag'));
@@ -1435,28 +1400,11 @@ function qlStatusbarDiagnose(){
   const scanning=docs.reduce((n,d)=>n+d.querySelectorAll('[class~="scanning"]').length,0);
   const triggers=docs.reduce((n,d)=>n+d.querySelectorAll('.ql-statusbar-trigger').length,0);
   const cards=docs.reduce((n,d)=>n+d.querySelectorAll('.ql-statusbar-card').length,0);
-  const msg='拾帧诊断：iframe '+total+' 个，可访问文档 '+(docs.length-1)+' 个，scanning 元素 '+scanning+' 个，定格按钮 '+triggers+' 个，状态栏图卡 '+cards+' 个'+(qlStatusbarLastError?'，错误：'+qlStatusbarLastError:'');
+  const frames=docs.flatMap(d=>Array.from(d.querySelectorAll('[class~="scanning"]')));
+  const detail=frames.map(f=>{const p=statusbarPromptForTarget(f);return '[提示词'+(p?'有':'无')+' busy='+(f.dataset.qlBusy||'-')+' done='+(f.dataset.qlDone||'-')+' armed='+(f.dataset.qlArmed||'-')+' 已处理='+(f.dataset.qlPrompt?'是':'否')+' 文本="'+String(f.textContent||'').replace(/\s+/g,' ').slice(0,24)+'"]';}).join('');
+  const msg=detail+' 拾帧诊断：iframe '+total+' 个，可访问文档 '+(docs.length-1)+' 个，scanning 元素 '+scanning+' 个，定格按钮 '+triggers+' 个，状态栏图卡 '+cards+' 个'+(qlStatusbarLastError?'，错误：'+qlStatusbarLastError:'');
   if(typeof toastr!=='undefined')toastr.info(msg,'',{timeOut:8000});else console.info('[拾帧 Lite] '+msg);
  }catch(e){console.warn('[拾帧 Lite] 诊断失败',e);}
-}
-// 状态栏里的模板（如抖音状态栏）刷新后会重新渲染成“点击生成画面”的初始态，已经生成过的图不会自动回来。
-// 对带 data-tag（画面提示词）且已有保存图片的元素，替它点一下模板自己的按钮，让模板进入 scanning 状态，随后走已有的“恢复缓存图”流程，不会重新请求生图。
-function autoRestoreStatusbarTemplates(docs){
- const records=(cfg().records||[]).filter(item=>item&&item.dataUrl&&(item.source||'chat')==='statusbar');
- if(!records.length)return;
- for(const doc of docs){
-  doc.querySelectorAll('[data-tag]').forEach(el=>{
-   if(el.dataset.qlAutoClick==='1'||el.querySelector('[class~="scanning"]'))return;
-   const prompt=qlNormalizePrompt(String(el.getAttribute('data-tag')||'').replace(/<\/?画面绘图>/gi,'').replace(/^\s*image###\s*/i,'').replace(/\s*###\s*$/,''));
-   if(!prompt)return;
-   const stamp=messageStampOfElement(el);
-   if(!records.some(item=>qlNormalizePrompt(item.basePrompt||item.prompt)===prompt&&recordMatchesStamp(item,stamp)))return;
-   const button=el.querySelector('button');
-   if(!button)return;
-   el.dataset.qlAutoClick='1';
-   button.click();
-  });
- }
 }
 // 状态栏出现待生成的 image### 后，不再自动提交，而是在原处放一个“定格此刻”，点了才生图（和正文一致）。
 function ensureStatusbarTrigger(frame,prompt){
@@ -1476,7 +1424,6 @@ async function processStatusbarFrames(){
   if(cfg().enabled===false)return;
  const docs=collectStatusbarDocs();
  repairStaleStatusbarCards(docs);
- autoRestoreStatusbarTemplates(docs);
  const frames=docs.flatMap(doc=>Array.from(doc.querySelectorAll('[class~="scanning"]')).filter(frame=>{
   const prompt=statusbarPromptForTarget(frame);
   if(!prompt)return false;
@@ -1490,10 +1437,6 @@ async function processStatusbarFrames(){
    frame.dataset.qlDone='';frame.dataset.qlFailedPrompt='';frame.dataset.qlArmed='';
    frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading,.ql-statusbar-trigger').forEach(el=>el.remove());
   }
-  // 智绘姬已经在里面生成出图片：不插手，免得两个插件对同一个位置各画一张。
-  if(frame.querySelector('.st-chatu8-image-span img,.st-chatu8-image-span video'))continue;
-  // 智绘姬的按钮/容器藏起来（不删除，免得它重建）。iframe 里没有扩展的样式表，所以用行内样式。
-  frame.querySelectorAll('button.image-tag-button[data-link],.st-chatu8-image-span').forEach(el=>{el.dataset.qlTaken='1';el.style.setProperty('display','none','important');});
   if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
   // 上一次对同一条提示词生成失败：不自动重试（以前失败会触发 DOM 变动、再次触发扫描，形成无限重试 + 无限弹窗）。重新渲染状态栏会得到新的元素，届时会再试一次。
   if(frame.dataset.qlFailedPrompt===prompt)continue;
