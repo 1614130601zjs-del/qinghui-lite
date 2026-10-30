@@ -4888,3 +4888,18 @@ html[data-ql-style="pixel"] :is(.ql-detail-choice-overlay,[data-ql-download-shee
 #shizhen-panel .ql-custom-style-box>summary{cursor:pointer;font-weight:600;padding:4px 0}
 #shizhen-panel .ql-custom-style-box textarea{width:100%;box-sizing:border-box;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre;overflow:auto;resize:vertical}
 #shizhen-panel .ql-custom-style-box .ql-row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+
+/* 相册移动弹窗：跟随主题；列表可滚动，底部固定并列「取消」「移动」 */
+.ql-album-move-overlay{position:fixed!important;inset:0!important;z-index:2147483000!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:18px!important;background:rgba(0,0,0,.48)!important}
+.ql-album-move-overlay>.ql-album-move-panel{display:flex!important;flex-direction:column!important;box-sizing:border-box!important;width:min(100%,380px)!important;max-height:min(80vh,560px)!important;padding:16px 16px 12px!important;border:1px solid var(--ql-border,var(--SmartThemeBorderColor,#ccc))!important;border-radius:14px!important;background:var(--ql-panel,var(--SmartThemeBlurTintColor,#fff))!important;color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;box-shadow:0 12px 40px rgba(0,0,0,.35)!important;overflow:hidden!important}
+.ql-album-move-panel h3{margin:0 0 6px!important;flex:0 0 auto}
+.ql-album-move-panel>p{margin:0 0 8px!important;font-size:12px;flex:0 0 auto}
+.ql-album-move-panel .ql-album-move-list{flex:1 1 auto;min-height:0;overflow-y:auto;border-top:1px solid var(--ql-border,rgba(127,127,127,.3));border-bottom:1px solid var(--ql-border,rgba(127,127,127,.3));padding:4px 0}
+.ql-album-move-panel .ql-album-move-row{display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid color-mix(in srgb,var(--ql-border,#888) 60%,transparent);cursor:pointer}
+.ql-album-move-panel .ql-album-move-row:last-of-type{border-bottom:0}
+.ql-album-move-panel .ql-album-move-row input{width:18px;height:18px;flex:0 0 auto;accent-color:var(--ql-accent,#6c8aa6)}
+.ql-album-move-panel .ql-album-move-row:has(input:checked){background:color-mix(in srgb,var(--ql-accent,#6c8aa6) 16%,transparent);font-weight:600}
+.ql-album-move-panel .ql-album-move-create{margin:8px 6px 4px!important;width:calc(100% - 12px)!important}
+.ql-detail-choice-overlay.ql-album-move-overlay>.ql-album-move-panel>.ql-album-move-actions{flex:0 0 auto;display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin-top:12px;padding-top:0}
+.ql-detail-choice-overlay.ql-album-move-overlay .ql-album-move-actions button{width:100%!important;min-width:0!important;justify-content:center}
+#shizhen-panel .ql-album-move-panel .ql-album-move-row input[type=radio]{-webkit-appearance:radio!important;appearance:radio!important;width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;max-width:18px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:none!important;box-shadow:none!important;flex:0 0 18px!important}
