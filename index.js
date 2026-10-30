@@ -2272,7 +2272,7 @@ function syncViewfinderActions(){
  favorite.disabled=!img;enlarge.disabled=!img;
  const imageSources=img?[img.dataset.qlStoredSrc,img.currentSrc,img.src,img.getAttribute('src')].filter(Boolean):[];
  const matches=img?(cfg().records||[]).filter(item=>item&&imageSources.some(source=>sameImageSource(item.dataUrl,source))):[];
- const saved=matches.some(record=>!!record.albumCharacterName||record.collection==='character-album');
+ const saved=matches.some(record=>!!record.albumCharacterName||record.collection==='character-album'||(record.collection==='prompt-gallery'&&!!record.promptEntryId));
  const label=saved?'取消角色相册收藏':'收藏到角色相册';
  favorite.classList.toggle('is-favorite',saved);
  favorite.setAttribute('aria-label',label);favorite.title=label;
@@ -2393,8 +2393,16 @@ function toggleViewfinderFavorite(){
   for(const item of matches){delete item.albumCharacterName;delete item.albumCharacterKey;delete item.promptEntryId;delete item.sourcePromptEntryId;delete item.sourcePromptEntryAppliedAt;item.collection='cache';}
   save();history();syncViewfinderAlbumTargets();syncViewfinderActions();status('已取消收藏；图片已回到底片缓存。');return;
  }
- if(matches.some(item=>isPromptGalleryRecord(item,settings))){
-  status('这张照片已归入提示词图集，不会重复收藏到当前角色相册。');return;
+ // 已收藏进提示词图集：再点一次取消收藏，回到底片。
+ if(matches.some(item=>item.collection==='prompt-gallery'&&item.promptEntryId)){
+  for(const item of matches){item.collection='cache';delete item.promptEntryId;delete item.sourcePromptEntryId;delete item.sourcePromptEntryAppliedAt;}
+  save();history();renderLibrary();syncViewfinderActions();status('已取消收藏；图片已回到底片缓存。');return;
+ }
+ // 由提示词库应用的提示词生成的图：收藏 = 归入该提示词的图集。
+ const pendingId=matches.map(item=>item.pendingPromptEntryId).find(Boolean);
+ if(pendingId&&(settings.prompts||[]).some(item=>item&&String(item.id)===String(pendingId))){
+  for(const item of matches){item.promptEntryId=pendingId;item.sourcePromptEntryId=pendingId;item.collection='prompt-gallery';}
+  save();history();renderLibrary();syncViewfinderActions();status('已收藏到提示词图集。');return;
  }
  const character=currentCharacter(),defaultName=String(character.name||getContext()?.name2||'当前角色').trim(),target=String(settings.viewfinderAlbumTargetKey||'__current__');
  let key=character.id||'',name=defaultName;
@@ -2423,7 +2431,9 @@ $('#ql-generate').onclick=async()=>{
  try{
   const activeIndex=Number(conf.activeVibeIndex??-1);const activeVibe=activeIndex>=0?conf.vibes[activeIndex]:null;const activePresetIndex=Number(conf.activePresetIndex??-1);const activePreset=activePresetIndex>=0?conf.presets[activePresetIndex]:null;const rolePromptParts=(conf.viewfinderRoles||[]).map(role=>String(role?.appearance||'').trim()).filter(Boolean);const finalPrompt=[activePreset?.positive,...rolePromptParts,conf.prompt.trim()].filter(Boolean).join(', ');const baseNegative=String(conf.negative||'').trim(),presetNegative=String(activePreset?.negative||'').trim();const finalNegative=[baseNegative,...(presetNegative&&presetNegative!==baseNegative?[presetNegative]:[])].filter(Boolean).join(', ');if(!finalPrompt.trim()){status('请填写正向提示词，或选择包含正向提示词的预设。');return;}const normalizePromptEntry=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();const normalizedBasePrompt=normalizePromptEntry(conf.prompt);const selectedPrompt=conf.viewfinderPromptUnlinked?null:(conf.prompts||[]).find(item=>item&&item.id&&item.id===conf.activePromptEntryId);const matchedPrompt=conf.viewfinderPromptUnlinked?null:(normalizedBasePrompt?(conf.prompts||[]).find(item=>item&&normalizePromptEntry(item.promptEn||item.prompt||'')===normalizedBasePrompt):null);const promptEntryId=selectedPrompt?.id||matchedPrompt?.id||null;const url=await requestImage(finalPrompt,finalNegative,activeVibe);const storedUrl=await persistImageToTavern(url,'manual-'+Date.now());
   const img=document.createElement('img');img.alt='拾帧生成结果';img.dataset.qlStoredSrc=storedUrl;img.src=url;$('#ql-result').append(img);
-  conf.records.unshift({at:Date.now(),source:'viewfinder',collection:promptEntryId?'prompt-gallery':'cache',prompt:finalPrompt,basePrompt:conf.prompt.trim(),negative:finalNegative,provider:conf.provider,model:conf.provider!=='openai'?conf.naiModel:conf.model,size:conf.provider!=='openai'?(conf.naiWidth+'x'+conf.naiHeight):conf.size,quality:conf.quality,dataUrl:storedUrl,preset:activePreset?{name:activePreset.name||'',positive:activePreset.positive||'',negative:activePreset.negative||'',index:activePresetIndex,source:activePreset.source||'local'}:null,vibe:activeVibe?{name:activeVibe.name||'',entries:(activeVibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,config:snapshotConfig(finalPrompt,finalNegative),promptEntryId,sourcePromptEntryId:promptEntryId,sourcePromptEntryAppliedAt:conf.activePromptEntryAppliedAt||null,promptGalleryExcludedIds:conf.viewfinderPromptUnlinked?(conf.prompts||[]).map(item=>String(item?.id||'')).filter(Boolean):[]});
+  conf.records.unshift({at:Date.now(),source:'viewfinder',collection:'cache',prompt:finalPrompt,basePrompt:conf.prompt.trim(),negative:finalNegative,provider:conf.provider,model:conf.provider!=='openai'?conf.naiModel:conf.model,size:conf.provider!=='openai'?(conf.naiWidth+'x'+conf.naiHeight):conf.size,quality:conf.quality,dataUrl:storedUrl,preset:activePreset?{name:activePreset.name||'',positive:activePreset.positive||'',negative:activePreset.negative||'',index:activePresetIndex,source:activePreset.source||'local'}:null,vibe:activeVibe?{name:activeVibe.name||'',entries:(activeVibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,config:snapshotConfig(finalPrompt,finalNegative),
+   // 由提示词库应用的提示词生成的图，默认先进「底片」；只有点收藏才归入对应的提示词图集（见 toggleViewfinderFavorite）。
+   pendingPromptEntryId:promptEntryId,sourcePromptEntryAppliedAt:conf.activePromptEntryAppliedAt||null,promptGalleryExcludedIds:conf.viewfinderPromptUnlinked?(conf.prompts||[]).map(item=>String(item?.id||'')).filter(Boolean):[]});
   save();history();renderLibrary();status('生成完成。记录已保存在酒馆扩展设置中。');
  }catch(e){console.error('[拾帧 Lite] 生图失败',e);status('生成失败：'+(e?.message||String(e))+'。请检查接口地址、Key、模型名和网络连接。')}
  finally{busy=false;$('#ql-generate').disabled=false;$('#ql-generate').classList.remove('is-generating');}
