@@ -1251,6 +1251,9 @@ function statusbarPromptForTarget(target){
   ...Array.from(target?.querySelectorAll?.('[data-tag]')||[],el=>el.getAttribute('data-tag'))
  ];
  for(const value of direct){const prompt=parseStatusbarMarker(value);if(prompt)return prompt;}
+ // 智绘姬会抢先把 scanning 里的 image###…### 文本换成它自己的按钮（提示词在 data-link 上）：文本没了，就从它的按钮里取提示词。
+ const chatu8Btn=target?.querySelector?.('button.image-tag-button[data-link]');
+ if(chatu8Btn){const linked=String(chatu8Btn.getAttribute('data-link')||'').trim();if(linked)return linked;}
  let ancestor=target?.parentElement;
  while(ancestor&&!ancestor.matches?.('.mes')){
   const prompt=parseStatusbarMarker(ancestor.getAttribute?.('data-tag'));
@@ -1487,6 +1490,10 @@ async function processStatusbarFrames(){
    frame.dataset.qlDone='';frame.dataset.qlFailedPrompt='';frame.dataset.qlArmed='';
    frame.querySelectorAll('.ql-statusbar-card,.ql-statusbar-error,.ql-statusbar-loading,.ql-statusbar-trigger').forEach(el=>el.remove());
   }
+  // 智绘姬已经在里面生成出图片：不插手，免得两个插件对同一个位置各画一张。
+  if(frame.querySelector('.st-chatu8-image-span img,.st-chatu8-image-span video'))continue;
+  // 智绘姬的按钮/容器藏起来（不删除，免得它重建）。iframe 里没有扩展的样式表，所以用行内样式。
+  frame.querySelectorAll('button.image-tag-button[data-link],.st-chatu8-image-span').forEach(el=>{el.dataset.qlTaken='1';el.style.setProperty('display','none','important');});
   if(frame.dataset.qlBusy==='1'||frame.dataset.qlDone==='1')continue;
   // 上一次对同一条提示词生成失败：不自动重试（以前失败会触发 DOM 变动、再次触发扫描，形成无限重试 + 无限弹窗）。重新渲染状态栏会得到新的元素，届时会再试一次。
   if(frame.dataset.qlFailedPrompt===prompt)continue;
