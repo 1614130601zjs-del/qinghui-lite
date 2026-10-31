@@ -1185,12 +1185,14 @@ async function processLatestAssistantMessage(){
   if(!host)continue;
   // 正在编辑的消息跳过（见 isHostBeingEdited），等编辑结束（保存/取消会触发 DOM 变动）再由下一轮扫描补回按钮。
   if(isHostBeingEdited(host))continue;
-  const logicalBefore=qlCollectLogicalText(host).text;\n  const domMarkerCount=(logicalBefore.match(new RegExp(QL_MARKER_SRC,'g'))||[]).length;\n  const slotsBefore=qlFindMarkerSlots(host).length;\n  const entries=found.map((marker,markerOrdinal)=>{
+  const logicalBefore=qlCollectLogicalText(host).text;
+  const domMarkerCount=(logicalBefore.match(new RegExp(QL_MARKER_SRC,'g'))||[]).length;\n  const slotsBefore=qlFindMarkerSlots(host).length;\n  const entries=found.map((marker,markerOrdinal)=>{
    const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal,markerKey:messageIndex+':'+markerOrdinal};
   });
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
-  const coveredByOthers=qlRenderMarkers(host,entries);\n  qlRenderDiagnosticRows=qlRenderDiagnosticRows.filter(row=>row.messageIndex!==messageIndex);\n  qlRenderDiagnosticRows.push({messageIndex,raw:found.length,dom:domMarkerCount,slots:slotsBefore,buttons:host.querySelectorAll('.ql-inline-image-trigger').length,tail:0});\n  if(qlRenderDiagnosticRows.length>30)qlRenderDiagnosticRows.shift();
+  const coveredByOthers=qlRenderMarkers(host,entries);
+  qlRenderDiagnosticRows=qlRenderDiagnosticRows.filter(row=>row.messageIndex!==messageIndex);\n  qlRenderDiagnosticRows.push({messageIndex,raw:found.length,dom:domMarkerCount,slots:slotsBefore,buttons:host.querySelectorAll('.ql-inline-image-trigger').length,tail:0});\n  if(qlRenderDiagnosticRows.length>30)qlRenderDiagnosticRows.shift();
   const stamp=messageStamp(messageIndex);
   // 同一楼层被重新生成（Regenerate）后，DOM 里残留的旧消息图片卡片不属于这条新消息，直接移除。
   if(stamp)host.querySelectorAll('.ql-chat-image').forEach(el=>{if(el.dataset.qlStamp&&el.dataset.qlStamp!==stamp)el.remove();});
@@ -2931,7 +2933,8 @@ jQuery(()=>{
  observeStatusbarFrames();
  // 扩展启用时先扫描现有聊天；再观察酒馆正文重绘，避免事件时序导致 marker 一直以原文显示。
  let inlineScanTimers=[];
- const scheduleInlineScan=()=>{\n  if(qlGenerationActive)return;
+ const scheduleInlineScan=()=>{
+  if(qlGenerationActive)return;
   inlineScanTimers.forEach(timer=>clearTimeout(timer));
   // 刷新酒馆页面时，扩展脚本通常比聊天记录的 DOM 渲染更早就绪：原来只到 1200ms 的兜底窗口，
   // 在聊天较长、设备较慢时可能还没等到消息渲染完就已经用完，导致刷新后没有任何一次扫描真正生效，
@@ -2962,7 +2965,8 @@ jQuery(()=>{
  // CHAT_CHANGED / MESSAGE_EDITED（若该酒馆版本提供）是比 MutationObserver 更明确的信号：
  // 切换聊天、刷新页面后聊天记录加载完成、以及编辑消息保存/取消，都应该直接重新扫描一次正文，
  // 而不是只依赖 DOM 变动去“猜”是否相关，这样可以明显减少“必须先点一下编辑铅笔才会变得可点”的情况。
- // 流式输出期间不扫描正文；消息结束后单独等待 DOM 稳定再扫描。\n if(event_types.GENERATION_STARTED)eventSource.on(event_types.GENERATION_STARTED,()=>{\n  qlGenerationActive=true;\n  inlineScanTimers.forEach(timer=>clearTimeout(timer));inlineScanTimers=[];\n });\n if(event_types.GENERATION_ENDED)eventSource.on(event_types.GENERATION_ENDED,()=>{\n  qlGenerationActive=false;\n  setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{\n   processLatestAssistantMessage().catch(e=>console.warn('[拾帧 Lite] 生成结束后正文扫描失败',e));\n   processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 生成结束后状态栏扫描失败',e));\n   qlShowRenderDiagnostic();\n  })),350);\n });\n for(const name of ['MESSAGE_SWIPED','CHAT_CHANGED','MESSAGE_EDITED']){
+ // 流式输出期间不扫描正文；消息结束后单独等待 DOM 稳定再扫描。
+ if(event_types.GENERATION_STARTED)eventSource.on(event_types.GENERATION_STARTED,()=>{\n  qlGenerationActive=true;\n  inlineScanTimers.forEach(timer=>clearTimeout(timer));inlineScanTimers=[];\n });\n if(event_types.GENERATION_ENDED)eventSource.on(event_types.GENERATION_ENDED,()=>{\n  qlGenerationActive=false;\n  setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{\n   processLatestAssistantMessage().catch(e=>console.warn('[拾帧 Lite] 生成结束后正文扫描失败',e));\n   processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 生成结束后状态栏扫描失败',e));\n   qlShowRenderDiagnostic();\n  })),350);\n });\n for(const name of ['MESSAGE_SWIPED','CHAT_CHANGED','MESSAGE_EDITED']){
   const eventName=event_types[name];
   if(eventName)eventSource.on(eventName,scheduleScan);
  }
