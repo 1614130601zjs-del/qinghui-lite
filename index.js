@@ -1713,7 +1713,7 @@ function html(){return `<div id="ql-overlay" hidden><section id="shizhen-panel">
 <div class="ql-card ql-viewfinder-card"><div class="ql-viewfinder-heading"><h3>图片放置区</h3><div class="ql-viewfinder-actions" role="group" aria-label="图片操作"><span id="ql-gen-indicator" class="ql-gen-indicator" role="status" hidden>正在生图…</span><button id="ql-generate" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="生成一张" title="生成一张"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 8.5h3l1.5-2h7l1.5 2h3A1.5 1.5 0 0 1 21.5 10v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/><path d="M17.5 11h.01"/></svg></button><button id="ql-result-favorite" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="收藏到角色相册" title="收藏到角色相册" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></button><button id="ql-result-enlarge" class="menu_button ql-viewfinder-icon-button" type="button" aria-label="放大查看" title="放大查看" disabled><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.5 15.5 5 5"/></svg></button></div></div><p class="ql-muted">生成后可收藏图片，或自适应屏幕查看大图。</p><div class="ql-viewfinder-album-target"><label for="ql-result-album-target">收藏目标相册</label><select id="ql-result-album-target"><option value="">请选择角色卡相册</option></select><button id="ql-result-album-target-save" class="menu_button" type="button">保存</button></div><div class="ql-viewfinder-layout"><div id="ql-result" class="ql-image-stage"><div class="ql-image-placeholder">等待生成图片</div></div></div></div>
 
 <div class="ql-card"><div class="ql-prompt-label-row"><label for="ql-prompt">画面提示词</label><button id="ql-prompt-clear" type="button" class="menu_button">清空</button></div><textarea id="ql-prompt" placeholder="画面提示词"></textarea></div>
-<div class="ql-card ql-viewfinder-roles-card"><div class="ql-section-heading"><div><h3>角色外貌</h3><p class="ql-muted">可从所有角色卡的角色词库或「用户外貌」导入，也可以直接编辑；生成时会放在正向提示词最前面。</p></div><button id="ql-role-add" type="button" class="menu_button">添加角色</button></div><div id="ql-viewfinder-roles"></div></div>
+<div class="ql-card ql-viewfinder-roles-card"><div class="ql-section-heading"><div><h3>角色外貌</h3><p class="ql-muted">提示词里的 boy A / girl B / character A / char1 或 1girl / 2girls 等标记会自动生成对应的外貌栏位；外貌会紧跟在各自的角色标记后面，也可以手动填写、清空或从角色词库导入。</p></div><button id="ql-role-add" type="button" class="menu_button">添加角色</button></div><div id="ql-viewfinder-roles"></div><details class="ql-final-preview"><summary>查看最终提交给 NAI 的完整提示词</summary><pre id="ql-final-prompt-text"></pre><div class="ql-row"><button id="ql-final-prompt-copy" type="button" class="menu_button">复制完整提示词</button></div><p class="ql-muted">顺序：画师串 → 质量词 → 角色数量/标记 → 对应外貌 → 动作与互动 → 场景。你输入的原始画面提示词不会被改写。</p></details></div>
 <div class="ql-card"><h3>影像配置</h3><label for="ql-active-config-mode">选择方式</label><select id="ql-active-config-mode"><option value="combo">选择组合（使用预设）</option><option value="separate">选择画师串 + 选择 Vibe</option></select><div id="ql-combo-config-row"><label for="ql-active-preset">选择预设组合</label><select id="ql-active-preset"><option value="-1">不使用组合</option></select></div><div id="ql-separate-config-row" hidden><label for="ql-active-artist">选择画师串</label><select id="ql-active-artist"><option value="-1">不使用画师串</option></select><label for="ql-active-vibe">选择 Vibe</label><select id="ql-active-vibe"><option value="-1">不使用 Vibe</option></select></div><div class="ql-row"><button id="ql-apply-preset" class="menu_button" type="button">应用组合</button><button id="ql-open-preset" class="menu_button" type="button">管理配置</button></div><p class="ql-muted">第一种直接使用已保存的预设组合；第二种分别选择画师串和 Vibe，两项可以独立设置。角色卡默认组合在「配置 → 预设」中管理。</p></div>
 <div class="ql-card"><h3>模型参数</h3><label for="ql-fast-provider">生图后端</label><select id="ql-fast-provider"><option value="novelai">NovelAI 官网</option><option value="novelai-thirdparty">NovelAI 第三方</option></select><div id="ql-fast-openai" hidden><input id="ql-fast-model" value="gpt-image-1"><select id="ql-fast-size"><option value="auto">auto</option><option>1024x1024</option></select><select id="ql-fast-quality"><option>medium</option></select></div><div id="ql-fast-nai" hidden><label>NovelAI 模型</label><select id="ql-fast-nai-model"><option value="nai-diffusion-5-full">V5 Full（5F）</option><option value="nai-diffusion-5-curated">V5 Curated（5C）</option><option value="nai-diffusion-4-5-full">V4.5 Full</option><option value="nai-diffusion-4-5-curated">V4.5 Curated</option><option value="nai-diffusion-4-full">V4 Full</option><option value="nai-diffusion-4-curated">V4 Curated</option><option value="nai-diffusion-3">Anime V3</option><option value="nai-diffusion-furry-3">Furry V3</option></select><div class="ql-row"><div><label>步数</label><input id="ql-fast-nai-steps" type="number" min="1" max="50"></div><div><label>CFG Scale</label><input id="ql-fast-nai-scale" type="number" min="1" max="20" step="0.5"></div></div><div class="ql-row"><div><label>画面尺寸预设</label><select id="ql-fast-nai-size-preset"><option value="832x1216">竖版 · 832 × 1216</option><option value="768x1344">长竖版 · 768 × 1344</option><option value="1024x1024">正方形 · 1024 × 1024</option><option value="1216x832">横版 · 1216 × 832</option><option value="1344x768">宽横版 · 1344 × 768</option></select><input id="ql-fast-nai-width" type="hidden"><input id="ql-fast-nai-height" type="hidden"></div></div><div class="ql-row"><div><label>采样器</label><select id="ql-fast-nai-sampler"><option value="k_euler_ancestral">Euler Ancestral</option><option value="k_euler">Euler</option><option value="k_dpmpp_2s_ancestral">DPM++ 2S Ancestral</option><option value="k_dpmpp_2m">DPM++ 2M</option><option value="k_dpmpp_sde">DPM++ SDE</option><option value="k_dpmpp_2m_sde">DPM++ 2M SDE</option><option value="ddim_v3">DDIM（仅 V3 模型）</option></select></div><div><label>调度器</label><select id="ql-fast-nai-scheduler"><option value="karras">Karras</option><option value="native">Native</option><option value="exponential">Exponential</option><option value="polyexponential">Polyexponential</option></select></div></div><label class="ql-inline-check"><input id="ql-fast-nai-normalize" type="checkbox"> 归一化 Vibe 参考强度</label><p class="ql-muted">开启后会自动归一化 V4/V4.5 多条 Vibe 的强度；关闭则按每条参考的原始强度发送。</p></div><p id="ql-status" class="ql-muted" role="status"></p></div>
 </div>
@@ -1922,12 +1922,14 @@ function history(){
   const createdAt=new Date(r.at||Date.now());
   const promptSource=String(r.prompt||r.basePrompt||'');
   const artistPositive=String(preset?.positive||'').trim();
-  const promptText=artistPositive&&promptSource.includes(artistPositive)
+  // 「画面提示词」= 用户原本写的画面提示词（不含画师串、不含自动注入的角色外貌）；没有保存原文的旧记录才回退到剥离画师串。
+  const promptText=String(r.basePrompt||'').trim()||(artistPositive&&promptSource.includes(artistPositive)
    ?promptSource.split(artistPositive).join(' ').replace(/(?:\s*[,，、]\s*){2,}/g,', ').replace(/^[\s,，、]+|[\s,，、]+$/g,'').trim()
-   :promptSource;
+   :promptSource);
   const promptWords=promptText.split(/[,，\\n]+/).map(x=>x.trim()).filter(Boolean).length;
   const vibeCount=Array.isArray(vibe?.entries)?vibe.entries.length:0;
-  content.innerHTML='<div class="ql-cache-detail-hero"><div class="ql-cache-detail-image-wrap"><img class="ql-cache-large" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></div><div class="ql-cache-detail-heading"><span class="ql-cache-eyebrow">IMAGE ARCHIVE · 拾帧缓存</span><h3>生成记录</h3><p>'+esc(createdAt.toLocaleString())+'</p><div class="ql-cache-badges"><span>'+esc(r.provider||'未知后端')+'</span><span>'+esc(r.model||meta.model||'未知模型')+'</span><span>'+esc(r.size||meta.size||'尺寸未知')+'</span></div></div></div><div class="ql-cache-stat-grid"><div class="ql-cache-stat"><span>提示词条目</span><strong>'+promptWords+'</strong></div><div class="ql-cache-stat"><span>Vibe 参考</span><strong>'+vibeCount+'</strong></div><div class="ql-cache-stat"><span>画师串</span><strong>'+esc(preset?.name||'未使用')+'</strong></div></div><section class="ql-cache-prompt-section"><div class="ql-cache-section-title"><div><span class="ql-cache-eyebrow">PROMPT</span><h4>画面提示词</h4></div><button type="button" class="ql-cache-copy-icon ql-cache-copy-pill" data-copy-positive aria-label="复制画面提示词" title="复制画面提示词"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="8" width="11" height="13" rx="2"></rect><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"></path></svg></button></div><div class="ql-cache-prompt-box"><pre>'+esc(promptText||'此记录没有保存正向提示词')+'</pre></div></section><div class="ql-cache-detail-actions"><button type="button" class="menu_button ql-cache-action-primary" data-modal-load>载入提示词</button><button type="button" class="menu_button" data-modal-save>保存图片</button></div><div class="ql-cache-accordions"><details><summary><span>画师串预设</span><small>'+esc(preset?.name||'未使用')+'</small></summary><div class="ql-cache-accordion-body"><label>预设正文</label><pre>'+esc(preset?.positive||'未记录')+'</pre><label>预设负向词</label><pre>'+esc(preset?.negative||'未记录')+'</pre></div></details><details><summary><span>负向提示词</span><small>NEGATIVE PROMPT</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(r.negative||meta.negative||'未记录')+'</pre></div></details><details><summary><span>Vibe 参考</span><small>'+vibeCount+' 条参考</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(vibe?JSON.stringify(vibe,null,2):'未使用 Vibe')+'</pre></div></details><details><summary><span>完整生成参数</span><small>ADVANCED</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(JSON.stringify(meta,null,2))+'</pre></div></details></div>';
+  content.innerHTML='<div class="ql-cache-detail-hero"><div class="ql-cache-detail-image-wrap"><img class="ql-cache-large" src="'+esc(r.dataUrl||'')+'" alt="生成结果"></div><div class="ql-cache-detail-heading"><span class="ql-cache-eyebrow">IMAGE ARCHIVE · 拾帧缓存</span><h3>生成记录</h3><p>'+esc(createdAt.toLocaleString())+'</p><div class="ql-cache-badges"><span>'+esc(r.provider||'未知后端')+'</span><span>'+esc(r.model||meta.model||'未知模型')+'</span><span>'+esc(r.size||meta.size||'尺寸未知')+'</span></div></div></div><div class="ql-cache-stat-grid"><div class="ql-cache-stat"><span>提示词条目</span><strong>'+promptWords+'</strong></div><div class="ql-cache-stat"><span>Vibe 参考</span><strong>'+vibeCount+'</strong></div><div class="ql-cache-stat"><span>画师串</span><strong>'+esc(preset?.name||'未使用')+'</strong></div></div><section class="ql-cache-prompt-section"><div class="ql-cache-section-title"><div><span class="ql-cache-eyebrow">PROMPT</span><h4>画面提示词</h4></div><button type="button" class="ql-cache-copy-icon ql-cache-copy-pill" data-copy-positive aria-label="复制画面提示词" title="复制画面提示词"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8" y="8" width="11" height="13" rx="2"></rect><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"></path></svg></button></div><div class="ql-cache-prompt-box"><pre>'+esc(promptText||'此记录没有保存正向提示词')+'</pre></div></section><div class="ql-cache-detail-actions"><button type="button" class="menu_button ql-cache-action-primary" data-modal-load>载入提示词</button><button type="button" class="menu_button" data-modal-save>保存图片</button></div><div class="ql-cache-accordions"><details><summary><span>最终提交给 NAI 的完整提示词</span><small>FINAL PROMPT</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(promptSource||'未记录')+'</pre><button type="button" class="menu_button" data-copy-final>复制完整提示词</button></div></details><details><summary><span>画师串预设</span><small>'+esc(preset?.name||'未使用')+'</small></summary><div class="ql-cache-accordion-body"><label>预设正文</label><pre>'+esc(preset?.positive||'未记录')+'</pre><label>预设负向词</label><pre>'+esc(preset?.negative||'未记录')+'</pre></div></details><details><summary><span>负向提示词</span><small>NEGATIVE PROMPT</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(r.negative||meta.negative||'未记录')+'</pre></div></details><details><summary><span>Vibe 参考</span><small>'+vibeCount+' 条参考</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(vibe?JSON.stringify(vibe,null,2):'未使用 Vibe')+'</pre></div></details><details><summary><span>完整生成参数</span><small>ADVANCED</small></summary><div class="ql-cache-accordion-body"><pre>'+esc(JSON.stringify(meta,null,2))+'</pre></div></details></div>';
+  content.querySelector('[data-copy-final]')?.addEventListener('click',async()=>{try{if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(promptSource);else{const area=document.createElement('textarea');area.value=promptSource;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();document.execCommand('copy');area.remove();}status('已复制最终提交的完整提示词。');}catch{status('复制失败：请长按文本手动复制。');}});
   content.querySelector('[data-copy-positive]').onclick=async()=>{const value=promptText;try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);}else{const area=document.createElement('textarea');area.value=value;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw new Error('浏览器未允许复制');}const button=content.querySelector('[data-copy-positive]');button.classList.add('is-copied');button.setAttribute('title','已复制');button.setAttribute('aria-label','已复制正向提示词');status('已复制画面提示词。');setTimeout(()=>{button.classList.remove('is-copied');button.setAttribute('title','复制画面提示词');button.setAttribute('aria-label','复制画面提示词');},1300);}catch(error){status('复制失败：请长按画面提示词文本手动复制。');}};
   const detailImage=content.querySelector('.ql-cache-large');if(detailImage){detailImage.title='点击放大查看原图';detailImage.style.cursor='zoom-in';detailImage.addEventListener('click',()=>openViewfinderImage(r.dataUrl||detailImage.currentSrc||detailImage.src));}
   content.querySelector('[data-modal-load]').onclick=()=>{$('#ql-prompt').value=promptText;read();modal.hidden=true;modal.style.display='';status('基础提示词已载入；记录中的画师串不会自动切换，请确认当前画师串后再生成。');};
@@ -2059,13 +2061,113 @@ function history(){
  // 每次刷新缓存时同步刷新独立的角色相册页；此前只有缓存页内的子标签点击才会渲染相册。
  renderAlbums();
 }
+// ============ 取景区：多角色识别与提示词拼装 ============
+// 提示词里的角色标记（boy A / girl B / character A / char1）和数量标签（1girl / 2girls / 1boy…）会被识别成独立的外貌栏位。
+// 无法确认身份时不猜；改动提示词后重新识别，已填写的外貌按标记 key 保留（标记消失时暂存，标记回来自动恢复）。
+const QL_QUALITY_RE=/^(?:masterpiece|best quality|high quality|good quality|amazing quality|very aesthetic|aesthetic|absurdres|highres|incredibly absurdres|ultra[- ]detailed|extremely detailed|newest|recent|8k|4k)$/i;
+const QL_COUNT_RE=/^(\d{1,2})\s*(girl|boy|other)s?$/i;
+const QL_MARKER_RE=/^(girl|boy|other|character|char|man|woman)[\s_#-]*([a-z]|\d{1,2})$/i;
+function qlSplitTags(text){
+ const tags=[];let cur='',depth=0;
+ for(const ch of String(text||'')){
+  if('([{'.includes(ch))depth++;else if(')]}'.includes(ch))depth=Math.max(0,depth-1);
+  if((ch===','||ch==='，'||ch==='\n')&&depth===0){if(cur.trim())tags.push(cur.trim());cur='';continue;}
+  cur+=ch;
+ }
+ if(cur.trim())tags.push(cur.trim());
+ return tags;
+}
+function qlTagCore(tag){return String(tag||'').replace(/^[\s{}\[\]()]+|[\s{}\[\]()]+$/g,'').replace(/^-?\d*\.?\d+::|::$/g,'').trim();}
+function qlClassifyPrompt(prompt){
+ const result={quality:[],counts:[],markers:[],rest:[]};
+ for(const tag of qlSplitTags(prompt)){
+  const core=qlTagCore(tag);
+  let m;
+  if(QL_QUALITY_RE.test(core))result.quality.push(tag);
+  else if((m=core.match(QL_COUNT_RE)))result.counts.push({tag,n:Math.min(6,Number(m[1])||1),type:m[2].toLowerCase()});
+  else if((m=core.match(QL_MARKER_RE))){
+   const type=m[1].toLowerCase(),idx=m[2].toLowerCase();
+   result.markers.push({tag,key:type+idx,label:core});
+  }
+  else result.rest.push(tag);
+ }
+ return result;
+}
+// 从提示词得到角色栏位：有明确标记就按标记；否则按数量标签拆分（2girls → 女孩1、女孩2）。
+function qlDetectRoleSlots(prompt){
+ const parsed=qlClassifyPrompt(prompt),slots=[],seen=new Set();
+ for(const marker of parsed.markers){if(seen.has(marker.key))continue;seen.add(marker.key);slots.push({key:marker.key,label:marker.label,kind:'marker',tag:marker.tag});}
+ if(!slots.length){
+  const counter={};
+  for(const count of parsed.counts){
+   for(let i=0;i<count.n&&slots.length<6;i++){
+    counter[count.type]=(counter[count.type]||0)+1;
+    const n=counter[count.type];
+    slots.push({key:count.type+'#'+n,label:({girl:'女孩',boy:'男孩',other:'角色'})[count.type]+' '+n,kind:'count'});
+   }
+  }
+ }
+ return slots;
+}
+function qlReconcileRoles(prompt){
+ const s=cfg();
+ const detected=qlDetectRoleSlots(prompt);
+ const old=Array.isArray(s.viewfinderRoles)?s.viewfinderRoles:[];
+ const stash=s.viewfinderRoleStash&&typeof s.viewfinderRoleStash==='object'?s.viewfinderRoleStash:(s.viewfinderRoleStash={});
+ const byKey=new Map(old.filter(r=>r&&r.key).map(r=>[r.key,r]));
+ for(const [key,role] of byKey){
+  if(!detected.some(d=>d.key===key)&&String(role.appearance||'').trim())stash[key]={appearance:role.appearance,libraryIndex:role.libraryIndex??-1};
+ }
+ const auto=detected.map(slot=>{
+  const prev=byKey.get(slot.key)||(stash[slot.key]?{key:slot.key,...stash[slot.key]}:null)||{appearance:'',libraryIndex:-1};
+  delete stash[slot.key];
+  return {appearance:String(prev.appearance||''),libraryIndex:Number.isInteger(Number(prev.libraryIndex))?Number(prev.libraryIndex):-1,key:slot.key,label:slot.label,kind:slot.kind,auto:true};
+ });
+ let manual=old.filter(r=>r&&!r.key);
+ const isBlank=r=>!String(r.appearance||'').trim()&&Number(r.libraryIndex??-1)<0;
+ if(auto.length)manual=manual.filter(r=>r.userAdded||!isBlank(r));
+ else while(manual.length<2)manual.push({appearance:'',libraryIndex:-1});
+ const next=[...auto,...manual];
+ const same=next.length===old.length&&next.every((r,i)=>r===old[i]||(old[i]&&r.key===old[i].key&&r.appearance===old[i].appearance&&r.label===old[i].label&&!!r.auto===!!old[i].auto));
+ if(!same){s.viewfinderRoles=next;save();}
+ return s.viewfinderRoles;
+}
+// NAI 正向提示词顺序：画师串 → 质量词 → 角色数量/身份标记 → 对应外貌（紧跟标记）→ 动作/互动 → 场景/环境/光影。
+// 原始提示词文本不被改写，只在拼装时重排并插入外貌。
+function qlComposeViewfinderPrompt(artistPositive,prompt,roles){
+ const parsed=qlClassifyPrompt(prompt);
+ const list=(Array.isArray(roles)?roles:[]);
+ const appearanceOf=role=>String(role?.appearance||'').trim();
+ const autoByKey=new Map(list.filter(r=>r&&r.key).map(r=>[r.key,r]));
+ const out=[String(artistPositive||'').trim(),...parsed.quality,...parsed.counts.map(c=>c.tag)];
+ const usedKeys=new Set();
+ for(const marker of parsed.markers){
+  out.push(marker.tag);
+  if(usedKeys.has(marker.key))continue;usedKeys.add(marker.key);
+  const role=autoByKey.get(marker.key);if(role&&appearanceOf(role))out.push(appearanceOf(role));
+ }
+ // 数量标签拆出来的栏位（没有明确标记）：外貌按栏位顺序紧跟在数量标签之后。
+ for(const role of list){if(role?.key&&!usedKeys.has(role.key)&&role.kind==='count'&&appearanceOf(role))out.push(appearanceOf(role));}
+ // 手动栏位：没有绑定标记，跟在身份信息之后。
+ for(const role of list){if(role&&!role.key&&appearanceOf(role))out.push(appearanceOf(role));}
+ out.push(...parsed.rest);
+ return out.filter(Boolean).join(', ');
+}
+function qlUpdateFinalPreview(){
+ const node=$('#ql-final-prompt-text');if(!node)return;
+ const s=cfg(),preset=Number(s.activePresetIndex??-1)>=0?s.presets[Number(s.activePresetIndex)]:null;
+ const prompt=String($('#ql-prompt')?.value||s.prompt||'').trim();
+ node.textContent=qlComposeViewfinderPrompt(preset?.positive,prompt,s.viewfinderRoles)||'（还没有提示词）';
+}
 function renderViewfinderRoles(){
  const host=$('#ql-viewfinder-roles');if(!host)return;
- const s=cfg(),roles=Array.isArray(s.viewfinderRoles)?s.viewfinderRoles:[];
+ const s=cfg();
+ qlReconcileRoles($('#ql-prompt')?$('#ql-prompt').value:'');
+ const roles=Array.isArray(s.viewfinderRoles)?s.viewfinderRoles:[];
  const entries=(s.characters||[]).map((item,index)=>({item,index})).filter(({item})=>item&&typeof item==='object');
  host.innerHTML=roles.map((role,index)=>{
   const selected=Number(role.libraryIndex??-1);
-  return '<div class="ql-viewfinder-role" data-viewfinder-role="'+index+'"><div class="ql-viewfinder-role-head"><strong>角色 '+(index+1)+'</strong>'+(roles.length>2?'<button type="button" class="menu_button" data-role-remove="'+index+'" aria-label="移除角色 '+(index+1)+'">移除</button>':'')+'</div><label for="ql-role-library-'+index+'">从角色词库导入</label><select id="ql-role-library-'+index+'" data-role-library="'+index+'"><option value="-1">手动输入 / 不使用词条</option>'+entries.map(({item,index:entryIndex})=>'<option value="'+entryIndex+'" '+(selected===entryIndex?'selected':'')+'>'+esc(item.name||item.characterName||('角色词条 '+(entryIndex+1)))+'</option>').join('')+'</select><label for="ql-role-appearance-'+index+'">角色外貌提示词</label><textarea id="ql-role-appearance-'+index+'" data-role-appearance="'+index+'" placeholder="输入这个角色的外貌词，例如发色、眼睛、服装、特征等">'+esc(role.appearance||'')+'</textarea></div>';
+  return '<div class="ql-viewfinder-role" data-viewfinder-role="'+index+'"><div class="ql-viewfinder-role-head"><strong>'+(role.auto?esc(role.label||('角色 '+(index+1)))+' <span class="ql-role-badge">已识别</span>':'角色 '+(index+1)+' <span class="ql-role-badge is-manual">手动</span>')+'</strong><span class="ql-role-head-actions"><button type="button" class="menu_button" data-role-clear="'+index+'" aria-label="清空外貌">清空</button>'+(!role.auto&&roles.filter(item=>!item.auto).length>(roles.some(item=>item.auto)?0:2)?'<button type="button" class="menu_button" data-role-remove="'+index+'" aria-label="移除角色 '+(index+1)+'">移除</button>':'')+'</span></div><label for="ql-role-library-'+index+'">从角色词库导入</label><select id="ql-role-library-'+index+'" data-role-library="'+index+'"><option value="-1">手动输入 / 不使用词条</option>'+entries.map(({item,index:entryIndex})=>'<option value="'+entryIndex+'" '+(selected===entryIndex?'selected':'')+'>'+esc(item.name||item.characterName||('角色词条 '+(entryIndex+1)))+'</option>').join('')+'</select><label for="ql-role-appearance-'+index+'">角色外貌提示词</label><textarea id="ql-role-appearance-'+index+'" data-role-appearance="'+index+'" placeholder="输入这个角色的外貌词，例如发色、眼睛、服装、特征等">'+esc(role.appearance||'')+'</textarea></div>';
  }).join('');
  host.querySelectorAll('[data-role-library]').forEach(select=>select.addEventListener('change',()=>{
   const i=Number(select.dataset.roleLibrary),role=s.viewfinderRoles[i];if(!role)return;
@@ -2076,12 +2178,14 @@ function renderViewfinderRoles(){
  }));
  host.querySelectorAll('[data-role-appearance]').forEach(textarea=>textarea.addEventListener('input',()=>{
   const role=cfg().viewfinderRoles[Number(textarea.dataset.roleAppearance)];if(!role)return;
-  role.appearance=textarea.value;role.libraryIndex=-1;const select=$('#ql-role-library-'+textarea.dataset.roleAppearance);if(select)select.value='-1';save();
+  role.appearance=textarea.value;role.libraryIndex=-1;const select=$('#ql-role-library-'+textarea.dataset.roleAppearance);if(select)select.value='-1';save();qlUpdateFinalPreview();
  }));
+ host.querySelectorAll('[data-role-clear]').forEach(button=>button.addEventListener('click',()=>{const role=cfg().viewfinderRoles[Number(button.dataset.roleClear)];if(!role)return;role.appearance='';role.libraryIndex=-1;save();renderViewfinderRoles();}));
  host.querySelectorAll('[data-role-remove]').forEach(button=>button.addEventListener('click',()=>{
   const i=Number(button.dataset.roleRemove);if(!Array.isArray(cfg().viewfinderRoles)||!cfg().viewfinderRoles[i])return;
   cfg().viewfinderRoles.splice(i,1);save();renderViewfinderRoles();
  }));
+ qlUpdateFinalPreview();
 }
 function renderLibrary(){
  const s=cfg();
@@ -2642,7 +2746,8 @@ qlRenderStyleOptions();$('#ql-ui-style').onchange=()=>{cfg().uiStyle=$('#ql-ui-s
   }catch(error){csStatus('导入失败：'+(error.message||error));}
  };
 }$('#ql-theme-preset').onchange=()=>{$('#ql-theme-status').textContent='点击“应用配色”后生效，配色仅作用于拾帧。';};
-$('#ql-role-add').onclick=()=>{cfg().viewfinderRoles.push({appearance:'',libraryIndex:-1});save();renderViewfinderRoles();};
+{let timer=null;const refresh=()=>{clearTimeout(timer);timer=setTimeout(()=>renderViewfinderRoles(),350);};let lastPrompt=$('#ql-prompt')?.value;$('#ql-prompt')?.addEventListener('input',()=>{lastPrompt=$('#ql-prompt').value;refresh();});setInterval(()=>{const now=$('#ql-prompt')?.value;if(now!==undefined&&now!==lastPrompt){lastPrompt=now;refresh();}},1000);$('#ql-final-prompt-copy')?.addEventListener('click',async()=>{const text=$('#ql-final-prompt-text')?.textContent||'';try{await navigator.clipboard.writeText(text);status('已复制最终提交的提示词。');}catch{const area=document.createElement('textarea');area.value=text;document.body.append(area);area.select();document.execCommand('copy');area.remove();status('已复制最终提交的提示词。');}});}
+$('#ql-role-add').onclick=()=>{cfg().viewfinderRoles.push({appearance:'',libraryIndex:-1,userAdded:true});save();renderViewfinderRoles();};
 $('#ql-generate').onclick=async()=>{
  if(cfg().enabled===false){status('拾帧已停用；请先在偏好设置中重新启用插件。');return;}
  if(busy)return;
@@ -2654,7 +2759,7 @@ $('#ql-generate').onclick=async()=>{
  if(conf.provider==='novelai'&&!conf.naiApiKey){status('请在接口设置中填写 NovelAI 官网 Key。');return;}if(conf.provider==='novelai-thirdparty'&&(!conf.naiThirdEndpoint||!conf.naiThirdKey)){status('请填写 NAI 第三方接口地址和 Key。');return;}
  busy=true;$('#ql-generate').disabled=true;$('#ql-generate').classList.add('is-generating');{const ind=$('#ql-gen-indicator');if(ind){ind.hidden=false;ind.textContent='正在生图…';}}$('#ql-result').replaceChildren();status('正在请求生图接口……');
  try{
-  const activeIndex=Number(conf.activeVibeIndex??-1);const activeVibe=activeIndex>=0?conf.vibes[activeIndex]:null;const activePresetIndex=Number(conf.activePresetIndex??-1);const activePreset=activePresetIndex>=0?conf.presets[activePresetIndex]:null;const rolePromptParts=(conf.viewfinderRoles||[]).map(role=>String(role?.appearance||'').trim()).filter(Boolean);const finalPrompt=[activePreset?.positive,...rolePromptParts,conf.prompt.trim()].filter(Boolean).join(', ');const baseNegative=String(conf.negative||'').trim(),presetNegative=String(activePreset?.negative||'').trim();const finalNegative=[baseNegative,...(presetNegative&&presetNegative!==baseNegative?[presetNegative]:[])].filter(Boolean).join(', ');if(!finalPrompt.trim()){status('请填写正向提示词，或选择包含正向提示词的预设。');return;}const normalizePromptEntry=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();const normalizedBasePrompt=normalizePromptEntry(conf.prompt);const selectedPrompt=conf.viewfinderPromptUnlinked?null:(conf.prompts||[]).find(item=>item&&item.id&&item.id===conf.activePromptEntryId);const matchedPrompt=conf.viewfinderPromptUnlinked?null:(normalizedBasePrompt?(conf.prompts||[]).find(item=>item&&normalizePromptEntry(item.promptEn||item.prompt||'')===normalizedBasePrompt):null);const promptEntryId=selectedPrompt?.id||matchedPrompt?.id||null;const url=await requestImage(finalPrompt,finalNegative,activeVibe);const storedUrl=await persistImageToTavern(url,'manual-'+Date.now());
+  const activeIndex=Number(conf.activeVibeIndex??-1);const activeVibe=activeIndex>=0?conf.vibes[activeIndex]:null;const activePresetIndex=Number(conf.activePresetIndex??-1);const activePreset=activePresetIndex>=0?conf.presets[activePresetIndex]:null;qlReconcileRoles(conf.prompt);const finalPrompt=qlComposeViewfinderPrompt(activePreset?.positive,conf.prompt.trim(),conf.viewfinderRoles);const baseNegative=String(conf.negative||'').trim(),presetNegative=String(activePreset?.negative||'').trim();const finalNegative=[baseNegative,...(presetNegative&&presetNegative!==baseNegative?[presetNegative]:[])].filter(Boolean).join(', ');if(!finalPrompt.trim()){status('请填写正向提示词，或选择包含正向提示词的预设。');return;}const normalizePromptEntry=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();const normalizedBasePrompt=normalizePromptEntry(conf.prompt);const selectedPrompt=conf.viewfinderPromptUnlinked?null:(conf.prompts||[]).find(item=>item&&item.id&&item.id===conf.activePromptEntryId);const matchedPrompt=conf.viewfinderPromptUnlinked?null:(normalizedBasePrompt?(conf.prompts||[]).find(item=>item&&normalizePromptEntry(item.promptEn||item.prompt||'')===normalizedBasePrompt):null);const promptEntryId=selectedPrompt?.id||matchedPrompt?.id||null;const url=await requestImage(finalPrompt,finalNegative,activeVibe);const storedUrl=await persistImageToTavern(url,'manual-'+Date.now());
   const img=document.createElement('img');img.alt='拾帧生成结果';img.dataset.qlStoredSrc=storedUrl;img.src=url;$('#ql-result').append(img);
   conf.records.unshift({at:Date.now(),source:'viewfinder',collection:'cache',prompt:finalPrompt,basePrompt:conf.prompt.trim(),negative:finalNegative,provider:conf.provider,model:conf.provider!=='openai'?conf.naiModel:conf.model,size:conf.provider!=='openai'?(conf.naiWidth+'x'+conf.naiHeight):conf.size,quality:conf.quality,dataUrl:storedUrl,preset:activePreset?{name:activePreset.name||'',positive:activePreset.positive||'',negative:activePreset.negative||'',index:activePresetIndex,source:activePreset.source||'local'}:null,vibe:activeVibe?{name:activeVibe.name||'',entries:(activeVibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,config:snapshotConfig(finalPrompt,finalNegative),
    // 由提示词库应用的提示词生成的图，默认先进「底片」；只有点收藏才归入对应的提示词图集（见 toggleViewfinderFavorite）。

@@ -4917,3 +4917,12 @@ html[data-ql-style="pixel"] :is(.ql-detail-choice-overlay,[data-ql-download-shee
 .ql-qdialog-panel .ql-qdialog-actions.is-single{grid-template-columns:1fr!important}
 .ql-detail-choice-overlay.ql-qdialog .ql-qdialog-actions button{width:100%!important;min-width:0!important;min-height:40px!important;justify-content:center}
 .ql-qdialog-panel .ql-qdialog-actions .ql-primary{background:var(--ql-accent,#6c8aa6)!important;color:#fff!important;border-color:var(--ql-accent,#6c8aa6)!important}
+
+/* 取景区角色外貌：识别标记与最终提示词预览 */
+#shizhen-panel .ql-role-badge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:600;background:color-mix(in srgb,var(--ql-accent,#6c8aa6) 22%,transparent);color:var(--ql-text,inherit)}
+#shizhen-panel .ql-role-badge.is-manual{background:color-mix(in srgb,var(--ql-muted,#888) 18%,transparent)}
+#shizhen-panel .ql-viewfinder-role-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#shizhen-panel .ql-role-head-actions{display:inline-flex;gap:6px}
+#shizhen-panel .ql-final-preview{margin-top:10px;padding:8px 10px;border:1px solid var(--ql-border,rgba(127,127,127,.35));border-radius:8px}
+#shizhen-panel .ql-final-preview summary{cursor:pointer;font-weight:600}
+#shizhen-panel .ql-final-preview pre{margin:8px 0;padding:8px;max-height:200px;overflow:auto;white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;border-radius:6px;background:var(--ql-field,rgba(127,127,127,.1));color:var(--ql-text,inherit)}
