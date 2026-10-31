@@ -4539,26 +4539,29 @@ html > .ql-album-menu-portal .ql-album-more-menu-panel button:active{
  min-height:42px!important;
 }
 
-/* Album actions dialog should remain a solid white sheet regardless of the selected palette. */
+/* 相册操作弹窗：跟随当前主题（变量由 qlSyncPopupTheme 同步到这个外挂弹窗上）。 */
 html > .ql-album-menu-portal .ql-album-more-menu-panel{
- background:#fff!important;
- color:#30343b!important;
- border-color:#e4e7eb!important;
+ background:var(--ql-panel,#fff)!important;
+ color:var(--ql-text,#30343b)!important;
+ border-color:var(--ql-border,#e4e7eb)!important;
 }
 html > .ql-album-menu-portal .ql-album-more-menu-title{
- color:#30343b!important;
- border-bottom-color:#e4e7eb!important;
+ color:var(--ql-text,#30343b)!important;
+ border-bottom-color:var(--ql-border,#e4e7eb)!important;
 }
 html > .ql-album-menu-portal .ql-album-more-menu-title:before{
- background:#a7b8c9!important;
+ background:var(--ql-accent,#a7b8c9)!important;
 }
 html > .ql-album-menu-portal .ql-album-more-menu-panel>button{
- color:#30343b!important;
- background:#f7f8fa!important;
- border-color:#e1e5ea!important;
+ color:var(--ql-button-text,var(--ql-text,#30343b))!important;
+ background:var(--ql-button-bg,#f7f8fa)!important;
+ border-color:var(--ql-button-border,var(--ql-border,#e1e5ea))!important;
 }
 html > .ql-album-menu-portal .ql-album-more-menu-panel>button:hover{
- background:#edf1f5!important;
+ background:var(--ql-button-hover,#edf1f5)!important;
+}
+html > .ql-album-menu-portal .ql-album-more-menu-panel>button:active{
+ background:var(--ql-button-active,#e3e8ee)!important;
 }
 
 
@@ -4903,3 +4906,14 @@ html[data-ql-style="pixel"] :is(.ql-detail-choice-overlay,[data-ql-download-shee
 .ql-detail-choice-overlay.ql-album-move-overlay>.ql-album-move-panel>.ql-album-move-actions{flex:0 0 auto;display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin-top:12px;padding-top:0}
 .ql-detail-choice-overlay.ql-album-move-overlay .ql-album-move-actions button{width:100%!important;min-width:0!important;justify-content:center}
 #shizhen-panel .ql-album-move-panel .ql-album-move-row input[type=radio]{-webkit-appearance:radio!important;appearance:radio!important;width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;max-width:18px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:none!important;box-shadow:none!important;flex:0 0 18px!important}
+
+/* 自绘确认 / 输入弹窗（替代浏览器自带 confirm / prompt / alert） */
+.ql-qdialog{position:fixed!important;inset:0!important;z-index:2147483600!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:18px!important;background:rgba(0,0,0,.5)!important}
+.ql-qdialog>.ql-qdialog-panel{box-sizing:border-box!important;width:min(100%,340px)!important;padding:18px 16px 14px!important;border:1px solid var(--ql-border,var(--SmartThemeBorderColor,#ccc))!important;border-radius:14px!important;background:var(--ql-panel,var(--SmartThemeBlurTintColor,#fff))!important;color:var(--ql-text,var(--SmartThemeBodyColor,#333))!important;box-shadow:0 12px 40px rgba(0,0,0,.35)!important}
+.ql-qdialog-panel h3{margin:0 0 8px!important;font-size:16px}
+.ql-qdialog-panel .ql-qdialog-message{margin:0 0 12px!important;font-size:14px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.ql-qdialog-panel .ql-qdialog-input{box-sizing:border-box;width:100%!important;min-height:40px;padding:8px 10px;margin:0 0 12px;border:1px solid var(--ql-border,#ccc)!important;border-radius:8px;background:var(--ql-field,var(--ql-card,#fff))!important;color:var(--ql-text,inherit)!important;font-size:15px}
+.ql-qdialog-panel .ql-qdialog-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important}
+.ql-qdialog-panel .ql-qdialog-actions.is-single{grid-template-columns:1fr!important}
+.ql-detail-choice-overlay.ql-qdialog .ql-qdialog-actions button{width:100%!important;min-width:0!important;min-height:40px!important;justify-content:center}
+.ql-qdialog-panel .ql-qdialog-actions .ql-primary{background:var(--ql-accent,#6c8aa6)!important;color:#fff!important;border-color:var(--ql-accent,#6c8aa6)!important}
