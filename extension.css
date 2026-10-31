@@ -4968,3 +4968,17 @@ dialog.ql-statusbar-tag-dialog textarea{min-height:104px;resize:vertical;margin:
 #shizhen-panel .ql-vthumb.big{width:128px;height:128px;flex-basis:128px;margin:8px 0}
 #shizhen-panel [data-vsub-panel] input[type=range]{width:100%}
 @media(max-width:520px){#shizhen-panel .ql-vcard,#shizhen-panel .ql-vref{flex-wrap:wrap}#shizhen-panel .ql-vcard-actions{flex-direction:row;width:100%}#shizhen-panel .ql-vcard-actions button{flex:1}}
+
+/* ===== 拾帧工坊 ===== */
+#shizhen-panel .ql-ws-sources{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;max-height:210px;overflow:auto;margin:6px 0}
+#shizhen-panel .ql-ws-src{padding:0;border:2px solid var(--ql-border);border-radius:8px;overflow:hidden;background:var(--ql-field);aspect-ratio:1;cursor:pointer}
+#shizhen-panel .ql-ws-src img{width:100%;height:100%;object-fit:cover;display:block}
+#shizhen-panel .ql-ws-src.is-selected{border-color:var(--ql-accent)}
+#shizhen-panel .ql-ws-canvas-wrap{position:relative;width:100%;max-width:520px;margin:0 auto;border:1px solid var(--ql-border);border-radius:10px;overflow:hidden;background:var(--ql-field)}
+#shizhen-panel .ql-ws-canvas-wrap canvas{display:block;width:100%;height:auto}
+#shizhen-panel .ql-ws-canvas-wrap #ql-ws-mask{position:absolute;inset:0;height:100%;opacity:.55;touch-action:none;cursor:crosshair}
+#shizhen-panel .ql-ws-tools{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+#shizhen-panel .ql-ws-tools .menu_button.is-selected{background:var(--ql-accent)!important;border-color:var(--ql-accent)!important;color:var(--ql-button-text,#fff)!important}
+#shizhen-panel .ql-ws-tools .menu_button:disabled{opacity:.45}
+#shizhen-panel #ql-ws-result img{display:block;max-width:100%;margin:10px auto;border-radius:10px}
+#shizhen-panel .ql-ws-check{display:flex;align-items:center;gap:8px;margin-top:10px}
