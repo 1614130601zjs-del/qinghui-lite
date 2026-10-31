@@ -4982,3 +4982,7 @@ dialog.ql-statusbar-tag-dialog textarea{min-height:104px;resize:vertical;margin:
 #shizhen-panel .ql-ws-tools .menu_button:disabled{opacity:.45}
 #shizhen-panel #ql-ws-result img{display:block;max-width:100%;margin:10px auto;border-radius:10px}
 #shizhen-panel .ql-ws-check{display:flex;align-items:center;gap:8px;margin-top:10px}
+
+/* 顶部主导航：六个标签等分一行，不再横向滚动（子导航仍可滚动） */
+#shizhen-panel .ql-tabs{display:flex!important;flex-flow:row nowrap!important;overflow:hidden!important;gap:3px!important;padding-left:6px!important;padding-right:6px!important}
+#shizhen-panel .ql-tabs .ql-tab{flex:1 1 0!important;min-width:0!important;padding:8px 2px!important;font-size:clamp(11px,3.4vw,13px)!important;text-align:center;overflow:hidden;text-overflow:clip}
