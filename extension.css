@@ -4926,3 +4926,29 @@ html[data-ql-style="pixel"] :is(.ql-detail-choice-overlay,[data-ql-download-shee
 #shizhen-panel .ql-final-preview{margin-top:10px;padding:8px 10px;border:1px solid var(--ql-border,rgba(127,127,127,.35));border-radius:8px}
 #shizhen-panel .ql-final-preview summary{cursor:pointer;font-weight:600}
 #shizhen-panel .ql-final-preview pre{margin:8px 0;padding:8px;max-height:200px;overflow:auto;white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;border-radius:6px;background:var(--ql-field,rgba(127,127,127,.1));color:var(--ql-text,inherit)}
+
+/* 状态栏「修改 Tag」专属弹窗：视口居中，沿用当前拾帧主题变量 */
+dialog.ql-statusbar-tag-dialog{position:fixed!important;inset:0!important;margin:auto!important;left:0!important;right:0!important;top:0!important;bottom:0!important;width:min(460px,calc(100vw - 28px))!important;max-width:calc(100vw - 28px)!important;max-height:min(84dvh,720px)!important;overflow:auto!important;padding:0!important;box-sizing:border-box!important;background:var(--ql-card,#fff)!important;color:var(--ql-text,#333)!important;border:1px solid var(--ql-border,rgba(120,130,140,.3))!important;border-radius:20px!important;box-shadow:0 18px 60px rgba(0,0,0,.28)!important;font-family:inherit!important}
+dialog.ql-statusbar-tag-dialog::backdrop{background:rgba(25,22,32,.48);backdrop-filter:blur(3px)}
+.ql-statusbar-tag-shell{padding:18px;box-sizing:border-box}
+.ql-statusbar-tag-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 18px;padding:0 0 13px;border-bottom:1px solid var(--ql-border,rgba(120,130,140,.25))}
+.ql-statusbar-tag-title{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:750;letter-spacing:.02em;color:var(--ql-text,inherit)}
+.ql-statusbar-tag-title-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:10px;background:color-mix(in srgb,var(--ql-accent,#9b91bb) 18%,var(--ql-card,#fff));color:var(--ql-accent,#8277a8)}
+.ql-statusbar-tag-close{display:flex;align-items:center;justify-content:center;width:32px;height:32px;min-width:32px;padding:0;border:1px solid var(--ql-border)!important;border-radius:50%;background:var(--ql-field,var(--ql-card))!important;color:var(--ql-text)!important;font-size:23px;line-height:1}
+dialog.ql-statusbar-tag-dialog label{display:block;margin:0 0 13px;color:var(--ql-text);font-size:13px;font-weight:650}
+dialog.ql-statusbar-tag-dialog select,dialog.ql-statusbar-tag-dialog textarea{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:11px 12px;border:1px solid var(--ql-border)!important;border-radius:11px!important;background:var(--ql-field,var(--ql-card))!important;color:var(--ql-text)!important;font:inherit;line-height:1.5;outline-color:var(--ql-accent)}
+dialog.ql-statusbar-tag-dialog textarea{min-height:104px;resize:vertical;margin:5px 0 16px}
+.ql-statusbar-tag-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:13px;border-top:1px solid var(--ql-border)}
+.ql-statusbar-tag-actions button{min-height:42px!important;justify-content:center!important;border:1px solid var(--ql-border)!important;border-radius:12px!important;background:var(--ql-button-bg,color-mix(in srgb,var(--ql-accent) 12%,var(--ql-card)))!important;color:var(--ql-text)!important}
+.ql-statusbar-tag-actions .ql-statusbar-tag-save{background:var(--ql-accent)!important;border-color:var(--ql-accent)!important;color:#fff!important;font-weight:750}
+.ql-statusbar-tag-actions button:active{filter:brightness(.96)}
+dialog.ql-statusbar-tag-dialog[data-ql-style="pixel"]{border-width:4px!important;border-radius:0!important;box-shadow:7px 7px 0 color-mix(in srgb,var(--ql-accent) 45%,#25291d)!important;font-family:"Courier New",ui-monospace,monospace!important}
+dialog.ql-statusbar-tag-dialog[data-ql-style="pixel"] :is(select,textarea,.ql-statusbar-tag-close,.ql-statusbar-tag-actions button){border-radius:0!important;border-width:2px!important}
+dialog.ql-statusbar-tag-dialog[data-ql-style="pixel"] .ql-statusbar-tag-header{border-bottom-style:dashed}
+dialog.ql-statusbar-tag-dialog[data-ql-style="ccd"]{background:linear-gradient(145deg,#383b42,#24262b)!important;color:#e8e4da!important;border-color:#555963!important;border-radius:13px!important;box-shadow:0 0 0 3px #111317,0 18px 42px #0009!important;font-family:"SF Mono",ui-monospace,monospace!important;--ql-text:#e8e4da;--ql-card:#292b30;--ql-field:#202226;--ql-border:#555963;--ql-accent:var(--qs-user-accent,#ff9a45)}
+dialog.ql-statusbar-tag-dialog[data-ql-style="ccd"] .ql-statusbar-tag-title-mark{background:color-mix(in srgb,var(--ql-accent) 24%,#292b30)}
+dialog.ql-statusbar-tag-dialog[data-ql-style="polaroid"]{border-radius:5px!important;background:#fffdfb!important;border-color:#e6bbc2!important;box-shadow:0 12px 34px rgba(140,80,90,.28)!important;font-family:"Kaiti SC","STKaiti","KaiTi",serif!important;--ql-text:#5a4750;--ql-card:#fffdfb;--ql-field:#fff8f6;--ql-border:#e6bbc2;--ql-accent:var(--qs-user-accent,#d9879c)}
+dialog.ql-statusbar-tag-dialog[data-ql-style="polaroid"] .ql-statusbar-tag-header{border-bottom-style:dashed}
+dialog.ql-statusbar-tag-dialog[data-ql-style="scroll"]{border-radius:2px!important;border-color:#b9b196!important;background:#f7f5ec!important;box-shadow:inset 0 0 0 5px #f7f5ec,inset 0 0 0 6px #b9b196,0 12px 30px rgba(50,45,30,.28)!important;font-family:"Songti SC","STSong","Noto Serif CJK SC",serif!important;--ql-text:#262522;--ql-card:#f7f5ec;--ql-field:#fbfaf3;--ql-border:#b9b196;--ql-accent:var(--qs-user-accent,#b5402c)}
+dialog.ql-statusbar-tag-dialog[data-ql-style="scroll"] .ql-statusbar-tag-title-mark{border-radius:2px}
+@media(max-width:520px){.ql-statusbar-tag-shell{padding:16px}.ql-statusbar-tag-title{font-size:17px}dialog.ql-statusbar-tag-dialog{max-height:88dvh!important}}
