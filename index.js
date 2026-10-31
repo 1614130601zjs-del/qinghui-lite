@@ -154,6 +154,19 @@ function mesElementOf(target){
  }
  return null;
 }
+// ===== 正文渲染诊断（仅测试分支）=====
+let qlRenderDiagnosticRows=[];
+let qlGenerationActive=false;
+function qlShowRenderDiagnostic(){
+ const old=document.getElementById('ql-body-render-diagnostic');if(old)old.remove();
+ const panel=document.createElement('div');panel.id='ql-body-render-diagnostic';
+ panel.style.cssText='position:fixed;z-index:2147483647;right:12px;bottom:12px;width:min(390px,calc(100vw - 24px));max-height:55vh;overflow:auto;padding:14px;border:1px solid #9aa4b2;border-radius:12px;background:#fff;color:#202733;box-shadow:0 8px 32px #0004;font:13px/1.55 sans-serif;';
+ const head=document.createElement('div');head.textContent='拾帧正文渲染诊断（测试分支）';head.style.cssText='font-weight:700;margin-bottom:8px';panel.append(head);
+ const close=document.createElement('button');close.textContent='关闭';close.style.cssText='float:right;margin-left:8px';close.onclick=()=>panel.remove();head.append(close);
+ const pre=document.createElement('pre');pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;margin:0';
+ pre.textContent=qlRenderDiagnosticRows.length?qlRenderDiagnosticRows.map(r=>'楼层 '+r.messageIndex+'：原文标记 '+r.raw+' 条；DOM 标记 '+r.dom+' 条；可定位槽位 '+r.slots+' 个；按钮 '+r.buttons+' 个；末尾兜底 '+r.tail+' 个').join('\\n'):'尚未扫描到包含图片标记的助手消息';
+ panel.append(pre);document.body.append(panel);
+}
 // ===== 正文标记渲染 =====
 // 以前只在“单个文本节点”里找 image###…###：标记一旦被 <br>、markdown（<em>/<strong>）或段落拆成多个节点就找不到，
 // 原文留着，扫描又把按钮 append 到消息最底部——这就是“底部又出现按钮 / 一条消息里重复好几套”的来源。
@@ -1172,12 +1185,12 @@ async function processLatestAssistantMessage(){
   if(!host)continue;
   // 正在编辑的消息跳过（见 isHostBeingEdited），等编辑结束（保存/取消会触发 DOM 变动）再由下一轮扫描补回按钮。
   if(isHostBeingEdited(host))continue;
-  const entries=found.map((marker,markerOrdinal)=>{
+  const logicalBefore=qlCollectLogicalText(host).text;\n  const domMarkerCount=(logicalBefore.match(new RegExp(QL_MARKER_SRC,'g'))||[]).length;\n  const slotsBefore=qlFindMarkerSlots(host).length;\n  const entries=found.map((marker,markerOrdinal)=>{
    const taskKey=makeTriggerId({chatId:context.chatId||'chat',messageId:String(messageIndex)+':'+String(message.swipe_id??0),markerIndex:markerOrdinal});
    return {...marker,taskKey,messageIndex,markerOrdinal,markerKey:messageIndex+':'+markerOrdinal};
   });
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
-  const coveredByOthers=qlRenderMarkers(host,entries);
+  const coveredByOthers=qlRenderMarkers(host,entries);\n  qlRenderDiagnosticRows=qlRenderDiagnosticRows.filter(row=>row.messageIndex!==messageIndex);\n  qlRenderDiagnosticRows.push({messageIndex,raw:found.length,dom:domMarkerCount,slots:slotsBefore,buttons:host.querySelectorAll('.ql-inline-image-trigger').length,tail:0});\n  if(qlRenderDiagnosticRows.length>30)qlRenderDiagnosticRows.shift();
   const stamp=messageStamp(messageIndex);
   // 同一楼层被重新生成（Regenerate）后，DOM 里残留的旧消息图片卡片不属于这条新消息，直接移除。
   if(stamp)host.querySelectorAll('.ql-chat-image').forEach(el=>{if(el.dataset.qlStamp&&el.dataset.qlStamp!==stamp)el.remove();});
@@ -1220,7 +1233,7 @@ async function processLatestAssistantMessage(){
    if(existingByMarker||coveredByOthers.has(entry.markerKey))continue;
    if(host.querySelector('[data-ql-trigger="'+CSS.escape(entry.taskKey)+'"]'))continue;
    // 走到这里说明原文里确实找不到这条标记（例如被别的正则整段隐藏了），才退而求其次贴在消息末尾。
-   host.append(qlMakeInlineButton(entry,entry.prompt));
+   // 测试分支不再把无法定位的按钮追加到正文末尾，避免错位掩盖真实定位问题。
   }
  }
 }
@@ -2918,7 +2931,7 @@ jQuery(()=>{
  observeStatusbarFrames();
  // 扩展启用时先扫描现有聊天；再观察酒馆正文重绘，避免事件时序导致 marker 一直以原文显示。
  let inlineScanTimers=[];
- const scheduleInlineScan=()=>{
+ const scheduleInlineScan=()=>{\n  if(qlGenerationActive)return;
   inlineScanTimers.forEach(timer=>clearTimeout(timer));
   // 刷新酒馆页面时，扩展脚本通常比聊天记录的 DOM 渲染更早就绪：原来只到 1200ms 的兜底窗口，
   // 在聊天较长、设备较慢时可能还没等到消息渲染完就已经用完，导致刷新后没有任何一次扫描真正生效，
@@ -2949,7 +2962,7 @@ jQuery(()=>{
  // CHAT_CHANGED / MESSAGE_EDITED（若该酒馆版本提供）是比 MutationObserver 更明确的信号：
  // 切换聊天、刷新页面后聊天记录加载完成、以及编辑消息保存/取消，都应该直接重新扫描一次正文，
  // 而不是只依赖 DOM 变动去“猜”是否相关，这样可以明显减少“必须先点一下编辑铅笔才会变得可点”的情况。
- for(const name of ['STREAM_TOKEN_RECEIVED','MESSAGE_UPDATED','GENERATION_ENDED','MESSAGE_SWIPED','CHAT_CHANGED','MESSAGE_EDITED']){
+ // 流式输出期间不扫描正文；消息结束后单独等待 DOM 稳定再扫描。\n if(event_types.GENERATION_STARTED)eventSource.on(event_types.GENERATION_STARTED,()=>{\n  qlGenerationActive=true;\n  inlineScanTimers.forEach(timer=>clearTimeout(timer));inlineScanTimers=[];\n });\n if(event_types.GENERATION_ENDED)eventSource.on(event_types.GENERATION_ENDED,()=>{\n  qlGenerationActive=false;\n  setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{\n   processLatestAssistantMessage().catch(e=>console.warn('[拾帧 Lite] 生成结束后正文扫描失败',e));\n   processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 生成结束后状态栏扫描失败',e));\n   qlShowRenderDiagnostic();\n  })),350);\n });\n for(const name of ['MESSAGE_SWIPED','CHAT_CHANGED','MESSAGE_EDITED']){
   const eventName=event_types[name];
   if(eventName)eventSource.on(eventName,scheduleScan);
  }
