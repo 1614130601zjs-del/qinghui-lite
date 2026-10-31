@@ -45,10 +45,20 @@ function cfg(){
  {
   const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
   for(const list of [s.presets,s.vibes]){const seen=new Set();for(const item of list){if(!item||typeof item!=='object')continue;if(!item.id||seen.has(item.id))item.id=uid();seen.add(item.id);}}
+  // 同步规则：下标和 id 谁变了听谁的。
+  //  - 下标自上次同步后被别处改过（用户在取景区/预设区手动切换、删除后调整下标）→ 以下标为准，重写 id；
+  //  - 下标没动但列表变了（新增插到最前、排序）→ 以 id 为准，重算下标。
+  // 以前只认 id，导致手动切换画师串/Vibe 后，下一次 cfg() 又被旧 id 拉回角色卡绑定的那一套。
   const sync=(holder,idxKey,idKey,list)=>{
    if(!holder||typeof holder!=='object')return;
-   if(holder[idKey]){const f=list.findIndex(x=>x&&x.id===holder[idKey]);if(Number(holder[idxKey]??-1)!==f)holder[idxKey]=f;}
-   else{const i=Number(holder[idxKey]??-1);if(i>=0&&list[i])holder[idKey]=list[i].id;}
+   const mark='_ix_'+idxKey,cur=Number(holder[idxKey]??-1),last=holder[mark];
+   if(holder[idKey]&&(last===undefined||cur===last)){
+    const f=list.findIndex(x=>x&&x.id===holder[idKey]);
+    if(cur!==f)holder[idxKey]=f;
+   }else{
+    holder[idKey]=cur>=0&&list[cur]?list[cur].id:'';
+   }
+   holder[mark]=Number(holder[idxKey]??-1);
   };
   for(const combo of s.combinations){sync(combo,'artistIndex','artistId',s.presets);sync(combo,'vibeIndex','vibeId',s.vibes);}
   for(const binding of s.bindings){sync(binding,'presetIndex','presetId',s.presets);sync(binding,'vibeIndex','vibeId',s.vibes);}
