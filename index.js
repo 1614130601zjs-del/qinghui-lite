@@ -154,19 +154,9 @@ function mesElementOf(target){
  }
  return null;
 }
-// ===== 正文渲染诊断（仅测试分支）=====
-let qlRenderDiagnosticRows=[];
 let qlGenerationActive=false;
-function qlShowRenderDiagnostic(){
- const old=document.getElementById('ql-body-render-diagnostic');if(old)old.remove();
- const panel=document.createElement('div');panel.id='ql-body-render-diagnostic';
- panel.style.cssText='position:fixed;z-index:2147483647;right:12px;bottom:12px;width:min(390px,calc(100vw - 24px));max-height:55vh;overflow:auto;padding:14px;border:1px solid #9aa4b2;border-radius:12px;background:#fff;color:#202733;box-shadow:0 8px 32px #0004;font:13px/1.55 sans-serif;';
- const head=document.createElement('div');head.textContent='拾帧正文渲染诊断（测试分支）';head.style.cssText='font-weight:700;margin-bottom:8px';panel.append(head);
- const close=document.createElement('button');close.textContent='关闭';close.style.cssText='float:right;margin-left:8px';close.onclick=()=>panel.remove();head.append(close);
- const pre=document.createElement('pre');pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;margin:0';
- pre.textContent=qlRenderDiagnosticRows.length?qlRenderDiagnosticRows.map(r=>'楼层 '+r.messageIndex+'：原文标记 '+r.raw+' 条；DOM 标记 '+r.dom+' 条；可定位槽位 '+r.slots+' 个；按钮 '+r.buttons+' 个；末尾兜底 '+r.tail+' 个').join('\\n'):'尚未扫描到包含图片标记的助手消息';
- panel.append(pre);document.body.append(panel);
-}
+let qlGenerationTimer=null;
+function qlSetGenerationActive(v){qlGenerationActive=v;clearTimeout(qlGenerationTimer);if(v)qlGenerationTimer=setTimeout(()=>{qlGenerationActive=false;},180000);}
 // ===== 正文标记渲染 =====
 // 以前只在“单个文本节点”里找 image###…###：标记一旦被 <br>、markdown（<em>/<strong>）或段落拆成多个节点就找不到，
 // 原文留着，扫描又把按钮 append 到消息最底部——这就是“底部又出现按钮 / 一条消息里重复好几套”的来源。
@@ -302,11 +292,19 @@ function qlNaiQualitySuffix(model,mode){
  return '';
 }
 function qlNaiAppendQualityTags(prompt,model,mode){
- const base=String(prompt||'').trim(),suffix=qlNaiQualitySuffix(model,mode);
- if(!suffix)return base;
+ // 官网「Add Quality Tags」由服务端在 qualityToggle=true 时自动追加；这里只在 V5 轻量模式（服务端无此档位）手动追加，避免重复注入。
+ const base=String(prompt||'').trim();
+ if(mode!=='light'||!/^nai-diffusion-5-/.test(String(model||'')))return base;
+ const suffix=qlNaiQualitySuffix(model,'light');
  const present=new Set(base.toLowerCase().split(/[,，]/).map(x=>x.trim()));
  const missing=suffix.split(/,\s*/).filter(tag=>!present.has(tag.toLowerCase()));
  return missing.length?[base,missing.join(', ')].filter(Boolean).join(', '):base;
+}
+function qlNaiQualityToggle(model,mode){
+ mode=mode||'standard';
+ if(mode==='off')return false;
+ if(mode==='light'&&/^nai-diffusion-5-/.test(String(model||'')))return false;
+ return true;
 }
 async function requestImage(prompt, negativeOverride, vibeItem=null, naiPromptData=null){
  const queued=qlImageRequestQueue.then(()=>requestImageUnlocked(prompt,negativeOverride,vibeItem,naiPromptData));
@@ -338,7 +336,7 @@ async function requestImageUnlocked(prompt, negativeOverride, vibeItem=null, nai
    n_samples:1,
    seed:Number(c.naiSeed)>=0?Math.min(2147483647,Math.floor(Number(c.naiSeed))):Math.floor(Math.random()*2147483647),
    negative_prompt:negative,
-   qualityToggle:(c.naiQualityMode||'standard')!=='off',
+   qualityToggle:qlNaiQualityToggle(naiModel,c.naiQualityMode),
    dynamic_thresholding:false,
    controlnet_strength:1,
    legacy:false,
@@ -364,13 +362,14 @@ async function requestImageUnlocked(prompt, negativeOverride, vibeItem=null, nai
    parameters.prompt=qlNaiAppendQualityTags(prompt,naiModel,c.naiQualityMode||'standard');
   }else if(isV4){
    parameters.reference_image_multiple_cached=[];
-   parameters.characterPrompts=[];
    const structured= naiPromptData&&Array.isArray(naiPromptData.characters)&&naiPromptData.characters.length>0
     ?naiPromptData:null;
    const baseCaption=qlNaiAppendQualityTags(structured?String(structured.basePrompt||prompt):prompt,naiModel,c.naiQualityMode||'standard');
-   const characterCaptions=structured?structured.characters.map(character=>({char_caption:String(character.prompt||'')})):[];
+   const centerOf=()=>({x:0.5,y:0.5});
+   const characterCaptions=structured?structured.characters.map(character=>({char_caption:String(character.prompt||''),centers:[centerOf()]})):[];
+   parameters.characterPrompts=structured?structured.characters.map(character=>({prompt:String(character.prompt||''),uc:'',center:centerOf(),enabled:true})):[];
    parameters.v4_prompt={caption:{base_caption:baseCaption,char_captions:characterCaptions},use_coords:false,use_order:true};
-   parameters.v4_negative_prompt={caption:{base_caption:negative,char_captions:characterCaptions.map(()=>({char_caption:''}))},legacy_uc:false};
+   parameters.v4_negative_prompt={caption:{base_caption:negative,char_captions:characterCaptions.map(()=>({char_caption:'',centers:[centerOf()]}))},legacy_uc:false};
   }else{
    parameters.prompt=qlNaiAppendQualityTags(prompt,naiModel,c.naiQualityMode||'standard');
   }
@@ -1219,9 +1218,6 @@ async function processLatestAssistantMessage(){
   });
   // 先替换 marker；随后从扩展设置中恢复已生成的图片，避免酒馆编辑/保存消息重建正文时丢图。
   const coveredByOthers=qlRenderMarkers(host,entries);
-  qlRenderDiagnosticRows=qlRenderDiagnosticRows.filter(row=>row.messageIndex!==messageIndex);
-  qlRenderDiagnosticRows.push({messageIndex,raw:found.length,dom:domMarkerCount,slots:slotsBefore,buttons:host.querySelectorAll('.ql-inline-image-trigger').length,tail:0});
-  if(qlRenderDiagnosticRows.length>30)qlRenderDiagnosticRows.shift();
   const stamp=messageStamp(messageIndex);
   // 同一楼层被重新生成（Regenerate）后，DOM 里残留的旧消息图片卡片不属于这条新消息，直接移除。
   if(stamp)host.querySelectorAll('.ql-chat-image').forEach(el=>{if(el.dataset.qlStamp&&el.dataset.qlStamp!==stamp)el.remove();});
@@ -1396,7 +1392,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   const tagActions=doc.createElement('div');tagActions.style.cssText='display:flex;justify-content:flex-end;gap:8px;';
   const tagCancel=doc.createElement('button');tagCancel.type='button';tagCancel.className='menu_button';tagCancel.textContent='取消';
   const tagSave=doc.createElement('button');tagSave.type='button';tagSave.className='menu_button';tagSave.textContent='保存';
-  tagActions.className='ql-statusbar-tag-actions';tagActions.style.cssText='display:flex;flex-direction:row;align-items:stretch;gap:10px;padding-top:13px;border-top:1px solid var(--ql-border);';tagCancel.className='menu_button ql-statusbar-tag-cancel';tagSave.className='menu_button ql-statusbar-tag-save';tagActions.append(tagSave,tagCancel);dialogShell.append(tagPresetLabel,tagSizeLabel,tagTextarea,tagActions);tagDialog.append(dialogShell);
+  tagActions.className='ql-statusbar-tag-actions';tagActions.style.cssText='display:flex;flex-direction:row;align-items:stretch;gap:10px;padding-top:13px;border-top:1px solid var(--ql-border);';tagCancel.className='menu_button ql-statusbar-tag-cancel';tagSave.className='menu_button ql-statusbar-tag-save';tagActions.append(tagCancel,tagSave);dialogShell.append(tagPresetLabel,tagSizeLabel,tagTextarea,tagActions);tagDialog.append(dialogShell);
   const fillStatusbarTagDialog=()=>{const c=cfg();tagPreset.innerHTML='<option value="">跟随角色/全局默认</option><option value="viewfinder">跟随取景区当前配置</option>'+ (c.combinations||[]).map((combo,i)=>'<option value="'+i+'">'+esc(combo?.name||('组合 '+(i+1)))+'</option>').join('');tagPreset.value=String(card.dataset.qlTempCombo??'');if(![...tagPreset.options].some(o=>o.value===tagPreset.value))tagPreset.value='';tagSize.value=String(card.dataset.qlTempSize??'');tagTextarea.value=String(card._qlPrompt||prompt||'');};
   const closeTagDialog=()=>{try{if(tagDialog.open)tagDialog.close();else tagDialog.removeAttribute('open');}catch{tagDialog.removeAttribute('open');}tagDialog.remove();hideControls();};
   dialogClose.addEventListener('click',closeTagDialog);
@@ -3069,17 +3065,17 @@ jQuery(()=>{
  // 而不是只依赖 DOM 变动去“猜”是否相关，这样可以明显减少“必须先点一下编辑铅笔才会变得可点”的情况。
  // 流式输出期间不扫描正文；消息结束后单独等待 DOM 稳定再扫描。
  if(event_types.GENERATION_STARTED)eventSource.on(event_types.GENERATION_STARTED,()=>{
-  qlGenerationActive=true;
+  qlSetGenerationActive(true);
   inlineScanTimers.forEach(timer=>clearTimeout(timer));inlineScanTimers=[];
  });
  if(event_types.GENERATION_ENDED)eventSource.on(event_types.GENERATION_ENDED,()=>{
-  qlGenerationActive=false;
+  qlSetGenerationActive(false);
   setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
    processLatestAssistantMessage().catch(e=>console.warn('[拾帧 Lite] 生成结束后正文扫描失败',e));
    processStatusbarFrames().catch(e=>console.warn('[拾帧 Lite] 生成结束后状态栏扫描失败',e));
-   qlShowRenderDiagnostic();
   })),350);
  });
+ for(const name of ['GENERATION_STOPPED','CHAT_CHANGED']){const en=event_types[name];if(en)eventSource.on(en,()=>qlSetGenerationActive(false));}
  for(const name of ['MESSAGE_SWIPED','CHAT_CHANGED','MESSAGE_EDITED']){
   const eventName=event_types[name];
   if(eventName)eventSource.on(eventName,scheduleScan);
