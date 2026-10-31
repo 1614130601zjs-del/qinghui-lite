@@ -4952,3 +4952,27 @@ dialog.ql-statusbar-tag-dialog[data-ql-style="polaroid"] .ql-statusbar-tag-heade
 dialog.ql-statusbar-tag-dialog[data-ql-style="scroll"]{border-radius:2px!important;border-color:#b9b196!important;background:#f7f5ec!important;box-shadow:inset 0 0 0 5px #f7f5ec,inset 0 0 0 6px #b9b196,0 12px 30px rgba(50,45,30,.28)!important;font-family:"Songti SC","STSong","Noto Serif CJK SC",serif!important;--ql-text:#262522;--ql-card:#f7f5ec;--ql-field:#fbfaf3;--ql-border:#b9b196;--ql-accent:var(--qs-user-accent,#b5402c)}
 dialog.ql-statusbar-tag-dialog[data-ql-style="scroll"] .ql-statusbar-tag-title-mark{border-radius:2px}
 @media(max-width:520px){.ql-statusbar-tag-shell{padding:16px}.ql-statusbar-tag-title{font-size:17px}dialog.ql-statusbar-tag-dialog{max-height:88dvh!important}}
+
+/* 状态栏修改 Tag：直接沿用拾帧其他弹窗的 qp 主题令牌与风格细节 */
+html dialog.ql-statusbar-tag-dialog{background:var(--qp-bg,var(--ql-card,#fff))!important;color:var(--qp-text,var(--ql-text,#333))!important;border:var(--qp-bw,1px) solid var(--qp-line,var(--ql-border,#ccc))!important;border-radius:var(--qp-radius,16px)!important;box-shadow:var(--qp-shadow,0 12px 40px rgba(0,0,0,.28))!important;font-family:var(--qp-font,inherit)!important}
+html dialog.ql-statusbar-tag-dialog::backdrop{background:rgba(20,16,28,.58);backdrop-filter:blur(3px)}
+html dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-shell{padding:18px;box-sizing:border-box}
+html dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 17px;padding:0 0 12px;border-bottom:1px solid var(--qp-line,var(--ql-border))}
+html dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-title{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:750;letter-spacing:.02em;color:inherit}
+html dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-title-mark{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:var(--qp-btn-radius,9px);background:var(--qp-btn-bg,var(--ql-button-bg));color:var(--qp-sig,var(--ql-accent));border:var(--qp-bw,1px) solid var(--qp-line,var(--ql-border))}
+html dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-close{display:flex;align-items:center;justify-content:center;width:32px;height:32px;min-width:32px;padding:0;border:var(--qp-bw,1px) solid var(--qp-line,var(--ql-border))!important;border-radius:var(--qp-btn-radius,50%)!important;background:var(--qp-btn-bg,var(--ql-button-bg))!important;color:var(--qp-text,var(--ql-text))!important;font-size:23px;line-height:1}
+html dialog.ql-statusbar-tag-dialog label{display:block;margin:0 0 13px;color:var(--qp-text,var(--ql-text));font-size:13px;font-weight:650}
+html dialog.ql-statusbar-tag-dialog select,html dialog.ql-statusbar-tag-dialog textarea{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:11px 12px;border:var(--qp-bw,1px) solid var(--qp-line,var(--ql-border))!important;border-radius:var(--qp-btn-radius,9px)!important;background:var(--qp-bg,var(--ql-field))!important;color:var(--qp-text,var(--ql-text))!important;font:inherit;line-height:1.5;outline-color:var(--qp-sig,var(--ql-accent))}
+html dialog.ql-statusbar-tag-dialog textarea{min-height:104px;resize:vertical;margin:5px 0 16px}
+html dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:13px;border-top:1px solid var(--qp-line,var(--ql-border))}
+html dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-actions button{min-height:42px!important;justify-content:center!important;border:var(--qp-bw,1px) solid var(--qp-line,var(--ql-border))!important;border-radius:var(--qp-btn-radius,9px)!important;background:var(--qp-btn-bg,var(--ql-button-bg))!important;color:var(--qp-text,var(--ql-text))!important;font-family:inherit}
+html dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-actions button:active{background:var(--qp-btn-active,var(--ql-button-active))!important}
+html dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-actions .ql-statusbar-tag-save{background:var(--qp-sig,var(--ql-accent))!important;border-color:var(--qp-sig,var(--ql-accent))!important;color:var(--qp-on-sig,#fff)!important;font-weight:750}
+html[data-ql-style="pixel"] dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-actions button{box-shadow:3px 3px 0 rgba(93,110,73,.55)!important}
+html[data-ql-style="ccd"] dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-header{border-bottom-color:#4a4d55}
+html[data-ql-style="polaroid"] dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-header{border-bottom-style:dashed}
+html[data-ql-style="scroll"] dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-header{border-bottom:3px double var(--qp-line)}
+html[data-ql-style="scroll"] dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-title-mark{transform:rotate(45deg);border-radius:1px}
+html[data-ql-style="scroll"] dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-title-mark span{transform:rotate(-45deg)}
+html[data-ql-custom] dialog.ql-statusbar-tag-dialog{border-radius:var(--ql-radius,16px)!important}
+@media(max-width:520px){html dialog.ql-statusbar-tag-dialog .ql-statusbar-tag-shell{padding:16px}html dialog.ql-statusbar-tag-dialog{max-height:88dvh!important}}
