@@ -1354,7 +1354,7 @@ function renderStatusbarCard(frame,prompt,url,taskKey){
   for(const button of [edit,favorite,remove]){button.style.cssText+=';position:static!important;top:auto!important;right:auto!important;left:auto!important;bottom:auto!important;display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;flex:0 0 27px!important;width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important;padding:5px!important;border:1px solid rgba(255,255,255,.72)!important;border-radius:8px!important;background:rgba(20,16,22,.68)!important;color:#fff!important;touch-action:manipulation!important;';}
   actionBar.append(edit,favorite,remove);controls.append(prev,count,next,actionBar);
   const doc=frame.ownerDocument||document;
-  const tagDialog=doc.createElement('dialog');tagDialog.className='ql-statusbar-tag-dialog';tagDialog.dataset.qlStyle=document.documentElement.getAttribute('data-ql-style')||'soft';tagDialog.style.cssText='position:fixed;inset:0;margin:auto;width:min(460px,calc(100vw - 28px));max-width:calc(100vw - 28px);max-height:min(84dvh,720px);overflow:auto;box-sizing:border-box;padding:0;border:1px solid var(--ql-border,rgba(120,120,120,.28));border-radius:20px;background:var(--ql-card,#fff);color:var(--ql-text,#222);box-shadow:0 18px 60px rgba(0,0,0,.28);';applyChatTheme(tagDialog);
+  const tagDialog=doc.createElement('dialog');tagDialog.className='ql-statusbar-tag-dialog';tagDialog.style.cssText='position:fixed;inset:0;margin:auto;width:min(460px,calc(100vw - 28px));max-width:calc(100vw - 28px);max-height:min(84dvh,720px);overflow:auto;box-sizing:border-box;padding:0;';tagDialog.dataset.qlStyle=document.documentElement.getAttribute('data-ql-style')||'';if(document.documentElement.hasAttribute('data-ql-custom'))tagDialog.dataset.qlCustom='1';qlSyncPopupTheme(tagDialog);
   const dialogShell=doc.createElement('div');dialogShell.className='ql-statusbar-tag-shell';
   const dialogHeader=doc.createElement('div');dialogHeader.className='ql-statusbar-tag-header';
   const dialogTitle=doc.createElement('div');dialogTitle.className='ql-statusbar-tag-title';dialogTitle.innerHTML='<span class="ql-statusbar-tag-title-mark" aria-hidden="true">✦</span><span>修改 Tag</span>';
@@ -1623,7 +1623,7 @@ function qlRenderStyleOptions(){
 }
 // 外挂弹窗（相册三个点菜单、放大弹窗、选择弹窗、下载面板等）会被挂到面板之外，拿不到面板上的主题变量，
 // 背景/文字就会变成透明或回落到写死的颜色。这里统一把面板当前生效的主题变量同步给它们。
-const QL_POPUP_SELECTOR='.ql-album-menu-portal,dialog.ql-viewfinder-lightbox,.ql-detail-choice-overlay,[data-ql-download-sheet],.ql-album-move-overlay,#ql-image-cache-modal';
+const QL_POPUP_SELECTOR='.ql-album-menu-portal,dialog.ql-viewfinder-lightbox,dialog.ql-statusbar-tag-dialog,.ql-detail-choice-overlay,[data-ql-download-sheet],.ql-album-move-overlay,#ql-image-cache-modal';
 const QL_THEME_VAR_KEYS=['--ql-accent','--ql-panel','--ql-card','--ql-text','--ql-muted','--ql-border','--ql-field','--ql-button-bg','--ql-button-hover','--ql-button-active','--ql-button-border','--ql-button-text','--SmartThemeBodyColor','--SmartThemeBorderColor','--SmartThemeBlurTintColor','--SmartThemeEmColor','--SmartThemeQuoteColor'];
 function qlSyncPopupTheme(el){
  const panel=document.querySelector('#shizhen-panel');if(!panel||!el||el===panel||panel.contains(el))return;
