@@ -4952,3 +4952,19 @@ dialog.ql-statusbar-tag-dialog textarea{min-height:104px;resize:vertical;margin:
 .ql-statusbar-tag-actions button:active{background:var(--ql-button-active,#e3e8ee)!important}
 .ql-statusbar-tag-actions .ql-statusbar-tag-save{background:var(--ql-accent,#a7b8c9)!important;border-color:var(--ql-accent,#a7b8c9)!important;color:var(--ql-button-text,#fff)!important;font-weight:750}
 @media(max-width:520px){.ql-statusbar-tag-shell{padding:16px}.ql-statusbar-tag-title{font-size:17px}dialog.ql-statusbar-tag-dialog{max-height:88dvh!important}}
+
+/* ===== Vibe 池 / 分组 / 子页面 ===== */
+#shizhen-panel .ql-vsubtabs{display:flex;gap:6px;margin:0 0 10px;padding:4px;border:1px solid var(--ql-border);border-radius:12px;background:var(--ql-card)}
+#shizhen-panel .ql-vsubtab{flex:1 1 0;min-width:0;padding:8px 6px;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--ql-muted);font:inherit;font-weight:600;cursor:pointer}
+#shizhen-panel .ql-vsubtab.active{background:var(--ql-accent);border-color:var(--ql-accent);color:var(--ql-button-text,#fff)}
+#shizhen-panel .ql-vcard,#shizhen-panel .ql-vref{display:flex;gap:10px;align-items:flex-start;margin:8px 0;padding:10px;border:1px solid var(--ql-border);border-radius:12px;background:var(--ql-card);color:var(--ql-text)}
+#shizhen-panel .ql-vcard-main{min-width:0;flex:1}
+#shizhen-panel .ql-vcard-name{display:block;overflow-wrap:anywhere}
+#shizhen-panel .ql-vcard-badges{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+#shizhen-panel .ql-vcard-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+#shizhen-panel .ql-vthumb{flex:0 0 64px;width:64px;height:64px;border-radius:10px;overflow:hidden;border:1px solid var(--ql-border);background:var(--ql-field);display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;line-height:1.3;color:var(--ql-muted)}
+#shizhen-panel .ql-vthumb img{width:100%;height:100%;object-fit:cover;display:block}
+#shizhen-panel .ql-vthumb.is-empty{padding:4px;box-sizing:border-box;border-style:dashed}
+#shizhen-panel .ql-vthumb.big{width:128px;height:128px;flex-basis:128px;margin:8px 0}
+#shizhen-panel [data-vsub-panel] input[type=range]{width:100%}
+@media(max-width:520px){#shizhen-panel .ql-vcard,#shizhen-panel .ql-vref{flex-wrap:wrap}#shizhen-panel .ql-vcard-actions{flex-direction:row;width:100%}#shizhen-panel .ql-vcard-actions button{flex:1}}
