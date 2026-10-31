@@ -288,12 +288,12 @@ function qlRenderMarkers(host,entries){
  return covered;
 }
 let qlImageRequestQueue=Promise.resolve();
-async function requestImage(prompt, negativeOverride, vibeItem=null){
- const queued=qlImageRequestQueue.then(()=>requestImageUnlocked(prompt,negativeOverride,vibeItem));
+async function requestImage(prompt, negativeOverride, vibeItem=null, naiPromptData=null){
+ const queued=qlImageRequestQueue.then(()=>requestImageUnlocked(prompt,negativeOverride,vibeItem,naiPromptData));
  qlImageRequestQueue=queued.catch(()=>{});
  return queued;
 }
-async function requestImageUnlocked(prompt, negativeOverride, vibeItem=null){
+async function requestImageUnlocked(prompt, negativeOverride, vibeItem=null, naiPromptData=null){
  const c=cfg();
  let raw='',data=null,res;
  if(c.provider==='novelai'||c.provider==='novelai-thirdparty'){
@@ -346,8 +346,12 @@ async function requestImageUnlocked(prompt, negativeOverride, vibeItem=null){
   }else if(isV4){
    parameters.reference_image_multiple_cached=[];
    parameters.characterPrompts=[];
-   parameters.v4_prompt={caption:{base_caption:prompt,char_captions:[]},use_coords:false,use_order:true};
-   parameters.v4_negative_prompt={caption:{base_caption:negative,char_captions:[]},legacy_uc:false};
+   const structured= naiPromptData&&Array.isArray(naiPromptData.characters)&&naiPromptData.characters.length>0
+    ?naiPromptData:null;
+   const baseCaption=structured?String(structured.basePrompt||prompt):prompt;
+   const characterCaptions=structured?structured.characters.map(character=>({char_caption:String(character.prompt||'')})):[];
+   parameters.v4_prompt={caption:{base_caption:baseCaption,char_captions:characterCaptions},use_coords:false,use_order:true};
+   parameters.v4_negative_prompt={caption:{base_caption:negative,char_captions:characterCaptions.map(()=>({char_caption:''}))},legacy_uc:false};
   }else{
    parameters.prompt=prompt;
   }
@@ -376,7 +380,9 @@ async function requestImageUnlocked(prompt, negativeOverride, vibeItem=null){
   const base=third?String(c.naiThirdEndpoint||'').replace(/\/$/,''):'https://image.novelai.net';
   if(third&&!base)throw new Error('请先填写 NAI 第三方 API 地址。');
   const endpoint=/\/ai\/generate-image$/i.test(base)?base:base+'/ai/generate-image';
-  const requestBody={input:prompt,model:naiModel,action:'generate',parameters,use_new_shared_trial:true};
+  const requestPrompt=isV4&&naiPromptData&&Array.isArray(naiPromptData.characters)&&naiPromptData.characters.length>0
+   ?String(naiPromptData.basePrompt||prompt):prompt;
+  const requestBody={input:requestPrompt,model:naiModel,action:'generate',parameters,use_new_shared_trial:true};
   res=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+naiKey},body:JSON.stringify(requestBody)});
   if(!res.ok){raw=await res.text();throw new Error('NovelAI 请求失败（HTTP '+res.status+'）：'+raw.slice(0,240));}
   let buffer;
@@ -2211,13 +2217,45 @@ function qlComposeViewfinderPrompt(artistPositive,prompt,roles){
  out.push(...parsed.rest);
  return out.filter(Boolean).join(', ');
 }
+function qlBuildStructuredViewfinderPrompt(artistPositive,prompt,roles){
+ const parsed=qlClassifyPrompt(prompt);
+ const list=Array.isArray(roles)?roles:[];
+ const appearanceOf=role=>String(role?.appearance||'').trim();
+ const base=[String(artistPositive||'').trim(),...parsed.quality,...parsed.counts.map(item=>item.tag),...parsed.markers.map(item=>item.tag),...parsed.rest].filter(Boolean).join(', ');
+ const characters=[];
+ const autoByKey=new Map(list.filter(role=>role&&role.key).map(role=>[role.key,role]));
+ const countIndexes={};
+ for(const count of parsed.counts){
+  const start=countIndexes[count.type]||0;
+  for(let n=1;n<=count.n;n++){
+   const role=autoByKey.get(count.type+'#'+(start+n)),appearance=appearanceOf(role);
+   if(appearance)characters.push({key:count.type+'#'+(start+n),prompt:count.type+', '+appearance});
+  }
+  countIndexes[count.type]=start+count.n;
+ }
+ for(const marker of parsed.markers){
+  const role=autoByKey.get(marker.key),appearance=appearanceOf(role);
+  if(!appearance)continue;
+  const identity=/^(girl|boy|other)/i.exec(marker.key)?.[1]?.toLowerCase();
+  characters.push({key:marker.key,prompt:(identity?identity+', ':'')+appearance});
+ }
+ for(const role of list){
+  if(role&&!role.key&&appearanceOf(role))characters.push({key:'manual',prompt:appearanceOf(role)});
+ }
+ return {basePrompt:base,characters};
+}
 function qlUpdateFinalPreview(){
  const node=$('#ql-final-prompt-text');if(!node)return;
  const s=cfg(),combo=s.activeConfigMode!=='separate'&&Number(s.activeComboIndex)>=0?s.combinations[Number(s.activeComboIndex)]:null;
  const presetIndex=combo?Number(combo.artistIndex??-1):Number(s.activePresetIndex??-1);
  const preset=presetIndex>=0?s.presets[presetIndex]:null;
  const prompt=String($('#ql-prompt')?.value||s.prompt||'').trim();
- node.textContent=qlComposeViewfinderPrompt(preset?.positive,prompt,s.viewfinderRoles)||'（还没有提示词）';
+ const structured=qlBuildStructuredViewfinderPrompt(preset?.positive,prompt,s.viewfinderRoles);
+ if(structured.characters.length){
+  node.textContent='Base Prompt\n'+(structured.basePrompt||'（空）')+'\n\nCharacter Prompts\n'+structured.characters.map((item,index)=>(index+1)+'. '+item.prompt).join('\n');
+ }else{
+  node.textContent=qlComposeViewfinderPrompt(preset?.positive,prompt,s.viewfinderRoles)||'（还没有提示词）';
+ }
 }
 function renderViewfinderRoles(){
  const host=$('#ql-viewfinder-roles');if(!host)return;
@@ -2819,7 +2857,7 @@ $('#ql-generate').onclick=async()=>{
  if(conf.provider==='novelai'&&!conf.naiApiKey){status('请在接口设置中填写 NovelAI 官网 Key。');return;}if(conf.provider==='novelai-thirdparty'&&(!conf.naiThirdEndpoint||!conf.naiThirdKey)){status('请填写 NAI 第三方接口地址和 Key。');return;}
  busy=true;$('#ql-generate').disabled=true;$('#ql-generate').classList.add('is-generating');{const ind=$('#ql-gen-indicator');if(ind){ind.hidden=false;ind.textContent='正在生图…';}}$('#ql-result').replaceChildren();status('正在请求生图接口……');
  try{
-  const activeCombo=conf.activeConfigMode!=='separate'&&Number(conf.activeComboIndex)>=0?conf.combinations[Number(conf.activeComboIndex)]:null;const activePresetIndex=activeCombo?Number(activeCombo.artistIndex??-1):Number(conf.activePresetIndex??-1);const activeVibeIndex=activeCombo?Number(activeCombo.vibeIndex??-1):Number(conf.activeVibeIndex??-1);const activeVibe=activeVibeIndex>=0?conf.vibes[activeVibeIndex]:null;const activePreset=activePresetIndex>=0?conf.presets[activePresetIndex]:null;qlReconcileRoles(conf.prompt);const finalPrompt=qlComposeViewfinderPrompt(activePreset?.positive,conf.prompt.trim(),conf.viewfinderRoles);const baseNegative=String(conf.negative||'').trim(),presetNegative=String(activePreset?.negative||'').trim();const finalNegative=[baseNegative,...(presetNegative&&presetNegative!==baseNegative?[presetNegative]:[])].filter(Boolean).join(', ');if(!finalPrompt.trim()){status('请填写正向提示词，或选择包含正向提示词的预设。');return;}const normalizePromptEntry=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();const normalizedBasePrompt=normalizePromptEntry(conf.prompt);const selectedPrompt=conf.viewfinderPromptUnlinked?null:(conf.prompts||[]).find(item=>item&&item.id&&item.id===conf.activePromptEntryId);const matchedPrompt=conf.viewfinderPromptUnlinked?null:(normalizedBasePrompt?(conf.prompts||[]).find(item=>item&&normalizePromptEntry(item.promptEn||item.prompt||'')===normalizedBasePrompt):null);const promptEntryId=selectedPrompt?.id||matchedPrompt?.id||null;const url=await requestImage(finalPrompt,finalNegative,activeVibe);const storedUrl=await persistImageToTavern(url,'manual-'+Date.now());
+  const activeCombo=conf.activeConfigMode!=='separate'&&Number(conf.activeComboIndex)>=0?conf.combinations[Number(conf.activeComboIndex)]:null;const activePresetIndex=activeCombo?Number(activeCombo.artistIndex??-1):Number(conf.activePresetIndex??-1);const activeVibeIndex=activeCombo?Number(activeCombo.vibeIndex??-1):Number(conf.activeVibeIndex??-1);const activeVibe=activeVibeIndex>=0?conf.vibes[activeVibeIndex]:null;const activePreset=activePresetIndex>=0?conf.presets[activePresetIndex]:null;qlReconcileRoles(conf.prompt);const finalPrompt=qlComposeViewfinderPrompt(activePreset?.positive,conf.prompt.trim(),conf.viewfinderRoles);const structuredPrompt=qlBuildStructuredViewfinderPrompt(activePreset?.positive,conf.prompt.trim(),conf.viewfinderRoles);const useStructuredNai=(conf.provider==='novelai'||conf.provider==='novelai-thirdparty')&&/^nai-diffusion-(?:4(?:-|$)|5-)/i.test(String(conf.naiModel||''))&&structuredPrompt.characters.length>0;const baseNegative=String(conf.negative||'').trim(),presetNegative=String(activePreset?.negative||'').trim();const finalNegative=[baseNegative,...(presetNegative&&presetNegative!==baseNegative?[presetNegative]:[])].filter(Boolean).join(', ');if(!finalPrompt.trim()){status('请填写正向提示词，或选择包含正向提示词的预设。');return;}const normalizePromptEntry=value=>String(value||'').trim().replace(/[\s,，、/／|;；·]+/gu,' ').toLowerCase();const normalizedBasePrompt=normalizePromptEntry(conf.prompt);const selectedPrompt=conf.viewfinderPromptUnlinked?null:(conf.prompts||[]).find(item=>item&&item.id&&item.id===conf.activePromptEntryId);const matchedPrompt=conf.viewfinderPromptUnlinked?null:(normalizedBasePrompt?(conf.prompts||[]).find(item=>item&&normalizePromptEntry(item.promptEn||item.prompt||'')===normalizedBasePrompt):null);const promptEntryId=selectedPrompt?.id||matchedPrompt?.id||null;const requestPrompt=useStructuredNai?structuredPrompt.basePrompt:finalPrompt;const url=await requestImage(requestPrompt,finalNegative,activeVibe,useStructuredNai?structuredPrompt:null);const storedUrl=await persistImageToTavern(url,'manual-'+Date.now());
   const img=document.createElement('img');img.alt='拾帧生成结果';img.dataset.qlStoredSrc=storedUrl;img.src=url;$('#ql-result').append(img);
   conf.records.unshift({at:Date.now(),source:'viewfinder',collection:'cache',prompt:finalPrompt,basePrompt:conf.prompt.trim(),negative:finalNegative,provider:conf.provider,model:conf.provider!=='openai'?conf.naiModel:conf.model,size:conf.provider!=='openai'?(conf.naiWidth+'x'+conf.naiHeight):conf.size,quality:conf.quality,dataUrl:storedUrl,preset:activePreset?{name:activePreset.name||'',positive:activePreset.positive||'',negative:activePreset.negative||'',index:activePresetIndex,source:activePreset.source||'local'}:null,vibe:activeVibe?{name:activeVibe.name||'',entries:(activeVibe.entries||[]).map(entry=>({strength:entry.strength??0.6,informationExtracted:entry.informationExtracted??1,identifier:entry.identifier||entry.raw?.identifier||'',type:entry.type||entry.raw?.type||'image'}))}:null,config:snapshotConfig(finalPrompt,finalNegative),
    // 由提示词库应用的提示词生成的图，默认先进「底片」；只有点收藏才归入对应的提示词图集（见 toggleViewfinderFavorite）。
